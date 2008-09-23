@@ -15,12 +15,12 @@
 \usage{runsteady(y, times=c(0,Inf), func, parms, stol=1e-8, rtol=1e-6, atol=1e-6,  
   jacfunc=NULL, jactype="fullint", mf=NULL, verbose=FALSE, tcrit=NULL,  
   hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord=NULL, bandup=NULL, 
- banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname, 
+ banddown=NULL, maxsteps=100000, dllname=NULL, initfunc=dllname,
   initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, ...)}
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y} has a name attribute, the names will be used to label the output matrix.}
   \item{times }{The simulation time. This should be a 2-valued vector, consisting of the initial time and the end time. 
-  The last value should be large enough to make sure that steady-state is effectively reached in this period.
+  The last time value should be large enough to make sure that steady-state is effectively reached in this period.
   The simulation will stop either when \code{times[2]} has been reached or when \code{maxsteps} have been performed.} 
   \item{func }{either an \R-function that computes the values of the
       derivatives in the ODE system (the \emph{model definition}) at time
@@ -40,8 +40,8 @@
       \code{time}, and whose next elements are global values that are required at
       each point in \code{times}.}
   \item{parms }{vector or list of parameters used in \code{func} or \code{jacfunc}.}
-  \item{stol }{steady-state tolerance; it is assumed that steady-state is reached if the sum of absolute values of the derivatives
-  drop below this number}
+  \item{stol }{steady-state tolerance; it is assumed that steady-state is reached if the average of absolute values of the derivatives
+  drops below this number}
   \item{rtol }{relative error tolerance of integrator, either a scalar or an array as
       long as \code{y}.  See details. }
   \item{atol }{absolute error tolerance of integrator, either a scalar or an array as
@@ -94,8 +94,10 @@
     If \code{y} has a names attribute, it will be used to label the output values. }
   \item{... }{ the number of "global" values returned}
 
-  The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
-    \code{precis} with the precision attained during each iteration.
+  The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached, the attribute
+    \code{precis} with the precision attained at the last iteration estimated as the mean absolute rate of change (sum(abs(dy))/n),
+    the attribute \code{time} with the simulation time reached and
+    the attribute \code{steps} with the number of steps performed.
       
     The output will also have the attributes \code{istate}, and \code{rstate}, two vectors with several useful elements of the dynamic simulation. 
     See details.
@@ -136,7 +138,7 @@ y<-c(OM=1,O2=1,SO4=1,HS=1)
 print( system.time(ST <- stode(y=y,fun=model,parms=pars,pos=TRUE)))
 
 print( system.time(
-ST2 <- runsteady(y=y,fun=model,parms=pars,times=c(0,100))))
+ST2 <- runsteady(y=y,fun=model,parms=pars,times=c(0,1000))))
 
 rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
 }
@@ -183,7 +185,7 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
 
   See \code{\link{stode}} for details.
    
-  \bold{Models} may be defined in compiled C or Fortran code, as well as in an R-function. See \code{\link{stode}} for details.
+  \bold{Models} may be defined in compiled C or Fortran code, as well as in an R-function. See function \code{\link{stode}} for details.
   
   The output will have the \bold{attributes *istate*, and *rstate*}, two vectors with several useful elements. 
       \cr if \code{verbose} = TRUE, the settings of istate and rstate will be written to the screen. 
@@ -209,6 +211,9 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
       \item 4: A tolerance scale factor, greater than 1.0, computed when a request for too much accuracy was detected.
       
       For more information, see the comments in the original code lsode.f}
-\seealso{}
+\seealso{\item \code{\link{stode}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is banded or full.
+\item \code{\link{stodes}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is sparse.
+  \item \code{\link{steady.band}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need NOT to be rearranged
+  \item \code{\link{steady.1D}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need to be rearranged}
 \keyword{math}
 

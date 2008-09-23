@@ -93,7 +93,7 @@ c initial guess for x
 
 c Iterations
       DO I = 1, maxiter 
-
+         niter = I
 c Create sparse jacobian
          CALL xSparseJacob (N, nnz, ian, jan, igp, jgp, ngp,                   &
      &     Svar, ewt, dSvar, beta, xmodel, time, out, nout, a)
@@ -105,6 +105,7 @@ c Check convergence
            precis(I) =precis(I)+ abs(beta(k))
            maxewt = MAX(maxewt, abs(BETA(k)/ewt(k)))
          ENDDO
+          precis(i) = precis(i)/N
          IF(maxewt .LE. 1) THEN
            SteadyStateReached = .TRUE.
            EXIT 
@@ -135,12 +136,26 @@ c Test convergence + new value of state variables
            IF (Positivity) Svar(k)=MAX(0.D0,Svar(k))
          ENDDO
          IF(RelativeChange<=TolChange)THEN
+c last precision reached
+            if (i .LT.  maxiter) THEN
+             precis(i+1) = 0.d0
+             DO j = 1, N
+              beta(j) = 0.D0
+             ENDDO
+             CALL XMODEL(N,time,Svar,beta,out,nout)
+
+             DO j=1, N
+               precis(i+1) = precis(i+1)+abs(beta(j))
+             ENDDO
+              precis(i+1) = precis(i+1)
+              niter = I+1
+            ENDIF
            SteadyStateReached = .TRUE.
            EXIT 
          ENDIF
 
          CALL errSET (N, ITOL, RTOL, ATOL, SVAR, EWT)
-         niter = I
+
 
       ENDDO
       dims(3) = nsp - esp

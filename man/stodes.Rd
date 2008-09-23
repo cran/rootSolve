@@ -76,7 +76,7 @@ rpar=NULL, ipar=NULL, nout=0, outnames = NULL, ...)}
     If \code{y} has a names attribute, it will be used to label the output values. }
   \item{... }{ the number of "global" values returned}
   The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
-    \code{precis} with the precision attained during each iteration.
+    \code{precis} with an estimate of the precision attained during each iteration, the mean absolute rate of change (sum(abs(dy))/n).
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{# 1000 simultaneous equations
@@ -135,6 +135,7 @@ control} performed by the solver. See help for \code{stode} for details.
 
 \bold{Models} may be defined in compiled C or Fortran code, as well as in R. See help for \code{stode} for details.}
 \seealso{\item \code{\link{stode}}, steady-state solver with full or banded jacobian.
+\item \code{\link{runsteady}}, for steady-state estimation by dynamically running till the derivatives become 0.
   \item \code{\link{steady.band}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need NOT to be rearranged
   \item \code{\link{steady.1D}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need to be rearranged}
 \keyword{math}

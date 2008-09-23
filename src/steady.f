@@ -105,9 +105,10 @@ c Check convergence
           precis(K) = 0.d0
           maxewt    = 0.d0
           DO I=1, N
-            precis(K) = max(precis(K),abs(BETA(I))) 
+            precis(K) = precis(K)+abs(BETA(I))
             maxewt = MAX(maxewt, abs(BETA(I)/ewt(i)))
           ENDDO
+          precis(K) = precis(K)/N
           IF(maxewt .LE. 1) THEN
               SteadyStateReached = .TRUE.
               EXIT 
@@ -156,6 +157,20 @@ c Test convergence + new value of state variables
 
           IF(RelativeChange<=TolChange)THEN
             SteadyStateReached = .TRUE.
+c last precision reached
+            IF (K .LT. maxiter) THEN
+             precis(K+1) = 0.d0
+             DO i = 1, N
+              beta(i) = 0.D0
+             ENDDO
+             CALL XMODEL(N,time,Svar,beta,out,nout)
+
+             DO I=1, N
+               precis(K+1) = precis(K+1)+abs(beta(I))
+             ENDDO
+             precis(K+1) = precis(K+1)/N
+             niter = K+1
+            ENDIF
             EXIT 
           ENDIF
 

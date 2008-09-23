@@ -15,7 +15,7 @@ steady  <- function (y,
 {
  if (method=="stode") stode(y,time,func,parms=parms,...) else
  if (method=="stodes") stodes(y,time,func,parms=parms,...) else
- if (method=="runsteady") runsteady(y,time,func,parms=parms,...) 
+ if (method=="runsteady") runsteady(y,times=time,func,parms=parms,...)
   
 }
 
@@ -67,7 +67,7 @@ steady.1D    <- function (y,
   if (method=="stode")
     out <- stode(y[ii],time,func=bmod,parms=parms,
                  bandup=nspec,banddown=nspec,jactype="bandint",...) else
-    out <- runsteady(y[ii],time,func=bmod,parms=parms,
+    out <- runsteady(y[ii],times=time,func=bmod,parms=parms,
                  bandup=nspec,banddown=nspec,jactype="bandint",...) 
                  
                  
@@ -363,10 +363,12 @@ stode         <- function(y,              # state variables
             y <- out                      # state variables of this time step
             if(ynames)  attr(y,"names")  <-  Ynames
             out2 <- Func2(time, y)[-1]      
-            out <- c(list(y=out), out2)                     
+            out <- c(list(y=y), out2)
         } else out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
-    } else out <- list(y=out)
-
+    } else {
+       if(ynames)  attr(out,"names")  <-  Ynames
+       out <- list(y=out)
+    }
     attr(out, "precis") <- precis
     attr(out, "steady") <- (steady==1   )
     if (verbose)

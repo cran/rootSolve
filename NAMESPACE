@@ -1,4 +1,4 @@
 useDynLib(rootSolve)
 
-export(gradient, jacobian.band, jacobian.full, multiroot, runsteady, steady, steady.1D, steady.2D, steady.band, stode, stodes, uniroot.all)
+export(gradient, hessian, jacobian.band, jacobian.full, multiroot, runsteady, steady, steady.1D, steady.2D, steady.band, stode, stodes, uniroot.all)
 

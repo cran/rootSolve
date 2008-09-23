@@ -65,7 +65,44 @@ Suitable for 1-D models that include transport only between adjacent layers and 
   matplot(ss,1:1000,type="l",lwd=2,main="steady.band", ylim=c(1000,0),
           ylab="water depth, m", xlab="concentration of sinking particles")
   legend("bottomright",legend=seq(from=0.1,to=1.1,by=0.2),lty=1:10,
-          title="decay rate",col=1:10,lwd=2)}
+          title="decay rate",col=1:10,lwd=2)
+
+#############################################################
+# 5001 simultaneous equations: solve
+# dy/dt = 0 = d2y/dx2 + 1/x*dy/dx + (1-1/(4x^2)y - sqrx(x)*cos(x),
+# over the interval [1,6]
+# with boundary conditions: y(1)=1, y(6)=-0.5
+#############################################################
+
+  derivs <- function(t,y,parms, x,dx,N,y1,y6)
+  {
+
+  # Numerical approximation of derivates:
+  # d2y/dx2 = (yi+1-2yi+yi-1)/dx^2
+   d2y <- (c(y[-1],y6) -2*y + c(y1,y[-N])) /dx/dx
+
+  # dy/dx = (yi+1-yi-1)/(2dx)
+   dy  <- (c(y[-1],y6) - c(y1,y[-N])) /2/dx
+
+   res <- d2y+dy/x+(1-1/(4*x*x))*y-sqrt(x)*cos(x)
+   return(list(res))
+  }
+
+dx     <- 0.001
+x      <- seq(1,6,by=dx)
+N      <- length(x)
+y  <- steady.band(y=rep(1,N),time=0,func=derivs,x=x,dx=dx,
+                  N=N,y1=1,y6=-0.5,nspec=1)$y
+plot(x,y,type="l",main="5001 nonlinear equations - banded Jacobian")
+
+# add the analytic solution for comparison:
+xx     <- seq(1,6,by=0.1)
+ana <- 0.0588713*cos(xx)/sqrt(xx)+1/4*sqrt(xx)*cos(xx)+
+       0.740071*sin(xx)/sqrt(xx)+1/4*xx^(3/2)*sin(xx)
+points(xx,ana)
+legend("topright",pch=c(NA,1),lty=c(1,NA),c("numeric","analytic"))
+
+          }
 \details{This is the method of choice for single-species 1-D models. 
 
 For multi-species 1-D models, this method can only be used if the state variables are arranged per box, per species (e.g. A[1],B[1],A[2],B[2],A[3],B[3],.... for species A, B). 

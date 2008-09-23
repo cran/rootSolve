@@ -78,7 +78,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   int  i, j, k, latol, lrtol, lrw, liw, maxit;
   double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *out, *dy, ss, sumder;
   int neq, itol, itask, istate, iopt, *iwork, jt, mflag, nout, ntot, is;
-  int *ipar, lrpar, lipar, isDll, isOut;
+  int *ipar, lrpar, lipar, isDll, isOut, Steady;
   
   deriv_func *derivs;
   jac_func   *jac;
@@ -223,6 +223,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   for (i = 5; i < 10; i++) is = is+iwork[i];
   if (ss >0 || is > 0) iopt = 1; /* non-standard input */
 
+  Steady = 0;
 /*                     ####   main time loop   ####                           */    
   for (i = 0; i < maxit; i++)
 	{  /* one step */
@@ -235,7 +236,11 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
     derivs (&neq, &tin, xytmp, dy, out, ipar) ;
     for (j = 0; j < neq; j++) sumder = sumder+fabs(dy[j]); 
 
-    if (sumder < Stol)  break; 
+    if (sumder/neq < Stol) {
+     Steady = 1;
+     break;
+    }
+    if (tin >= tout) break;
     
     /* errors? */
 	  if (istate == -2)
@@ -267,14 +272,16 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
 /*                    ####  an error occurred   ####                          */    
   if (istate < 0 ) warning("Returning early.  Results are accurate, as far as they go\n");
 
-  PROTECT(ISTATE = allocVector(INTSXP, 22));incr_N_Protect();
+  PROTECT(ISTATE = allocVector(INTSXP, 24));incr_N_Protect();
   for (k = 0;k<22;k++) INTEGER(ISTATE)[k+1] = iwork[k];
   INTEGER(ISTATE)[0] = istate;
+  INTEGER(ISTATE)[23] = Steady;
        
-  PROTECT(RWORK = allocVector(REALSXP, 6));incr_N_Protect();
+  PROTECT(RWORK = allocVector(REALSXP, 7));incr_N_Protect();
   for (k = 0;k<5;k++) REAL(RWORK)[k] = rwork[k+10];
 
-  REAL(RWORK)[5] = sumder;
+  REAL(RWORK)[5] = sumder/neq;
+  REAL(RWORK)[6] = tin;
 
   setAttrib(yout, install("rstate"), RWORK);    
   setAttrib(yout, install("istate"), ISTATE);    

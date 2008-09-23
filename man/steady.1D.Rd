@@ -60,13 +60,13 @@ O2BOD <- function(t,state,pars)
   FluxBOD <-  v*c(BOD_0,BOD)  # fluxes due to water transport
   FluxO2  <-  v*c(O2_0,O2)
   
-  BODrate <- r*BOD            # 1-st order consumption
+  BODrate <- r*BOD*O2/(O2+10)  # 1-st order consumption, Monod in oxygen
 
 #rate of change = flux gradient - consumption  + reaeration (O2)
   dBOD         <- -diff(FluxBOD)/dx  - BODrate
   dO2          <- -diff(FluxO2)/dx   - BODrate + p*(O2sat-O2)
 
-  return(list(c(dBOD=dBOD,dO2=dO2)))
+  return(list(c(dBOD=dBOD,dO2=dO2),BODrate=BODrate))
 
  }    # END O2BOD
  
@@ -75,29 +75,41 @@ O2BOD <- function(t,state,pars)
 # Model application#
 #==================#
 # parameters
-dx      <- 50        # grid size, meters
-v       <- 1e3       # velocity, m/day
-x       <- seq(dx/2,50000,by=dx)  # m, distance from river
+dx      <- 100       # grid size, meters
+v       <- 1e2       # velocity, m/day
+x       <- seq(dx/2,10000,by=dx)  # m, distance from river
 N       <- length(x)
-r       <- 0.10      # /day, first-order decay of BOD
-p       <- 0.5       # /day, air-sea exchange rate 
+r       <- 0.1       # /day, first-order decay of BOD
+p       <- 0.1       # /day, air-sea exchange rate
 O2sat   <- 300       # mmol/m3 saturated oxygen conc
-O2_0    <- 200       # mmol/m3 riverine oxygen conc
-BOD_0   <- 1000      # mmol/m3 riverine BOD concentration
+O2_0    <- 50        # mmol/m3 riverine oxygen conc
+BOD_0   <- 1500      # mmol/m3 riverine BOD concentration
 
 # initial guess:
 state <- c(rep(200,N),rep(200,N))
 
 # running the model
-#  step 1  : model spinup
-out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2)
+print(system.time(
+ out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,pos=TRUE)))
 
 #==================#
 # Plotting output  #
 #==================#
+mf <- par(mfrow=c(2,2))
 plot(x,out$y[(N+1):(2*N)],xlab= "Distance from river", 
-     ylab="mmol/m3",main="Oxygen in river",type="l")
+     ylab="mmol/m3",main="Oxygen",type="l")
 
+plot(x,out$y[1:N],xlab= "Distance from river",
+     ylab="mmol/m3",main="BOD",type="l")
+
+plot(x,out$BODrate,xlab= "Distance from river",
+     ylab="mmol/m3/d",main="BOD decay rate",type="l")
+par(mfrow=mf)
+
+# same, but now running dynamically to steady-state
+print(system.time(
+out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
+                    time=c(0,1000),method="runsteady")))
 
 ##################################################################
 ######  EXAMPLE 2: Silicate diagenesis                      ######

@@ -85,7 +85,7 @@ data.frame(type=c("stable","unstable","saddle","neutral",
            eigenvalue_1=c(A[1],B[1],C[1],D[1],E[1],F[1]),
            eigenvalue_2=c(A[2],B[2],C[2],D[2],E[2],F[2]))
 
-# 4. Limit cylces
+# 4. Limit cycles
 #----------------------------------------
 # From Soetaert and Herman (2008). A practical guide to ecological 
 # modelling. Using R as a simulation platform. Springer

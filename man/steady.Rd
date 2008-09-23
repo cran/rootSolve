@@ -20,8 +20,8 @@
       vector containing the derivatives of \code{y} with respect to
       \code{time}, and whose next elements are global values whose steady-state value is also required.}
   \item{parms }{parameters passed to \code{func}}      
-  \item{method }{the solution method to use, one of \code{stode} or \code{stodes}}
-  \item{... }{additional arguments passed to function \code{stode} or \code{stodes}}
+  \item{method }{the solution method to use, one of \code{stode}, \code{stodes} or \code{runsteady}}
+  \item{... }{additional arguments passed to function \code{stode}, \code{stodes} or \code{runsteady}}
 }
 \value{
   A list containing 
@@ -50,11 +50,14 @@
   
   pars <- list(gmax =0.5,eff = 0.5,
                ks =0.5, rB =0.01, dB =0.01, input=0.1)
-  
-  tout    <- c(0,1e10)
-
-  steady(y=c(Bact=0.1,Sub=0),time=c(0,10000),
+  # Newton-Raphson
+  steady(y=c(Bact=0.1,Sub=0),time=0,
          func=model,parms=pars,pos=TRUE)  
+
+  # Dynamic run to steady-state
+  as.data.frame(steady(y=c(Bact=0.1,Sub=0),time=c(0,1e5),
+         func=model,parms=pars,method="runsteady"))
+
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \details{This is simply a wrapper around the various steady-state solvers.

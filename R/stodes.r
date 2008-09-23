@@ -209,17 +209,19 @@ stodes        <- function(y,              # state variables
 ### saving results
     precis <- attr(out, "precis")
     steady <- attr(out, "steady")
-          
+
     attributes(out)<-NULL
     if (Nglobal > 0) {
        if (!is.character(func)) {         # if a DLL: already done...
             y <- out                      # state variables of this time step
             if(ynames)  attr(y,"names")  <-  Ynames
             out2 <- Func2(time, y)[-1]
-            out <- c(list(y=out), out2)
+            out <- c(list(y=y), out2)
         } else out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
-    } else out <- list(y=out)
-
+    } else {
+     if(ynames)  attr(out,"names")  <-  Ynames
+     out <- list(y=out)
+    }
     attr(out, "precis") <- precis
     attr(out, "steady") <- (steady[1]==1   )
     attr(out, "dims"  ) <- steady[2:4]

@@ -51,10 +51,12 @@
     \code{dllname}. In some circumstances, supplying
     \code{jacfunc} can speed up the computations.  The \R calling sequence for
     \code{jacfunc} is identical to that of \code{func}.      
-    \cr If the Jacobian is a full matrix, \code{jacfunc} should return a matrix dydot/dy, where the ith
+
+     If the Jacobian is a full matrix, \code{jacfunc} should return a matrix dydot/dy, where the ith
     row contains the derivative of \eqn{dy_i/dt} with respect to \eqn{y_j},
     or a vector containing the matrix elements by columns (the way \R and Fortran store matrices).
-    \cr If the Jacobian is banded, \code{jacfunc} should return a matrix containing only the 
+
+     If the Jacobian is banded, \code{jacfunc} should return a matrix containing only the
     nonzero bands of the jacobian, (dydot/dy), rotated row-wise.}
   \item{jactype }{the structure of the Jacobian, one of "fullint", "fullusr", "bandusr", or "bandint" - either full or banded and estimated internally or by user}
   \item{verbose }{if TRUE: full output to the screen, e.g. will output the steady-state settings}
@@ -79,7 +81,7 @@
     If \code{y} has a names attribute, it will be used to label the output values. }
   \item{... }{ the number of "global" values returned}
   The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
-    \code{precis} with the precision attained during each iteration.
+    \code{precis} with an estimate of the precision attained during each iteration, the mean absolute rate of change (sum(abs(dy))/n).
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{# 1000 simultaneous equations
@@ -110,9 +112,12 @@ ss   <- stode(runif(N),func=model,parms=NULL,positive=TRUE, decay=5,ing=20)
 plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
 xlab="Nonlocal exchange",ylab="sediment depth",main="stode, full jacobian")}
 \references{For a description of the Newton-Raphson method, e.g.
-\cr Press, WH, Teukolsky, SA, Vetterling, WT, Flannery, BP, 1996. Numerical Recipes in FORTRAN. The Art of Scientific computing. 2nd edition. Cambridge University Press.
-\cr The algorithm uses LINPACK code:
-\cr Dongarra, J.J., J.R. Bunch,  C.B. Moler and G.W. Stewart, 1979. LINPACK user's guide, SIAM, Philadelphia.}
+
+Press, WH, Teukolsky, SA, Vetterling, WT, Flannery, BP, 1996. Numerical Recipes in FORTRAN. The Art of Scientific computing. 2nd edition. Cambridge University Press.
+
+The algorithm uses LINPACK code:
+
+Dongarra, J.J., J.R. Bunch,  C.B. Moler and G.W. Stewart, 1979. LINPACK user's guide, SIAM, Philadelphia.}
 \details{The work is done by a Fortran 77 routine that implements the Newton-Raphson method. It uses code from LINPACK. 
 
 The form of the \bold{Jacobian} can be specified by \code{jactype} which can take the following values:
@@ -143,14 +148,17 @@ In addition, the solver will stop if between two iterations, the maximal change 
   
 
 \bold{Models} may be defined in compiled C or Fortran code, as well as in R. 
-\cr If \code{func} or \code{jacfunc} are a string, then they are assumed to be compiled code.
-\cr In this case, \code{dllname} must give the name of the shared library (without extension) which must be loaded before lsode() is called. 
+
+ If \code{func} or \code{jacfunc} are a string, then they are assumed to be compiled code.
+
+ In this case, \code{dllname} must give the name of the shared library (without extension) which must be loaded before lsode() is called.
 
 \item If \code{func} is a user-supplied \bold{R-function}, it must be called as: yprime = func(t, y, parms,...). 
 t is the \code{time} at which the steady-state should be estimated, \code{y} is the current estimate of the variables in the ode system. 
 The return value of \code{func} should be a list, whose first element is a vector containing the derivatives of \code{y} with respect to \code{time}, 
 and whose next elements contains output variables whose values at steady-state are also required . 
-\cr An example is given below:
+
+ An example is given below:
 
   \code{model<-function(t,y,pars)}\cr
   \code{\{}\cr
@@ -303,7 +311,8 @@ After loading the DLL, the model can be solved:
 
 Examples in both C and Fortran are in the \file{dynload} subdirectory of
 the \code{rootSolve} package directory.}
-\seealso{\item \code{\link{stodes}}, for steady-state estimation, when the jacobian matrix is sparse.
+\seealso{\item \code{\link{stodes}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is sparse.
+\item \code{\link{runsteady}}, for steady-state estimation by dynamically running till the derivatives become 0.
   \item \code{\link{steady.band}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need NOT to be rearranged 
   \item \code{\link{steady.1D}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need to be rearranged}
 \note{The implementation of \code{stode} and substantial parts of the help file is similar to the implementation of the integration routines (e.g. \code{lsode}) from package deSolve.}

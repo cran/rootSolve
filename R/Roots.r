@@ -13,7 +13,6 @@
 ##                                                                            ##
 ################################################################################
 
-# requires: Inverse (banded)
 ##############################################################################
 ##                                                                          ##
 ## NONLINEAR INVERSE MODELLING                                              ## 
@@ -21,8 +20,6 @@
 ##                                                                          ##
 ##############################################################################
                                                                                                        
-
-
 ################################################################################
 ## Perturb     : adds the numerical differencing value to a value             ##
 ################################################################################
@@ -88,6 +85,7 @@ multiroot <- function(f,              # function for which the root is sought
                       atol=1e-8,        # absolute tolerance 
                       ctol=1e-8,        # minimal change in dy 
                       useFortran=TRUE,
+                      positive=FALSE,
                       ...)            # additional arguments passed to function 'f'
  {
     N        <- length(start)  
@@ -112,10 +110,9 @@ multiroot <- function(f,              # function for which the root is sought
 
 if (useFortran)
 { 
-  Fun <- function (time=0,x,parms=NULL,...)
-     list(f(x,...))
+  Fun <- function (time=0,x,parms=NULL) list(f(x,...))
  
-  x <- steady(y=start,time=0,func=Fun,parms=NULL,atol=atol,
+  x <- steady(y=start,time=0,func=Fun,parms=NULL,atol=atol,positive=positive,
               rtol=rtol,ctol=ctol,jacfunc="fullint",maxiter=maxiter)
   precis <- attr(x,"precis")
   attributes(x)<-NULL
@@ -139,7 +136,7 @@ if (useFortran)
   for (i in 1:maxiter)
    {
     refx   <- x     
-    pp     <- max(abs(reffx)) # check convergence... 
+    pp     <- mean(abs(reffx)) # check convergence...
     precis <- c(precis,pp)
     ewt    <- rtol*abs(x)+atol
     if (max(abs(reffx/ewt))<1) break
@@ -178,6 +175,7 @@ if (useFortran)
 
 gradient<- function(f,    # function returning a set of function values, as a vector
                     x,    # variables
+                    centered = FALSE,
                     ...)  # additional arguments passed to function "f"...)              
 {
 
@@ -198,21 +196,69 @@ gradient<- function(f,    # function returning a set of function values, as a ve
        jacob  <- matrix(nrow=Nf,ncol=Nx,data=0)
        for (j in 1:Nx)
           {
-
+          # forward
            x[j] <- x[j]+delt[j]
 
            # recalculate model function value
            newf  <- f(x,...)
+           del   <- (newf-reff)/delt[j]
+           
+           if (centered)
+            {
+           # backward formula
+           x[j] <- refx[j]-delt[j]
+           # recalculate model function value
+           newf  <- f(x,...)
+           del   <- (del-(newf-reff)/delt[j])/2
+            }
 
            # impact of the current variable on function values
-           jacob [,j] <- (newf-reff)/delt[j]             
+           jacob [,j] <- del
 
            x[j] <- refx[j]   # restore
            }
         colnames(jacob) <- names(x)   
+        rownames(jacob) <- attr(del,"names")
         return(jacob)
 
 } ## END gradient
+
+################################################################################
+## hessian    : generates the hessian matrix by forward numerical differencing##
+################################################################################
+hessian <- function (f,
+                     x,
+                     centered=FALSE,
+                     ...)
+ {
+    if (!is.numeric(x))
+        stop("x-values should be numeric")
+    refx <- x
+    reff <- gradient(f,x, ...)
+    Nx <- length(x)
+    Nf <- length(reff)
+    delt <- perturb(x)
+    hess <- matrix(nrow = Nf, ncol = Nx, data = 0)
+    for (j in 1:Nx) {
+        x[j] <- x[j] + delt[j]
+        newf <- gradient(f,x, centered=centered, ...)
+        del <- (newf - reff)/delt[j]
+        if (centered)
+            {
+           # backward formula
+           x[j] <- refx[j]-delt[j]
+           # recalculate model function value
+           newf  <- gradient(f,x, centered=centered, ...)
+           del   <- (del-(newf-reff)/delt[j])/2
+            }
+
+        hess[, j] <- del
+        x[j] <- refx[j]
+    }
+    colnames(hess) <- names(x)
+    rownames(hess) <- attr(del, "names")
+    return(hess)
+ }
 
 ################################################################################
 ## jacobian.full  : generates a full jacobian matrix by numerical differencing    ##

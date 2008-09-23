@@ -8,7 +8,7 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   rtol=1e-6, atol=1e-6, 
   jacfunc=NULL, jactype = "fullint", mf = NULL, verbose=FALSE, 
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, 
-  maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=5000, 
+  maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=100000,
   dllname=NULL,initfunc=dllname, initpar=parms, 
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL,...)  
 {
@@ -272,9 +272,14 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
      
     } else out<- list(y=y)
 
-    attr(out, "istate") <- istate 
-    attr(out, "rstate") <- rstate 
-        
+    attr(out, "istate") <- istate[-24]
+    attr(out, "rstate") <- rstate[-c(6,7)]
+
+    attr(out, "precis") <- rstate[6]
+    attr(out, "steady") <- istate[24]==1
+    attr(out, "time") <- rstate[7]
+    attr(out, "steps") <- istate[12]
+    
     if (verbose)
     {
       print("--------------------")    
