@@ -198,11 +198,20 @@ stodes        <- function(y,              # state variables
     imp <- 22
     storage.mode(y) <- "double"
     storage.mode(rtol) <- storage.mode(atol) <- storage.mode(ctol) <- "double"
+    Pos <- FALSE
+    if (is.logical(positive))
+      {Pos <- positive } else {
+# check for validity: should be a number between 1 and n (the number of state variables)
+       if (! is.vector(positive)) stop ("'positive' should either be TRUE/FALSE or
+             a VECTOR with indices to the state variables that have to be positive")
+       if (max(positive) > n) stop ("the elements of 'positive' should be < the number of state variables")
+       if (min(positive) < 1) stop ("the elements of 'positive' should be >0")
+      }
 
     out <- .Call("call_stsparse", y, as.double(time), Func, as.double(initpar),
         ctol, atol, rtol, as.integer(itol), rho,  ModelInit, as.integer(verbose),
         as.integer(imp),as.integer(nnz),as.integer(lrw),as.integer(ngp),as.integer(maxiter),
-        as.integer(positive),as.integer(Nglobal),
+        as.integer(Pos),as.integer(positive),as.integer(Nglobal),
         as.double (rpar), as.integer(ipar), as.integer(Type),
         as.integer(ian),as.integer(jan), PACKAGE = "rootSolve")
 
@@ -217,7 +226,10 @@ stodes        <- function(y,              # state variables
             if(ynames)  attr(y,"names")  <-  Ynames
             out2 <- Func2(time, y)[-1]
             out <- c(list(y=y), out2)
-        } else out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
+        } else {
+         out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
+         names(out$var) <- Nmtot
+         }
     } else {
      if(ynames)  attr(out,"names")  <-  Ynames
      out <- list(y=out)

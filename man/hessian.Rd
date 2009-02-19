@@ -6,11 +6,12 @@ estimates the hessian matrix by numerical differencing.
  The hessian matrix is a square matrix of second-order partial derivatives of the function
  f with respect to x. It contains, on rows i and columns j
  \deqn{d^2(f(x))/d(x_i)/d(x_j)} }
-\usage{hessian(f, x, centered = FALSE, ...)}
+\usage{hessian(f, x, centered = FALSE, pert=1e-8, ...)}
 \arguments{
   \item{f }{function returning one function value, or a vector of function values}
   \item{x }{either one value or a vector containing the x-value(s) at which the hessian matrix should be estimated}
   \item{centered }{if TRUE, uses a centered difference approximation, else a forward difference approximation}
+  \item{pert }{numerical perturbation factor; increase depending on precision of model solution}
   \item{... }{other arguments passed to function \code{f}}
 }
 \value{

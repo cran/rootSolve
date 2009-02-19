@@ -6,11 +6,12 @@
  \deqn{d(f(x)_i)/d(x_j)}
 
   The gradient matrix is not necessarily square}
-\usage{gradient(f, x, centered = FALSE, ...)}
+\usage{gradient(f, x, centered = FALSE, pert=1e-8, ...)}
 \arguments{
   \item{f }{function returning one function value, or a vector of function values}
   \item{x }{either one value or a vector containing the x-value(s) at which the gradient matrix should be estimated}
   \item{centered }{if TRUE, uses a centered difference approximation, else a forward difference approximation}
+  \item{pert }{numerical perturbation factor; increase depending on precision of model solution}
   \item{... }{other arguments passed to function \code{f}}
 }
 \value{

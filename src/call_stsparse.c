@@ -9,7 +9,7 @@ void F77_NAME(dsparse)(void (*)(int *, double *, double *, double *, double*, in
 		     double *, double *, double *, int*, int*, int*, int*, int*, 
          int*, int*, int*, int*, 
          int *, double *, double *, double *, int *,
-		     int *, int *, double *, int*, 
+		     int *, int *, int *, int *, double *, int*,
          int *, double *, int *, int*);
 
 static void stsparse_derivs (int *neq, double *t, double *y, double *ydot, 
@@ -36,14 +36,14 @@ typedef void init_func(void (*)(int *, double *));
 
 SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, 
-		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Pos, 
-    SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan)
+		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
+    SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan)
 {
   SEXP   yout, RWORK, IWORK;
   int    j, k, ny, isOut, maxit, isSteady;
   double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol, *out;
   double *x, *precis, *ewt, *rsp ;
-  int    neq, nnz, nsp, ngp, jt, niter, mflag, nout, ntot, pos, Itol, type;
+  int    neq, nnz, nsp, ngp, jt, niter, mflag, nout, ntot, posit, *pos, ipos, Itol, type;
   int    *R, *C, *IC, *ian, *jan, *igp, *jgp, *isp, *dims;
   int    *ipar, lrpar, lipar, len, isDll ;
     
@@ -59,9 +59,14 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   ny    = LENGTH(y);
   Itol  = INTEGER(itol)[0];
   maxit = INTEGER(nIter)[0];  
-  pos   = INTEGER(Pos)[0];  
   type  = INTEGER(Type)[0];
-  
+
+  posit = INTEGER(Posit)[0];   /* positivity of state variables: either specified at once, or via a vector..*/
+  ipos = LENGTH(Pos);
+  pos = (int *) R_alloc(ipos, sizeof(int));
+    for (j = 0; j < ipos; j++) pos[j] = INTEGER(Pos)[j];
+
+
   neq   = ny; 
   mflag = INTEGER(verbose)[0];
   nout  = INTEGER(nOut)[0];
@@ -206,7 +211,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
       
 	  F77_CALL(dsparse) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
          alpha, ewt, rsp, ian, jan, igp, jgp, &ngp, R, C, IC, isp,
-			   &maxit,  &Chtol, Atol, Rtol, &Itol, &pos, &isSteady, 
+			   &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
          precis, &niter, dims, out, ipar, &type);
 
 	  for (j = 0; j < ny; j++)

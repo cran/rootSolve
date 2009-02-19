@@ -17,7 +17,7 @@ Assumes a full Jacobian matrix, uses the Newton-Raphson method}
   \item{atol }{absolute error tolerance, either a scalar or a vector, one value for each element in x}
   \item{ctol }{a scalar. If between two iterations, the maximal change in the variable values is less than this amount, then it is assumed that the root is found}
   \item{useFortran }{logical, if FALSE, then an \R -implementation of the Newton-Raphson method is used - see details}
-  \item{positive} {if TRUE, the unknowns y are forced to be non-negative numbers}
+  \item{positive}{if TRUE, the unknowns y are forced to be non-negative numbers}
   \item{... }{additional arguments passed to function \code{f}}
 }
 \value{
@@ -63,7 +63,7 @@ X\%*\%X\%*\%X
 }
 \details{\code{start} gives the initial guess for each variable; different initial guesses may return different roots.
 
-The input parameters \code{rtol}, and \code{atol} determine the \bold {error
+The input parameters \code{rtol}, and \code{atol} determine the \bold{error
   control} performed by the solver.  
   
   The solver will control the vector

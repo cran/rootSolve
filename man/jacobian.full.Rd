@@ -5,13 +5,14 @@
  function value for each (state) variable (e.g. the rate of change),
  estimates the Jacobian matrix (\eqn{d(f(x))/d(x)}) 
  \cr Assumes a full and square Jacobian matrix}
-\usage{jacobian.full(y, func, dy =NULL, time=0, parms=NULL, ...)}
+\usage{jacobian.full(y, func, dy =NULL, time=0, parms=NULL, pert=1e-8, ...)}
 \arguments{
   \item{y }{(state) variables, a vector; if \code{y} has a name attribute, the names will be used to label the Jacobian matrix columns}
   \item{func }{function that calculates one function value for each element of \code{y}; if an ODE system, \code{func} calculates the rate of change (see details)}
   \item{dy }{reference function value; if not specified, it will be estimated by calling \code{func}}
   \item{time }{time, passed to function \code{func}}
   \item{parms }{parameter values, passed to function \code{func}}
+  \item{pert }{numerical perturbation factor; increase depending on precision of model solution}
   \item{... }{other arguments passed to function \code{func}}
 }
 \value{
@@ -108,11 +109,12 @@ eigen(jacobian.full(c(x=0,y=0),eqn2,parms=c(a=-1,b=1,e=1,f=1)))$values}
 	consistent with functions called from R-package \code{deSolve}, which contains integration routines.
 	
   This function call is as: \bold{function(time,y,parms,...)} where
+  \itemize{
 	\item \code{y} : (state) variable values at which the Jacobian is estimated.
 	\item \code{parms}: parameter vector  - need not be used.
 	\item \code{time}: time at which the Jacobian is estimated - in general, \code{time} will not be used.   
 	\item \code{...}: (optional) any other arguments
-
+}
   The Jacobian is estimated numerically, by perturbing the x-values.}
 \seealso{\code{\link{jacobian.band}}, for a banded jacobian matrix
   \cr \code{\link{gradient}}, for a full (not necessarily square) gradient matrix and where the function call is simpler}

@@ -17,8 +17,8 @@ c**********************************************************************
      
        SUBROUTINE dsparse(xmodel,N,nnz,nsp,time,Svar,dSvar,beta,x,             &
      &                   a,ewt,rsp,ian,jan,igp,jgp,maxg,r,c,ic,isp,            &
-     &                   maxiter,TolChange,atol,rtol,itol,                     &
-     &                   Positivity,SteadyStateReached,Precis,niter,           &
+     &                   maxiter,TolChange,atol,rtol,itol,Positivity,          &
+     &                   Pos,ipos,SteadyStateReached,Precis,niter,             &
      &                   dims, out,nout ,Type)
 
 c------------------------------------------------------------------------------*
@@ -47,7 +47,9 @@ c transpose of jacobian
       DOUBLE PRECISION  a(*)
 
 c false if failed - true if variables must be positive 
+c positivity either enforced at once (positivity=TRUE) or as a vector of elements
       LOGICAL SteadyStateReached, positivity
+      INTEGER  Ipos, Pos(Ipos)
 
 c tolerances, precision
       INTEGER          itol, Type
@@ -135,6 +137,12 @@ c Test convergence + new value of state variables
            Svar(k)         = Svar(k)+x(k)
            IF (Positivity) Svar(k)=MAX(0.D0,Svar(k))
          ENDDO
+         IF (.not. positivity .and. ipos .GT. 1) THEN
+              DO K = 1, ipos
+                Svar(Pos(K)) = MAX(0.D0,Svar(Pos(K)))
+              ENDDO
+         ENDIF
+
          IF(RelativeChange<=TolChange)THEN
 c last precision reached
             if (i .LT.  maxiter) THEN

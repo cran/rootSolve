@@ -211,7 +211,9 @@ f2<-function(x)
  X<-matrix(nr=5,x)
  X %*% X %*% X -matrix(nr=5,data=1:25,byrow=TRUE)
  }
+print(system.time(
 x<-multiroot(f2, start=1:25)$root
+))
 (X<-matrix(nr=5,x))
 
 X%*%X%*%X
@@ -300,7 +302,9 @@ pars <- c(D=1,Flux=100,r=0.1,rox =1,
 
 y<-c(OM=1,O2=1,SO4=1,HS=1)
 
+print(system.time(
 runsteady(y=y,fun=model,parms=pars,times=c(0,1e5))$y
+))
 @
 
 \subsection{Using the Newton-Raphson method}
@@ -360,11 +364,13 @@ species (\code{nspec=1}).
 dx     <- 0.001
 x      <- seq(1,6,by=dx)
 N      <- length(x)
+print(system.time(
 y  <- steady.band(y=rep(1,N),time=0,func=derivs,x=x,dx=dx,
                   N=N,y1=1,y6=-0.5,nspec=1)$y
+))
 @
-The steady-state of this system of 5001 nonlinear equations is retrieved in but
-a fraction of a second \footnote{on my computer that dates from 2005}.
+The steady-state of this system of 5001 nonlinear equations is retrieved in about
+0.03 seconds \footnote{on my computer that dates from 2008}.
 
 The analytical solution of this equation is known; after plotting the numerical
 approximation, it is added to the figure (figure \ref{fig:two}):
@@ -436,9 +442,12 @@ N       <- length(x)
 
 state <- c(rep(200,N),rep(200,N))    # initial guess of state variables:
 
+print(system.time(
 out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,pos=TRUE)
+))
 @
-Although this model consists of 2000 nonlinear equations, it takes less than a second to solve it.
+Although this model consists of 2000 nonlinear equations, it takes only 0.09
+seconds to solve it \footnote{on my computer that dates from 2008}.
 
 Finally the results are plotted (figure \ref{fig:bod}):
 <<label=BOD, include=FALSE>>=
@@ -524,13 +533,15 @@ a.o. the dimensionality of the problem (\code{dimens});
 \code{lrw=1000000}, the length of the work array needed by the solver. If this value
 is set too small, the solver will return with the size needed.
 
-It takes about 1 second to solve this 10000 state variable model.
+It takes about 0.5 second to solve this 10000 state variable model.
 
 <<>>=
   Conc0 <- matrix(nr=n,nc=n,10.)
+print(system.time(
 
   ST3  <- steady.2D(Conc0,func=diffusion2D,parms=NULL,pos=TRUE,dimens=c(n,n),
                  lrw=1000000,atol=1e-10,rtol=1e-10,ctol=1e-10)
+))
   Conc <- matrix(nr=n,nc=n,data=ST3$y)
 @
 <<label=steady2D, include=FALSE>>=

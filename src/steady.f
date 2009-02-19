@@ -18,7 +18,7 @@ c**********************************************************************
        SUBROUTINE dSteady(xmodel,N,numabd,time,Svar,beta,alpha,                &
      &                    ImplicitMethod,Bandup,BandDown,                      &
      &                    MaxIter,TolChange,atol,rtol,                         &
-     &                    itol,jac,Positivity,                                 &
+     &                    itol,jac,Positivity,Pos, ipos,                       &
      &                    SteadyStateReached,delt,copyvar,ewt,                 &
      &                    xindx,precis,niter,out,nout)
 c------------------------------------------------------------------------------*
@@ -45,8 +45,10 @@ c tolerances, precision
        DOUBLE PRECISION TolChange, atol(*),rtol(*) 
        DOUBLE PRECISION ewt(N), maxewt, RelativeChange,precis(MaxIter)
 
-c true if variables must be positive / false if failed
-       LOGICAL  Positivity, SteadyStateReached  
+c false if failed - true if variables must be positive
+c positivity either enforced at once (positivity=TRUE) or as a vector of elements
+       LOGICAL SteadyStateReached, positivity
+       INTEGER  Ipos, Pos(Ipos)
 
 c model and jacobian function
        EXTERNAL xmodel, jac  
@@ -74,7 +76,7 @@ c Internal acronyms for type of jacobian
      &            BandJacUser = 24,  BandJacIntern   = 25)
        CHARACTER (LEN=80) msg
 c-------------------------------------------------------------------------------
-     
+
        SteadyStateReached = .FALSE.     ! Steady state not yet reached
 
        DO K=1,MaxIter
@@ -154,6 +156,11 @@ c Test convergence + new value of state variables
             Svar(I)         = Svar(I)+BETA(I)
             IF (Positivity) Svar(I)=MAX(0.D0,Svar(I))
           ENDDO
+          if (.not. positivity .and. ipos .GT. 1) THEN
+              DO I = 1, ipos
+                Svar(Pos(I)) = MAX(0.D0,Svar(Pos(I)))
+              ENDDO
+          ENDIF
 
           IF(RelativeChange<=TolChange)THEN
             SteadyStateReached = .TRUE.

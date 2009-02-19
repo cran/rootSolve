@@ -5,7 +5,7 @@
 result from 2-Dimensional reaction-transport models that include transport only between adjacent layers }
 \usage{steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,...)}
 \arguments{
-  \item{y }{the initial guess of (state) values for the ODE system, a vector. If \code{y} has a name attribute, the names will be used to label the output matrix.}
+  \item{y }{the initial guess of (state) values for the ODE system, a vector. }
   \item{time }{time for which steady-state is wanted; the default is time=0}
   \item{func }{either an \R-function that computes the values of the derivatives in the ode system (the model defininition) at time \code{time}, 
     or a character string giving the name of a compiled function in a dynamically loaded shared library.
@@ -27,7 +27,7 @@ result from 2-Dimensional reaction-transport models that include transport only 
 \value{
    A list containing 
   \item{y }{ A vector with the state variable values from the last iteration during estimation of steady-state condition of the system of equations.     
-    If \code{y} has a names attribute, it will be used to label the output values. }
+    }
   \item{... }{ the number of "global" values returned}
   The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
     \code{precis} with the precision attained during each iteration.
@@ -85,9 +85,13 @@ Although a reasonable guess of \code{lrw} is made, it is likely that this will b
 
   See \code{stodes} for the additional options}
 \seealso{\code{\link{stodes}} for the additional options 
-  \item \code{\link{steady}}, for solving steady-state when the jacobian matrix is full 
-  \item \code{\link{steady.1D}}, for solving steady-state for 1-D models 
-  \item \code{\link{steady.2D}}, for steady-state estimation of 2-D models 
-  \item \code{\link{steady.band}}, for steady-state solution, when the jacobian matrix is banded  }
+
+   \code{\link{steady}}, for solving steady-state when the jacobian matrix is full
+
+   \code{\link{steady.1D}}, for solving steady-state for 1-D models
+
+   \code{\link{steady.2D}}, for steady-state estimation of 2-D models
+
+   \code{\link{steady.band}}, for steady-state solution, when the jacobian matrix is banded  }
 \keyword{math}
 

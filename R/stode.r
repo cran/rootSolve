@@ -25,6 +25,7 @@ steady.1D    <- function (y,
                        parms=NULL,
                        nspec = NULL,
                        dimens = NULL,
+                       names = NULL,
                        method="stode",
                        ...)
 {
@@ -33,10 +34,10 @@ steady.1D    <- function (y,
   if (is.null(dimens) && is.null(nspec)) 
      stop ("cannot run steady.1D: either nspec or dimens should be specified")
   N     <- length(y)
-  if (is.null(nspec)  ) nspec = N/dimens
+  if (is.null(nspec)  ) nspec <- N/dimens
   else if (N%%nspec != 0) 
      stop("cannot run steady.1D: nspec is not an integer fraction of number of state variables")
-   
+  if (! is.null(names) && length(names) != nspec) stop("length of names should equal nspec")
   if (method=="stodes")
   {
     dimens <- N/nspec
@@ -72,7 +73,12 @@ steady.1D    <- function (y,
                  
                  
   out[[1]][ii] <- out[[1]]
+  if (! is.null(names)) {
+    out[[1]] <- matrix(ncol=nspec,data=out[[1]])
+    colnames(out[[1]]) <- names
+    }
   }
+  
   return(out)
 }
 
@@ -154,7 +160,7 @@ stode         <- function(y,              # state variables
                           verbose=FALSE,    # 
                           bandup=1,         # upper band
                           banddown=1,       # lower band
-                          positive = FALSE,
+                          positive = FALSE,  # positivity of state variables
                           maxiter=100,    # maximal number of steps during one call to the solver
                           ynames=TRUE,      # if false: names of state variables are not passed to function func
                           dllname=NULL,     # 
@@ -345,11 +351,20 @@ stode         <- function(y,              # state variables
     storage.mode(rtol) <- storage.mode(atol) <- storage.mode(ctol) <- "double"
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
-                  
+    Pos <- FALSE
+    if (is.logical(positive))
+      {Pos <- positive } else {
+# check for validity: should be a number between 1 and n (the number of state variables)
+       if (! is.vector(positive)) stop ("'positive' should either be TRUE/FALSE or
+             a VECTOR with indices to the state variables that have to be positive")
+       if (max(positive) > n) stop ("the elements of 'positive' should be < the number of state variables")
+       if (min(positive) < 1) stop ("the elements of 'positive' should be >0")
+
+      }
     out <- .Call("call_dsteady", y, as.double(time), Func, as.double(initpar),    
         ctol, atol, rtol, as.integer(itol), rho,  JacFunc, ModelInit, as.integer(verbose),
         as.integer(imp),as.integer(bandup),as.integer(banddown),as.integer(maxiter), 
-        as.integer(positive),as.integer(Nglobal),as.integer(nabd),
+        as.integer(Pos),as.integer(positive),as.integer(Nglobal),as.integer(nabd),
         as.integer(nspec),as.integer(ndim),
         as.double (rpar), as.integer(ipar),PACKAGE = "rootSolve")
 
@@ -364,7 +379,10 @@ stode         <- function(y,              # state variables
             if(ynames)  attr(y,"names")  <-  Ynames
             out2 <- Func2(time, y)[-1]      
             out <- c(list(y=y), out2)
-        } else out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
+        } else
+        {out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
+        names(out$var) <- Nmtot
+        }
     } else {
        if(ynames)  attr(out,"names")  <-  Ynames
        out <- list(y=out)

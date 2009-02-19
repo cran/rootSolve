@@ -2,7 +2,7 @@
 \alias{steady}
 \title{General steady-state solver for a set of ordinary differential equations}
 \description{Estimates the steady-state condition for a system of ordinary differential equations. 
-	\cr This is a wrapper around steady-state solvers \code{stode} and \code{stodes}.}
+	\cr This is a wrapper around steady-state solvers \code{stode}, \code{stodes} and \code{runsteady}.}
 \usage{steady(y, time=0, func, parms=NULL, method="stode",...)}
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector. If \code{y} has a name attribute, the names will be used to label the output matrix.}
@@ -65,8 +65,11 @@
 \cr See the selected solver for the additional options}
 
 \seealso{\code{\link{stode}} and \code{\link{stodes}} for the additional options 
-  \item \code{\link{steady.1D}}, for steady-state estimation of 1-D models 
-  \item \code{\link{steady.2D}}, for steady-state estimation of 2-D models 
-  \item \code{\link{steady.band}}, for solving steady-state when the jacobian matrix is banded}
+
+   \code{\link{steady.1D}}, for steady-state estimation of 1-D models
+
+   \code{\link{steady.2D}}, for steady-state estimation of 2-D models
+
+   \code{\link{steady.band}}, for solving steady-state when the jacobian matrix is banded}
 \keyword{math}
 

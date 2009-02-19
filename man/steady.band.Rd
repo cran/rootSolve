@@ -110,8 +110,11 @@ For multi-species 1-D models, this method can only be used if the state variable
 Usually a 1-D *model* function will have the species arranged as A[1],A[2],A[3],....B[1],B[2],B[3],.... 
 in this case, use \code{steady.1D}}
 \seealso{\code{\link{stode}} for the additional options 
-   \item \code{\link{steady}}, for solving steady-state when the jacobian matrix is full 
-  \item \code{\link{steady.1D}}, for solving steady-state of 1-D models
-  \item \code{\link{steady.2D}}, for solving steady-state of 2-D models  }
+
+    \code{\link{steady}}, for solving steady-state when the jacobian matrix is full
+
+   \code{\link{steady.1D}}, for solving steady-state of 1-D models
+
+   \code{\link{steady.2D}}, for solving steady-state of 2-D models  }
 \keyword{math}
 

@@ -135,14 +135,14 @@ pars <- c(D=1,Flux=100,r=0.1,rox =1,
 y<-c(OM=1,O2=1,SO4=1,HS=1)
 
 # direct iteration
-print( system.time(ST <- stode(y=y,fun=model,parms=pars,pos=TRUE)))
+print( system.time(ST <- stode(y=y,func=model,parms=pars,pos=TRUE)))
 
 print( system.time(
-ST2 <- runsteady(y=y,fun=model,parms=pars,times=c(0,1000))))
+ST2 <- runsteady(y=y,func=model,parms=pars,times=c(0,1000))))
 
 rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
 }
-\references{\item Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
+\references{ Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
    Solvers," in Scientific Computing, R. S. Stepleman, et al., Eds.
    (North-Holland, Amsterdam, 1983), pp. 55-64.}
 \details{The work is done by the Fortran subroutine \code{dlsode},
@@ -157,14 +157,16 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
      which can be specified with \code{jactype} or \code{mf}.
   
   The options for \bold{jactype} are
+  \itemize{
       \item jactype = "fullint" : a full jacobian, calculated internally by lsode, corresponds to \code{mf}=22
       \item jactype = "fullusr" : a full jacobian, specified by user function \code{jacfunc}, corresponds to \code{mf}=21 
       \item jactype = "bandusr" : a banded jacobian, specified by user function \code{jacfunc}; the size of the bands specified by \code{bandup} and \code{banddown}, corresponds to \code{mf}=24
       \item jactype = "bandint" : a banded jacobian, calculated by lsode; the size of the bands specified by \code{bandup} and \code{banddown}, corresponds to \code{mf}=25
-      
+}
   More options are available when specifying \bold{mf} directly. 
      \cr The legal values of \code{mf} are 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 25.
      \cr \code{mf} is a positive two-digit integer, \code{mf} = (10*METH + MITER), where
+  \itemize{
   \item METH indicates the basic linear multistep method: METH = 1 means the implicit Adams method. METH = 2 means the method based on backward
   differentiation formulas (BDF-s).
   \item MITER indicates the corrector iteration method: MITER = 0 means functional iteration (no Jacobian matrix is involved).
@@ -177,7 +179,8 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
   MITER = 5 means chord iteration with an internally generated banded Jacobian (using ML+MU+1 extra calls to \code{func} per df/dy evaluation).
   
   If MITER = 1 or 4, the user must supply a subroutine \code{jacfunc}.
-  
+}
+
   Inspection of the example below shows how to specify both a banded and full jacobian. 
   
   The input parameters \code{rtol}, and \code{atol} determine the \bold{error
@@ -191,6 +194,7 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
       \cr if \code{verbose} = TRUE, the settings of istate and rstate will be written to the screen. 
       
       the following elements of \bold{istate} are meaningful:    
+\itemize{
       \item el 1 : returns the conditions under which the last call to the integrator returned. 
       2  if lsode was successful, -1 if excess work done, -2 means excess accuracy requested. (Tolerances too small), 
   -3 means illegal input detected. (See printed message.), -4 means repeated error test failures. (Check all input),
@@ -202,18 +206,23 @@ rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
       \item el 15 : The method order last used (successfully).,
       \item el 16 : The order to be attempted on the next step.,
       \item el 17 : if el 1 =-4,-5: the largest component in the error vector,
-  
+}
+
       \bold{rstate} contains the following:
+  \itemize{
       \item 1: The step size in t last used (successfully).
       \item 2: The step size to be attempted on the next step.
       \item 3: The current value of the independent variable which the solver has actually reached, i.e. the
   current internal mesh point in t.  
       \item 4: A tolerance scale factor, greater than 1.0, computed when a request for too much accuracy was detected.
-      
+}
       For more information, see the comments in the original code lsode.f}
-\seealso{\item \code{\link{stode}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is banded or full.
-\item \code{\link{stodes}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is sparse.
-  \item \code{\link{steady.band}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need NOT to be rearranged
-  \item \code{\link{steady.1D}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need to be rearranged}
+\seealso{ \code{\link{stode}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is banded or full.
+
+ \code{\link{stodes}}, for steady-state estimation using the Newton-Raphson method, when the jacobian matrix is sparse.
+
+   \code{\link{steady.band}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need NOT to be rearranged
+
+   \code{\link{steady.1D}}, for steady-state estimation, when the jacobian matrix is banded, and where the state variables need to be rearranged}
 \keyword{math}
 

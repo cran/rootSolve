@@ -3,15 +3,20 @@
 #include <time.h>
 #include <string.h>
 #include "steady.h"   
-                           
+ /* derivs,
+ neq,nabd,tin,svar,beta,alpha,
+    jt,bu,bd,maxit, chtol,atol,rtol,itol,
+    jac
+    posit,pos,ipos, issteady, delt,copyvar,ewt,indx,
+    precis, niter,out,ipar*/
+ 
 void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, int*),
 		     int *, int *, double *, double *, double *, double *,
-		     int *, int *, int *, 
-		     int *, double *,double *,double *, int*, 
+		     int *, int *, int *, int*, double *, double *, double *, int*,
 		     void (*)(int *, double *, double *, int *,
 			            int *, double *, int *, double*, int*),
-		     int *, int *, double *, double *, double *, int *, double *, int *, 
-         double *, int *);
+		     int *, int *, int *, int *, double *, double *, double *, int *,
+         double *, int *, double *, int *);
 
 typedef void deriv_func(int *, double *, double *,double *,double *, int *);
 deriv_func *derivb; 
@@ -83,14 +88,14 @@ typedef void init_func(void (*)(int *, double *));
 
 SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP jacfunc, SEXP initfunc, 
-		SEXP verbose, SEXP mf, SEXP BU, SEXP BD, SEXP nIter, SEXP Pos, 
+		SEXP verbose, SEXP mf, SEXP BU, SEXP BD, SEXP nIter, SEXP Posit, SEXP Pos,
     SEXP nOut,SEXP nAbd, SEXP nSpec, SEXP nDim, SEXP Rpar, SEXP Ipar)
 {
   SEXP   yout, RWORK, IWORK;
   int    j, k, ny, isOut, maxit, isSteady;
   double *svar, *dy, *beta, *alpha, tin, *Atol, *Rtol, Chtol, *out;
   double *copyvar, *delt, *precis, *ewt ;
-  int    neq, bu, bd, jt, niter, mflag, nout, ntot, nabd, pos, *indx, Itol;
+  int    neq, bu, bd, jt, niter, mflag, nout, ntot, nabd, posit, *pos, ipos, *indx, Itol;
   int    *ipar, lrpar, lipar, len, isDll, rearrange;
     
   deriv_func *derivs;
@@ -106,8 +111,12 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   ny = LENGTH(y);
   Itol = INTEGER(itol)[0];
   maxit = INTEGER(nIter)[0];  
-  pos = INTEGER(Pos)[0];  
-  
+  posit = INTEGER(Posit)[0];
+
+  ipos = LENGTH(Pos);
+  pos = (int *) R_alloc(ipos, sizeof(int));
+    for (j = 0; j < ipos; j++) pos[j] = INTEGER(Pos)[j];
+
   neq = ny; 
   mflag = INTEGER(verbose)[0];
   nout  = INTEGER(nOut)[0];
@@ -243,8 +252,8 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
       
 	  F77_CALL(dsteady) (derivs, &neq, &nabd, &tin, svar, beta, alpha,
-			   &jt, &bu, &bd, &maxit, &Chtol, Atol, Rtol, &Itol, jac, &pos, &isSteady, 
-         delt, copyvar, ewt, indx, precis, &niter, out, ipar);
+			   &jt, &bu, &bd, &maxit, &Chtol, Atol, Rtol, &Itol, jac, &posit, pos, &ipos,
+         &isSteady,delt, copyvar, ewt, indx, precis, &niter, out, ipar);
 
 	  for (j = 0; j < ny; j++)
 	    REAL(yout)[j] = svar[j];
@@ -270,4 +279,3 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   unprotect_all();
   return(yout);
 }
-

@@ -4,9 +4,9 @@
 \description{Estimates the steady-state condition for a system of ordinary differential equations that result
 from 1-Dimensional reaction-transport models that include transport only between adjacent layers and that model many species.}
 \usage{steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL, 
-                method = "stode",...)}
+                names=NULL,method = "stode",...)}
 \arguments{
-  \item{y }{the initial guess of (state) values for the ODE system, a vector. If \code{y} has a name attribute, the names will be used to label the output matrix.}
+  \item{y }{the initial guess of (state) values for the ODE system, a vector. }
   \item{time }{time for which steady-state is wanted; the default is time=0}
   \item{func }{either an \R-function that computes the values of the derivatives in the ode system (the model defininition) at time \code{time}, 
     or a character string giving the name of a compiled function in a dynamically loaded shared library.
@@ -25,13 +25,14 @@ from 1-Dimensional reaction-transport models that include transport only between
   \item{parms }{parameters passed to \code{func}}
   \item{nspec }{the number of *species* (components) in the model. If NULL, then \code{dimens} should be specified}
   \item{dimens}{the number of *boxes* in the model. If NULL, then \code{nspec} should be specified}
+  \item{names }{the names of the components; used to label the output, which will be written as a matrix}
   \item{method }{the solution method, one of "stode", "stodes" or "runsteady"}
   \item{... }{additional arguments passed to the solver function as defined by \code{method}}
 }
 \value{
   A list containing 
-  \item{y }{ A vector with the state variable values from the last iteration during estimation of steady-state condition of the system of equations.     
-    If \code{y} has a names attribute, it will be used to label the output values. }
+  \item{y }{ if \code{names} is not given: A vector with the state variable values from the last iteration during estimation of steady-state condition of the system of equations.
+  if \code{names} is given, a matrix with one column for every steady-state *component*}
   \item{... }{ the number of "global" values returned}
 
   The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
@@ -90,16 +91,17 @@ state <- c(rep(200,N),rep(200,N))
 
 # running the model
 print(system.time(
- out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,pos=TRUE)))
+ out   <- steady.1D (y=state,func=O2BOD,parms=NULL,
+                     nspec=2,pos=TRUE,names=c("BOD","O2"))))
 
 #==================#
 # Plotting output  #
 #==================#
 mf <- par(mfrow=c(2,2))
-plot(x,out$y[(N+1):(2*N)],xlab= "Distance from river", 
+plot(x,out$y[,"O2"],xlab= "Distance from river",
      ylab="mmol/m3",main="Oxygen",type="l")
 
-plot(x,out$y[1:N],xlab= "Distance from river",
+plot(x,out$y[,"BOD"],xlab= "Distance from river",
      ylab="mmol/m3",main="BOD",type="l")
 
 plot(x,out$BODrate,xlab= "Distance from river",
@@ -108,7 +110,7 @@ par(mfrow=mf)
 
 # same, but now running dynamically to steady-state
 print(system.time(
-out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
+out2  <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
                     time=c(0,1000),method="runsteady")))
 
 ##################################################################
@@ -229,6 +231,7 @@ mtext(outer=TRUE,side=3,line=-2,cex=1.5,"SiDIAmodel")}
 
 
 Two methods are implemented.
+  \itemize{
 \item The default method rearranges the state variables as A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads to a banded Jacobian with (upper and lower) half bandwidth = number of species. 
 Then function \code{stode} solves the banded problem.
 \item The second method uses function \code{stodes}. Based on the dimension of the problem, the method first calculates the sparsity pattern of the Jacobian, under the assumption 
@@ -237,13 +240,17 @@ Then function \code{stode} solves the banded problem.
   \cr Although a reasonable guess of \code{lrw} is made, it is possible that this will be too low. 
   In this case, \code{steady.1D} will return with an error message telling
   the size of the work array actually needed. In the second try then, set \code{lrw} equal to this number.
+}
 
   For single-species 1-D models, use \code{\link{steady.band}}. 
 
  If state variables are arranged as (e.g. A[1],B[1],A[2],B[2],A[3],B[3],... then the model should be solved with  \code{\link{steady.band}}}
 \seealso{\code{\link{stode}} and \code{\link{stodes}} for the additional options 
-  \item \code{\link{steady}}, for solving steady-state when the jacobian matrix is full 
-  \item \code{\link{steady.2D}}, for steady-state estimation of 2-D models 
-  \item \code{\link{steady.band}}, for steady-state solution, when the jacobian matrix is banded}
+
+   \code{\link{steady}}, for solving steady-state when the jacobian matrix is full
+
+   \code{\link{steady.2D}}, for steady-state estimation of 2-D models
+
+   \code{\link{steady.band}}, for steady-state solution, when the jacobian matrix is banded}
 \keyword{math}
 

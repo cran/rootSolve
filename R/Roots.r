@@ -25,7 +25,7 @@
 ################################################################################
 
 # internal function #
-perturb <- function (value)   # value to be perturbed
+perturb <- function (value , pert=1e-8)   # value to be perturbed, perturbation factor
 
 #------------------------------------------------------------------------
 # Calculates the numerical difference value  - internal function
@@ -33,7 +33,7 @@ perturb <- function (value)   # value to be perturbed
 
 {
     # A small, positive value, not too small
-    pmax(abs(value) * 1e-8,1e-8)
+    pmax(abs(value) * pert,pert)
 
 }
 
@@ -176,6 +176,7 @@ if (useFortran)
 gradient<- function(f,    # function returning a set of function values, as a vector
                     x,    # variables
                     centered = FALSE,
+                    pert = 1e-8,
                     ...)  # additional arguments passed to function "f"...)              
 {
 
@@ -192,7 +193,7 @@ gradient<- function(f,    # function returning a set of function values, as a ve
        Nx <- length(x)
        Nf <- length(reff)
 # Perturb the state variables one by one
-       delt   <- perturb(x)
+       delt   <- perturb(x,pert)
        jacob  <- matrix(nrow=Nf,ncol=Nx,data=0)
        for (j in 1:Nx)
           {
@@ -229,6 +230,7 @@ gradient<- function(f,    # function returning a set of function values, as a ve
 hessian <- function (f,
                      x,
                      centered=FALSE,
+                     pert=1e-8,
                      ...)
  {
     if (!is.numeric(x))
@@ -237,7 +239,7 @@ hessian <- function (f,
     reff <- gradient(f,x, ...)
     Nx <- length(x)
     Nf <- length(reff)
-    delt <- perturb(x)
+    delt <- perturb(x,pert)
     hess <- matrix(nrow = Nf, ncol = Nx, data = 0)
     for (j in 1:Nx) {
         x[j] <- x[j] + delt[j]
@@ -269,6 +271,7 @@ jacobian.full<- function(y,             # (state) variables
                          dy=NULL,       # reference rate of change
                          time=0,        # time passed to function 'func'
                          parms=NULL,    # parameter values passed to function 'func'
+                         pert=1e-8,
                          ...)           # other arguments passed to function 'func'
 {
 
@@ -286,7 +289,7 @@ jacobian.full<- function(y,             # (state) variables
        ynames  <- attr(y,"names")
  
 # Perturb the state variables one by one
-       delt   <- perturb(y)
+       delt   <- perturb(y,pert)
 
        ny <-length(y)
        jacob  <- matrix(nrow=ny,ncol=ny,data=0)
@@ -321,6 +324,7 @@ jacobian.band<- function(y,         # (state) variables
                      dy=NULL,       # reference rate of change 
                      time=0,        # time passed to function 'func'
                      parms=NULL,    # parameter values passed to function 'func'
+                     pert=1e-8,
                      ...)           # other arguments passed to function 'func'
 
 {
@@ -348,7 +352,7 @@ jacobian.band<- function(y,         # (state) variables
 
    nband  <- bandup+banddown+1
    jacob  <- matrix(nrow=nband,ncol=ny,data=0)
-   delt   <- perturb(y)        # perturbation factors
+   delt   <- perturb(y,pert)        # perturbation factors
    for ( j in 1:nband)
      {
       kpert    <- seq(j,ny,nband)                 # list of state var to perturb
