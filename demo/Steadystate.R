@@ -122,3 +122,4 @@ legend("center",lty=c(1,1,2),lwd=c(2,1,1),col=1:3,
 mtext(side=3,outer=TRUE,"NPZ model in a river",line=-1.5,cex=1.5)	
 
 
+par(mfrow=mf)

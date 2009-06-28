@@ -12,42 +12,70 @@ Functions that:
 
   (2) find roots of non-linear equations by the Newton-Raphson method,
 
-  (3) estimate steady-state conditions of a system of (differential) equations in full, banded or sparse form, using the Newton-Raphson method or by a dynamic run,
+  (3) estimate steady-state conditions of a system of (differential) equations
+    in full, banded or sparse form, using the Newton-Raphson method or by
+    a dynamic run,
 
-  (4) solve the steady-state conditions for uni-and multicomponent 1-D and 2-D reactive transport models (boundary value problems of ODE) using the method-of-lines approach.
+  (4) solve the steady-state conditions for uni-and multicomponent 1-D, 2-D
+    and 3-D partial differential equations, that have been converted to ODEs
+    by numerical differencing (using the
+    method-of-lines approach).
 
 }
 \details{
   \tabular{ll}{
-    Package: \tab rootSolve\cr
-    Type: \tab Package\cr
-    Version: \tab 1.3\cr
-    Date: \tab 2009-01-31\cr
-    License: \tab GNU Public License 2 or above\cr
+     Package: \tab rootSolve\cr
+     Type: \tab Package\cr
+     Version: \tab 1.4\cr
+     Date: \tab 2009-01-31\cr
+     License: \tab GNU Public License 2 or above\cr
   }
 
-rootSolve is designed for solving n roots of n nonlinear equations.
+rootSolve was created to solve the examples from chapter 7 (stability and
+steady-state) from the book of Soetaert and Herman, 2009.
 
+Please cite this work when using rootSolve.
 
 }
+
 \author{
   Karline Soetaert
 }
-%\references{
-%% to be filled
-%}
+\references{
+  Soetaert, K and Herman, PMJ, 2009. A Practical Guide to Ecological Modelling.
+  Using \R as a Simulation Platform. Springer, 372pp, ISBN 978-1-4020-8623-6.
+}
 \seealso{
 
- \code{\link{uniroot.all}}, to solve all roots of one equation
+ \code{\link{uniroot.all}}, to solve for all roots of one (nonlinear) equation
 
- \code{\link{multiroot}}, to solve n roots of n equations
+ \code{\link{multiroot}}, to solve n roots of n (nonlinear) equations
 
- \code{\link{steady}}, \code{\link{steady.1D}}, \code{\link{steady.2D}} general steady-state solvers
+ \code{\link{steady}}, for a general interface to most of the steady-state
+   solvers
 
- \code{\link{stode}}, \code{\link{stodes}}, steady-state solvers for full, banded or arbitrary sparse models (Newton-Raphson method)
+ \code{\link{steady.band}}, to find the steady-state of ODE models with a
+   banded Jacobian
+
+ \code{\link{steady.1D}}, \code{\link{steady.2D}},
+   \code{\link{steady.3D}}, steady-state solvers for 1-D, 2-D and 3-D
+   partial differential equations.
+
+ \code{\link{stode}}, iterative steady-state solver for ODEs with full
+   or banded Jacobian.
+
+ \code{\link{stodes}}, iterative steady-state solver for ODEs with arbitrary
+   sparse Jacobian.
+
+ \code{\link{runsteady}}, steady-state solver by dynamically running to
+   steady-state
  
- \code{\link{runsteady}} steady-state solver by dynamically running to steady-state
- 
+ \code{\link{jacobian.full}}, \code{\link{jacobian.band}}, estimates the
+   Jacobian matrix assuming a full or banded structure.
+   
+ \code{\link{gradient}}, \code{\link{hessian}}, estimates the gradient
+    matrix or the Hessian.
+
  package vignette \code{rootSolve}
 }
 

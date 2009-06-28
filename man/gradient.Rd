@@ -1,24 +1,41 @@
 \name{gradient}
 \alias{gradient}
-\title{Estimates the gradient matrix for a simple function}
-\description{Given a vector of variables (x), and a function (f) that estimates one function value or a
- set of function values (\eqn{f(x)}), estimates the gadient matrix, containing, on rows i and columns j
- \deqn{d(f(x)_i)/d(x_j)}
+\title{
+  Estimates the gradient matrix for a simple function
+}
+\description{
+  Given a vector of variables (x), and a function (f) that estimates one
+  function value or a set of function values (\eqn{f(x)}), estimates the
+  gradient matrix, containing, on rows i and columns j
+  \deqn{d(f(x)_i)/d(x_j)}
 
-  The gradient matrix is not necessarily square}
-\usage{gradient(f, x, centered = FALSE, pert=1e-8, ...)}
+  The gradient matrix is not necessarily square.
+}
+\usage{
+gradient(f, x, centered = FALSE, pert=1e-8, ...)
+}
 \arguments{
-  \item{f }{function returning one function value, or a vector of function values}
-  \item{x }{either one value or a vector containing the x-value(s) at which the gradient matrix should be estimated}
-  \item{centered }{if TRUE, uses a centered difference approximation, else a forward difference approximation}
-  \item{pert }{numerical perturbation factor; increase depending on precision of model solution}
-  \item{... }{other arguments passed to function \code{f}}
+  \item{f }{function returning one function value, or a vector of function
+    values.
+  }
+  \item{x }{either one value or a vector containing the x-value(s) at which
+    the gradient matrix should be estimated.
+  }
+  \item{centered }{if \code{TRUE}, uses a centered difference approximation,
+    else a forward difference approximation.
+  }
+  \item{pert }{numerical perturbation factor; increase depending on precision
+    of model solution.
+  }
+  \item{... }{other arguments passed to function \code{f}.
+  }
 }
 \value{
-   The gradient matrix where the number of rows equals the length of \code{f} and the number of columns equals the length of \code{x}.
+  The gradient matrix where the number of rows equals the length of \code{f}
+  and the number of columns equals the length of \code{x}.
 
-    the elements on i-th row and j-th column contain: \eqn{d((f(x))_i)/d(x_j)}
-    
+  the elements on i-th row and j-th column contain: \eqn{d((f(x))_i)/d(x_j)}
+
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{############################################################
@@ -56,8 +73,8 @@ colMeans(sSF)
 # 2. Stability of the budworm model, as a function of its
 # rate of increase.
 #
-# Example from the book of Soetaert and Herman(2008)
-# A practical guide to ecological modelling
+# Example from the book of Soetaert and Herman(2009)
+# A practical guide to ecological modelling,
 # using R as a simulation platform. Springer
 # code and theory are explained in this book
 
@@ -84,7 +101,7 @@ rseq <- seq(0.01,0.07,by=0.0001)
 
 plot(0,xlim=range(rseq),ylim=c(0,10),type="n",
      xlab="r",ylab="B*",main="Budworm model, bifurcation",
-     sub="Example from book of Soetaert and Herman")
+     sub="Example from Soetaert and Herman, 2009")
 
 for (r in rseq) {
   st <- stability(r) 
@@ -95,14 +112,21 @@ for (r in rseq) {
 
 legend("topleft",pch=22,pt.cex=2,c("stable","unstable"),
 col=c("darkblue","lightblue"),pt.bg=c("darkblue","lightblue"))}
-\details{the function \code{f} that estimates the function values will be called as  
-  f(x, ...). If \code{x} is a vector, then the first argument passed to \code{f} should also be a vector. 
+\details{
+  the function \code{f} that estimates the function values will be called as
+  f(x, ...). If \code{x} is a vector, then the first argument passed to
+  \code{f} should also be a vector. 
   
-  The gradient is estimated numerically, by perturbing the x-values.}
-\seealso{\code{\link{jacobian.full}}, for generating a full and \bold{square} gradient (jacobian) matrix and where the function call is more complex
+  The gradient is estimated numerically, by perturbing the x-values.
+}
+\seealso{
+  \code{\link{jacobian.full}}, for generating a full and \bold{square}
+  gradient (jacobian) matrix and where the function call is more complex
 
-\code{\link{hessian}}, for generating the hessian matrix }
-\references{Soetaert, K. and P.M.J. Herman (2008). A practical guide to ecological modelling -
+  \code{\link{hessian}}, for generating the Hessian matrix
+}
+\references{
+  Soetaert, K. and P.M.J. Herman (2008). A practical guide to ecological modelling -
 using R as a simulation platform. Springer.
 }
 \note{\code{gradient} can be used to calculate so-called \code{sensitivity functions},

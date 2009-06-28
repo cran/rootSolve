@@ -5,6 +5,18 @@ c
 c FINDS THE ROOT OF A SET OF NONLINEAR EQUATIONS               
 c implementation: karline Soetaert, NIOO-CEME, the Netherlands
 c
+c uses linear algebra routines from the Yale sparse matrix package:
+c
+c Eisenstat, S.C., Gursky, M.C., Schultz, M.H., Sherman, A.H., 1982.
+c Yale Sparse Matrix Package. i. The symmetric codes.
+c Int. J. Num. meth. Eng. 18, 1145-1151.
+c
+c uses some functions from lsodes, from ODEPACK routines
+c
+c Alan C. Hindmarsh, ODEPACK, A Systematized Collection of ODE Solvers,
+c in Scientific Computing, R. S. Stepleman et al. (Eds.),
+c North-Holland, Amsterdam, 1983, pp. 55-64.
+c
 c######################################################################
 
 c                !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
@@ -32,7 +44,7 @@ c length of work arrays, max and actual number of independent groups
       INTEGER    N, nnz, nsp, maxg, NGP     
 
 c actual number of nonzeros, max and actual iterations
-      INTEGER  nonzero, maxiter, niter, dims(3)
+      INTEGER  nonzero, maxiter, niter, dims(*)
 
 c indices to nonzero elements and to groups of independent state variables 
       INTEGER ian(*), jan(*), igp(*),jgp(*)
@@ -73,9 +85,9 @@ c-------------------------------------------------------------------------------
 
       CALL errSET (N, ITOL, RTOL, ATOL, SVAR, EWT)
 
-c determine sparse structure: if Type == 2 or 3: 
-c a 1-D or 2-D reaction-transport model; 
-c in this case the number of components and dimensions are in dims
+c determine sparse structure: if Type == 2, 3, 4 :
+c a 1-D or 2-D or 3-D PDE model;
+c in this case the number of components, dimensions and cyclic bnd are in dims
       CALL xSparseStruct(N, nnz, ian, jan, igp, jgp, maxg, ngp,                &
      &    Svar, ewt, dSvar, beta, xmodel, time, out, nout, nonzero,            &
      &    Type, dims)
@@ -90,32 +102,34 @@ c finds a minimum degree ordering of the rows and columns of
       path = 2
 c initial guess for x
       DO j=1, N
-         x (j) = 0.D0
+        x (j) = 0.D0
       ENDDO
 
 c Iterations
       DO I = 1, maxiter 
-         niter = I
+        niter = I
+
+
 c Create sparse jacobian
-         CALL xSparseJacob (N, nnz, ian, jan, igp, jgp, ngp,                   &
+        CALL xSparseJacob (N, nnz, ian, jan, igp, jgp, ngp,                   &
      &     Svar, ewt, dSvar, beta, xmodel, time, out, nout, a)
 
 c Check convergence 
-         precis(I) = 0.d0
-         maxewt    = 0.d0
-         DO k = 1, N
-           precis(I) =precis(I)+ abs(beta(k))
-           maxewt = MAX(maxewt, abs(BETA(k)/ewt(k)))
-         ENDDO
-          precis(i) = precis(i)/N
-         IF(maxewt .LE. 1) THEN
-           SteadyStateReached = .TRUE.
-           EXIT 
-         ENDIF
+        precis(I) = 0.d0
+        maxewt    = 0.d0
+        DO k = 1, N
+          precis(I) =precis(I)+ abs(beta(k))
+          maxewt = MAX(maxewt, abs(BETA(k)/ewt(k)))
+        ENDDO
+        precis(i) = precis(i)/N
+        IF (maxewt .LE. 1) THEN
+          SteadyStateReached = .TRUE.
+          EXIT
+        ENDIF
 
 c reorder ian and jan and do symbolic LU factorization of matrix
-         CALL cdrv(N,r,c,ic, ian,jan,a,beta,x,nsp,isp,rsp,esp,1,flag)
-         IF (flag .NE. 0) CALL warnflag(flag,N)
+        CALL cdrv(N,r,c,ic, ian,jan,a,beta,x,nsp,isp,rsp,esp,1,flag)
+        IF (flag .NE. 0) CALL warnflag(flag,N)
 
 c--------------------------------------------------------------
 c     generate right hand side = x
@@ -124,50 +138,50 @@ c--------------------------------------------------------------
 c first time: path=2; performs nnfc - matrix factorisation
 c next  time: path=4; performs nntc - solves a^T*x=b
 
-         CALL cdrv(N,r,c,ic,  ian,jan,a,beta,x,nsp,isp,rsp,esp,
+        CALL cdrv(N,r,c,ic,  ian,jan,a,beta,x,nsp,isp,rsp,esp,
      &        path,flag)
-         IF (flag .NE. 0) CALL warnflag(flag,N)
-         path = 4
+        IF (flag .NE. 0) CALL warnflag(flag,N)
+        path = 4
 
 c Test convergence + new value of state variables
-         RelativeChange=0.d0
+        RelativeChange=0.d0
 
-         DO k=1, N 
-           RelativeChange  = MAX(RelativeChange,ABS(x(k)))
-           Svar(k)         = Svar(k)+x(k)
-           IF (Positivity) Svar(k)=MAX(0.D0,Svar(k))
-         ENDDO
-         IF (.not. positivity .and. ipos .GT. 1) THEN
-              DO K = 1, ipos
-                Svar(Pos(K)) = MAX(0.D0,Svar(Pos(K)))
-              ENDDO
-         ENDIF
+        DO k=1, N
+          RelativeChange  = MAX(RelativeChange,ABS(x(k)))
+          Svar(k)         = Svar(k)+x(k)
+          IF (Positivity) Svar(k)=MAX(0.D0,Svar(k))
+        ENDDO
+        IF (.not. positivity .and. ipos .GT. 1) THEN
+           DO K = 1, ipos
+             Svar(Pos(K)) = MAX(0.D0,Svar(Pos(K)))
+           ENDDO
+        ENDIF
 
-         IF(RelativeChange<=TolChange)THEN
+        IF (RelativeChange<=TolChange)THEN
 c last precision reached
-            if (i .LT.  maxiter) THEN
-             precis(i+1) = 0.d0
-             DO j = 1, N
+          IF (i .LT.  maxiter) THEN
+            precis(i+1) = 0.d0
+            DO j = 1, N
               beta(j) = 0.D0
-             ENDDO
-             CALL XMODEL(N,time,Svar,beta,out,nout)
+            ENDDO
+            CALL XMODEL(N,time,Svar,beta,out,nout)
 
-             DO j=1, N
-               precis(i+1) = precis(i+1)+abs(beta(j))
-             ENDDO
-              precis(i+1) = precis(i+1)
-              niter = I+1
-            ENDIF
-           SteadyStateReached = .TRUE.
-           EXIT 
-         ENDIF
+            DO j=1, N
+              precis(i+1) = precis(i+1)+abs(beta(j))
+            ENDDO
+            precis(i+1) = precis(i+1)
+            niter = I+1
+          ENDIF
+          SteadyStateReached = .TRUE.
+          EXIT
+        ENDIF
 
-         CALL errSET (N, ITOL, RTOL, ATOL, SVAR, EWT)
+        CALL errSET (N, ITOL, RTOL, ATOL, SVAR, EWT)
 
 
       ENDDO
       dims(3) = nsp - esp
-      
+
       END SUBROUTINE dsparse
 
 c                !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
@@ -186,43 +200,43 @@ c**********************************************************************
  	     character *80 msg
 
 	     iflag = INT(flag/N)
-	         iflag = INT(flag/N)
-	        IF (iflag .EQ. 1) THEN
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	          call rwarn("sparse solver: null row in a")
-            call rwarn(msg)
-          ELSE if (iflag .EQ. 2) THEN  
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	          call rwarn("sparse solver: duplicate entry in a")
-            call rwarn(msg)
-          ELSE if (iflag .EQ. 3) THEN  
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	          call rwarn("insufficient storage in nsfc")
-            call rwarn(msg)
-          ELSE if (iflag .EQ. 4) THEN  
-	          call rwarn("insufficient storage in nnfc")
-          ELSE if (iflag .EQ. 5) THEN  
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	          call rwarn("sparse solver: null pivot")
-            call rwarn(msg)
-          ELSE if (iflag .EQ. 6) THEN  
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-  	        call rwarn("insufficient storage in nsfc")
-            call rwarn(msg)
-          ELSE if (iflag .EQ. 7) THEN  
-	          call rwarn("insufficient storage in nnfc")
-          ELSE if (iflag .EQ. 8) THEN  
-            write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-  	        call rwarn("sparse solver: zero pivot")
-          ELSE if (iflag .EQ. 9) THEN  
-	          call rwarn("insufficient storage in md")
-          ELSE if (iflag .EQ. 10) THEN  
-	          call rwarn("insufficient storage in cdrv/odrv")
-          ELSE if (iflag .EQ. 11) THEN  
-	          call rwarn("illegal path specifications")
-          ENDIF
-      RETURN
-	END SUBROUTINE warnflag
+	     iflag = INT(flag/N)
+	     IF (iflag .EQ. 1) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+	       call rwarn("sparse solver: null row in a")
+         call rwarn(msg)
+       ELSE if (iflag .EQ. 2) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+	       call rwarn("sparse solver: duplicate entry in a")
+         call rwarn(msg)
+       ELSE if (iflag .EQ. 3) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+	       call rwarn("insufficient storage in nsfc")
+         call rwarn(msg)
+       ELSE if (iflag .EQ. 4) THEN
+	       call rwarn("insufficient storage in nnfc")
+       ELSE if (iflag .EQ. 5) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+	       call rwarn("sparse solver: null pivot")
+         call rwarn(msg)
+       ELSE if (iflag .EQ. 6) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+  	     call rwarn("insufficient storage in nsfc")
+         call rwarn(msg)
+       ELSE if (iflag .EQ. 7) THEN
+	       call rwarn("insufficient storage in nnfc")
+       ELSE if (iflag .EQ. 8) THEN
+         write(msg,'(A10,I10)') "  row nr: ", flag-iflag
+  	     call rwarn("sparse solver: zero pivot")
+       ELSE if (iflag .EQ. 9) THEN
+	       call rwarn("insufficient storage in md")
+       ELSE if (iflag .EQ. 10) THEN
+	       call rwarn("insufficient storage in cdrv/odrv")
+       ELSE if (iflag .EQ. 11) THEN
+	       call rwarn("illegal path specifications")
+       ENDIF
+       RETURN
+	     END SUBROUTINE warnflag
 
 c****************************************************************
 c error weights 
@@ -240,20 +254,20 @@ c------------------------------------------------------------------------------
       DOUBLE PRECISION RTOL(*), ATOL(*), Y(N), EWT(N)
 
       IF (itol .EQ. 1) THEN
-       DO   I = 1,N
-        EWT(I) = RTOL(1)*ABS(Y(I)) + ATOL(1)
-       ENDDO
-          ELSE IF (itol .EQ. 2) THEN
-       DO I = 1,N
-        EWT(I) = RTOL(1)*ABS(Y(I)) + ATOL(I)
-       ENDDO
-          ELSE IF (itol .EQ. 3) THEN
-       DO I = 1,N
-        EWT(I) = RTOL(I)*ABS(Y(I)) + ATOL(1)
-       ENDDO
+        DO   I = 1,N
+          EWT(I) = RTOL(1)*ABS(Y(I)) + ATOL(1)
+        ENDDO
+      ELSE IF (itol .EQ. 2) THEN
+        DO I = 1,N
+          EWT(I) = RTOL(1)*ABS(Y(I)) + ATOL(I)
+         ENDDO
+      ELSE IF (itol .EQ. 3) THEN
+        DO I = 1,N
+          EWT(I) = RTOL(I)*ABS(Y(I)) + ATOL(1)
+        ENDDO
       ELSE
         DO I = 1,N
-         EWT(I) = RTOL(I)*ABS(Y(I)) + ATOL(I)
+          EWT(I) = RTOL(I)*ABS(Y(I)) + ATOL(I)
         ENDDO
       ENDIF
       RETURN
@@ -290,13 +304,13 @@ c-------------------------------------------------------------------*
 
        INTEGER           N, nnz,nonzero   
        INTEGER           IAN (N+1), JAN(nnz)
-       INTEGER           nout(*), Type, dims(3)
+       INTEGER           nout(*), Type, dims(*)
 
        DOUBLE PRECISION  Svar (N), ewt(N)
        DOUBLE PRECISION  time, out(*), tiny
        EXTERNAL          xmodel
      
-       INTEGER           I, J, ij, Nspec, dimens(2) 
+       INTEGER           I, J, ij, Nspec, dimens(3), cyclic(3)
        DOUBLE PRECISION  CopyVar,beta(N),dSvar(N)
        DOUBLE PRECISION  DivDelt
        LOGICAL           enough, Full
@@ -313,63 +327,79 @@ c--------------------------------------------------------------------
 c Type of sparsity:
 c Type = 0: sparsity imposed; ian and jan are known
 c Type = 1: arbitrary sparsity, to be estimated
-c Type = 2: sparsity related to 1-D reaction transport model
-c Type = 3: sparsity related to 2-D reaction transport model
-c 
-c in the latter 2 cases the number of components (*nspec*) and 
-c the dimensions of the problem are in dims
+c Type = 2: sparsity related to 1-D PDE model
+c Type = 3: sparsity related to 2-D PDE model
+c Type = 4: sparsity related to 3-D PDE model
+c
+c in the latter 3 cases the number of components (*nspec*),
+c the dimensions of the problem and the cyclic boundaries are in dims
 c 
  
        IF (type == 1) THEN     
 c sparsity not known; numerically estimated by perturbation
 c call model-specific subroutines; input is Svar; output is Beta
-       CALL XMODEL(N,time,Svar,Beta,out,nout)
+         CALL XMODEL(N,time,Svar,Beta,out,nout)
 
 c      Jacobian: Perturb each state variable, one by one
-       ian(1) = 1
-           ij = 0
+         ian(1) = 1
+         ij = 0
            
-       DO I= 1, N
-         copyvar  = Svar(I)
-         Divdelt = Perturb(Svar(I))
+         DO I= 1, N
+           copyvar  = Svar(I)
+           Divdelt = Perturb(Svar(I))
 c alternative below is not so efficient!
 c        DivDelt  = sign(ewt(I),copyvar)
 c        Svar(I)  = Svar(I) + divdelt 
-        CALL XMODEL(N,time,Svar,dSvar,out,nout)  
+           CALL XMODEL(N,time,Svar,dSvar,out,nout)
 
 c rate of changes that were altered (~tiny): nonzero element in jacobian       
-         DO J = 1,N
+           DO J = 1,N
 c           IF (abs((dSvar(J) - Beta(j))/ewt(j)) .GT. tiny) THEN
-           IF (abs((dSvar(J) - Beta(j))/divdelt) .GT. tiny) THEN
+             IF (abs((dSvar(J) - Beta(j))/divdelt) .GT. tiny) THEN
                ij = ij + 1
 c check memory allocation: enough?                 
                IF (ij > nnz) THEN
-                   if (enough) CALL rwarn                                          &
+                 IF (enough) CALL rwarn                                        &
      &           ("error during determining sparsity: nnz too small")
-                  enough = .FALSE.
+                 enough = .FALSE.
                ENDIF
-             IF (enough) jan(ij) = j 
-            ENDIF
+               IF (enough) jan(ij) = j
+             ENDIF
+           ENDDO
+           ian(I+1) = ij+1
+           SVar(I) = copyvar
          ENDDO
-         ian(I+1) = ij+1
-         SVar(I) = copyvar                       
-       ENDDO
 
-       IF (.not. enough) THEN
-         write (msg,'(A30,I10)')"nnz should be at least",ij
-         call rexit(msg)
-       ENDIF
-       nonzero = ij
+         IF (.not. enough) THEN
+           write (msg,'(A30,I10)')"nnz should be at least",ij
+           call rexit(msg)
+         ENDIF
+         nonzero = ij
 c 1-D problem       
        ELSE IF (Type == 2) THEN
-          Nspec = dims(1) 
-          CALL sparse1d(N, Nspec, nnz, ian, jan)
-       
+         Nspec = dims(1)
+         dimens(1) = dims(2)
+         cyclic(1) = dims(3)
+         CALL sparse1d(N, Nspec, dimens(1), cyclic(1), nnz, ian, jan)
+         nonzero = nnz
        ELSE IF (Type == 3) THEN
-          Nspec = dims(1) 
-          dimens(1) = dims(2)
-          dimens(2) = dims(3)
-          CALL sparse2d(N, Nspec, dimens, nnz, ian, jan)
+         Nspec = dims(1)
+         dimens(1) = dims(2)
+         dimens(2) = dims(3)
+         cyclic(1) = dims(4)
+         cyclic(2) = dims(5)
+         CALL sparse2d(N, Nspec, dimens, cyclic, nnz, ian, jan)
+         nonzero = nnz
+       ELSE IF (Type == 4) THEN
+         Nspec = dims(1)
+         dimens(1) = dims(2)
+         dimens(2) = dims(3)
+         dimens(3) = dims(4)
+         cyclic(1) = dims(5)
+         cyclic(2) = dims(6)
+         cyclic(3) = dims(7)
+         CALL sparse3d(N, Nspec, dimens, cyclic, nnz, ian, jan)
+         nonzero = nnz
        ENDIF
        
 c this only if jacobian estimated by calls to F
@@ -377,9 +407,8 @@ c this only if jacobian estimated by calls to F
      1   JGP, incl,jdone, IER)
        IF (IER .NE. 0) call rexit("not enough memory for JGROUP")
 
-      dims(1) = nonzero
-      dims(2) = ngp
-
+       dims(1) = nonzero
+       dims(2) = ngp
 
        RETURN
 
@@ -408,7 +437,7 @@ c-------------------------------------------------------------------*
        EXTERNAL           xmodel
      
        INTEGER            I, J, k, ij1, ij2, jj, jmin, jmax, NGP, ng 
-           INTEGER            igp(*),jgp(N)
+       INTEGER            igp(*),jgp(N)
 
        DOUBLE PRECISION   ewt(N),beta(N),dSvar(N), Copyvar(N)
        DOUBLE PRECISION   DivDelt, Perturb 
@@ -418,49 +447,50 @@ c      Call model-specific subroutines; input is Svar; output is dSvar
        
        CALL XMODEL(N,time,Svar,dSvar,out,nout)
        DO I = 1, N
-            Beta(i) = -dSvar(I)
-            Copyvar(i) = svar(i)
+         Beta(i) = -dSvar(I)
+         Copyvar(i) = svar(i)
        ENDDO
 
 c      Jacobian: Perturb state variables in groups
 
        jmin = igp(1)
        DO NG = 1,NGP
-        jmax = igp(1+NG) - 1
-        DO  J = jmin,jmax
-          JJ = jgp(J)
-          DivDelt = Perturb(Svar(JJ))
+         jmax = igp(1+NG) - 1
+         DO  J = jmin,jmax
+           JJ = jgp(J)
+           DivDelt = Perturb(Svar(JJ))
 c alternative is not so efficient!
 c         DivDelt  = sign(ewt(JJ),svar(JJ))
 c         Svar(JJ) = Svar(JJ) + DivDelt
-        enddo
+         ENDDO
 
-        CALL XMODEL(N,time,SVar,dSvar,out,nout)  
+         CALL XMODEL(N,time,SVar,dSvar,out,nout)
 
-        DO  J = jmin,jmax
-          JJ = jgp(J)
-          divdelt = Svar(JJ)-Copyvar(JJ)
-          Svar(JJ) = Copyvar(JJ)
-          ij1 =ian(JJ)
-          ij2 =ian(JJ+1) - 1
-          DO  K = ij1,ij2
-            I = jan(K)
-            sparse(K) = (dSvar(I) +Beta (I))/divdelt
-          ENDDO 
-        ENDDO
-        jmin = jmax + 1
+         DO  J = jmin,jmax
+           JJ = jgp(J)
+           divdelt = Svar(JJ)-Copyvar(JJ)
+           Svar(JJ) = Copyvar(JJ)
+           ij1 =ian(JJ)
+           ij2 =ian(JJ+1) - 1
+           DO  K = ij1,ij2
+             I = jan(K)
+             sparse(K) = (dSvar(I) +Beta (I))/divdelt
+           ENDDO
+         ENDDO
+         jmin = jmax + 1
        ENDDO
 
        RETURN
 
-      END SUBROUTINE xSparseJacob
+       END SUBROUTINE xSparseJacob
 
 c********************************************************************
-c variable grouping
+c variable grouping - based on lsodes, ODEPACK fortran code
 c********************************************************************
 
       SUBROUTINE JGROUP (N,IA,JA,MAXG,NGRP,IGP,JGP,INCL,JDONE,IER)
-        implicit none
+
+      implicit none
       INTEGER N, IA, JA, MAXG, NGRP, IGP, JGP, INCL, JDONE, IER
       DIMENSION IA(*), JA(*), IGP(*), JGP(*), INCL(*), JDONE(*)
       CHARACTER (LEN=80) msg
@@ -494,45 +524,45 @@ C
  10     JDONE(J) = 0
       NCOL = 1
       DO 60 NG = 1,N  ! Changed from 
-          IF (NG .LE. MAXG ) THEN
-            IGP(NG) = NCOL
-          ELSE
-            Toomuch = .TRUE.
-          ENDIF
+        IF (NG .LE. MAXG ) THEN
+          IGP(NG) = NCOL
+        ELSE
+          Toomuch = .TRUE.
+        ENDIF
         DO 20 I = 1,N
  20       INCL(I) = 0
         DO 50 J = 1,N
 C Reject column J if it is already in a group.--------------------------
-          IF (JDONE(J) .EQ. 1) GO TO 50
-          KMIN = IA(J)
-          KMAX = IA(J+1) - 1
-          DO 30 K = KMIN,KMAX
+        IF (JDONE(J) .EQ. 1) GO TO 50
+        KMIN = IA(J)
+        KMAX = IA(J+1) - 1
+        DO 30 K = KMIN,KMAX
 C Reject column J if it overlaps any column already in this group.------
-            I = JA(K)
-            IF (INCL(I) .EQ. 1) GO TO 50
- 30         CONTINUE
+          I = JA(K)
+          IF (INCL(I) .EQ. 1) GO TO 50
+ 30     CONTINUE
 C Accept column J into group NG.----------------------------------------
-          JGP(NCOL) = J
-          NCOL = NCOL + 1
+        JGP(NCOL) = J
+        NCOL = NCOL + 1
 c 
-          JDONE(J) = 1
-          DO 40 K = KMIN,KMAX
-            I = JA(K)
- 40         INCL(I) = 1
- 50       CONTINUE
+        JDONE(J) = 1
+        DO 40 K = KMIN,KMAX
+          I = JA(K)
+ 40     INCL(I) = 1
+ 50     CONTINUE
 C Stop if this group is empty (grouping is complete).-------------------
         IF (NCOL .EQ. IGP(NG)) GO TO 70
- 60     CONTINUE
+ 60   CONTINUE
 C Error return if not all columns were chosen (MAXG too small).---------
       IF (NCOL .LE. N) GO TO 80
       NG = MAXG
  70   NGRP = NG - 1
-      if (Toomuch) THEN
-        call rwarn("error during grouping: NGP too small")
-        write (msg,'(A30,I10,A10,I10)')"Should be at least",NGRP,              &
+      IF (Toomuch) THEN
+        CALL rwarn("error during grouping: NGP too small")
+        WRITE (msg,'(A30,I10,A10,I10)')"Should be at least",NGRP,              &
      &   "is",maxG
-        call rexit(msg)
-      endif
+        CALL rexit(msg)
+      ENDIF
       RETURN
  80   IER = 1
       RETURN
@@ -540,11 +570,12 @@ C----------------------- End of Subroutine JGROUP ----------------------
       END
 
 c********************************************************************
-c Sparse subroutines
+c Sparse subroutines - from Yale sparse matrix package
 c********************************************************************
 
       SUBROUTINE CNTNZU (N, IA, JA, NZSUT)
-        implicit none
+
+      implicit none
       INTEGER N, IA, JA, NZSUT
       DIMENSION IA(*), JA(*)
 C-----------------------------------------------------------------------
@@ -579,7 +610,7 @@ C
 
 c********************************************************************
 
-      subroutine md                                                            &
+      SUBROUTINE md                                                            &
      *     (n, ia,ja, max, v,l, head,last,next, mark, flag)
 c***********************************************************************
 c  md -- minimum degree algorithm (based on element model)

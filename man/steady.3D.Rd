@@ -1,17 +1,17 @@
-\name{steady.2D}
-\alias{steady.2D}
+\name{steady.3D}
+\alias{steady.3D}
 \title{
-  Steady-state solver for 2-Dimensional ordinary differential equations
+  Steady-state solver for 3-Dimensional ordinary differential equations
 }
 \description{
   Estimates the steady-state condition for a system of ordinary differential
-  equations that result from 2-Dimensional partial differential equation
+  equations that result from 3-Dimensional partial differential equation
   models that have been converted to ODEs by numerical differencing.
 
   It is assumed that exchange occurs only between adjacent layers.
 }
 \usage{
-steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
+steady.3D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
   cyclicBnd = NULL, ...)
 }
 \arguments{
@@ -43,12 +43,12 @@ steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
   }
   \item{nspec }{the number of *species* (components) in the model.
   }
-  \item{dimens }{a 2-valued vector with the dimensionality of the model,
-    i.e. the number of *boxes* in x- and y-direction.
+  \item{dimens }{a 3-valued vector with the dimensionality of the model,
+    i.e. the number of *boxes* in x-, y- and z- direction.
   }
-  \item{cyclicBnd }{if not \code{NULL} then a number or a 2-valued vector
+  \item{cyclicBnd }{if not \code{NULL} then a number or a 3-valued vector
     with the dimensions where a cyclic boundary is used - \code{1}: x-dimension,
-    \code{2}: y-dimension; see details.
+    \code{2}: y-dimension; \code{3}: z-dimension;see details.
   }
   \item{... }{additional arguments passed to function \code{stodes}.
   }
@@ -67,100 +67,75 @@ steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
 \note{
   It is advisable though not mandatory to specify BOTH \code{nspec} and
   \code{dimens}. In this case, the solver can check whether the input makes
-  sense (as nspec*dimens[1]*dimens[2] = length(y))
+  sense (as nspec*dimens[1]*dimens[2]*dimens[3] = length(y))
 
-  do NOT use this method for problems that are not 2D.
+  do NOT use this method for problems that are not 3D.
 }
 \author{
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
 #############################################################
-# Diffusion in 2-D; imposed boundary conditions
+# Diffusion in 3-D; imposed boundary conditions
 #############################################################
-diffusion2D <- function(t,Y,par)
+diffusion3D <- function(t,Y,par)
   {
-   y    <- matrix(nr=n,nc=n,data=Y)  # vector to 2-D matrix
-   dY   <- -r*y        # consumption
-   BND   <- rep(1,n)   # boundary concentration 
+   yy    <- array(dim=c(n,n,n),data=Y)  # vector to 3-D array
+   dY   <- -r*yy        # consumption
+   BND   <- rep(1,n)   # boundary concentration
+   for (i in 1:n) {
+     y <- yy[i,,]
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dy * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dy
+     dY[i,,]   <- dY[i,,] - (Flux[2:(n+1),]-Flux[1:n,])/dy
 
-   #diffusion in X-direction; boundaries=imposed concentration
-   Flux <- -Dx * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dx
-   dY   <- dY - (Flux[2:(n+1),]-Flux[1:n,])/dx
+     #diffusion in Y-direction
+     Flux <- -Dz * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dz
+     dY[i,,]    <- dY[i,,] - (Flux[,2:(n+1)]-Flux[,1:n])/dz
+   }
+   for (j in 1:n) {
+     y <- yy[,j,]
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dx * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dx
+     dY[,j,]   <- dY[,j,] - (Flux[2:(n+1),]-Flux[1:n,])/dx
 
-   #diffusion in Y-direction
-   Flux <- -Dy * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dy
-   dY    <- dY - (Flux[,2:(n+1)]-Flux[,1:n])/dy
+     #diffusion in Y-direction
+     Flux <- -Dz * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dz
+     dY[,j,]    <- dY[,j,] - (Flux[,2:(n+1)]-Flux[,1:n])/dz
+   }
+   for (k in 1:n) {
+     y <- yy[,,k]
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dx * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dx
+     dY[,,k]   <- dY[,,k] - (Flux[2:(n+1),]-Flux[1:n,])/dx
 
+     #diffusion in Y-direction
+     Flux <- -Dy * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dy
+     dY[,,k]    <- dY[,,k] - (Flux[,2:(n+1)]-Flux[,1:n])/dy
+   }
    return(list(as.vector(dY)))
   }
 
   # parameters
-  dy    <- dx <- 1   # grid size
-  Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
+  dy    <- dx <- dz <-1   # grid size
+  Dy    <- Dx <- Dz <-1   # diffusion coeff, X- and Y-direction
   r     <- 0.025     # consumption rate
 
-  n  <- 100
-  y  <- matrix(nr=n,nc=n,10.)
+  n  <- 10
+  y  <- array(dim=c(n,n,n),data=10.)
 
-  ST3 <- steady.2D(y,func=diffusion2D,parms=NULL,pos=TRUE,dimens=c(n,n),
-                 lrw=1000000,atol=1e-10,rtol=1e-10,ctol=1e-10)
-  y <- matrix(nr=n,nc=n,data=ST3$y)
-    filled.contour(y,color.palette=terrain.colors)
-    
-
-
-#############################################################
-# Diffusion in 2-D; extra flux on 2 boundaries, cyclic in y
-#############################################################
-
-diffusion2Db <- function(t,Y,par)
-  {
-   y    <- matrix(nr=nx,nc=ny,data=Y)  # vector to 2-D matrix
-   dY   <- -r*y        # consumption
-
-   BNDx   <- rep(1,nx)   # boundary concentration
-   BNDy   <- rep(1,ny)   # boundary concentration
-
-   #diffusion in X-direction; boundaries=imposed concentration
-   Flux <- -Dx * rbind(y[1,]-BNDy,(y[2:nx,]-y[1:(nx-1),]),BNDy-y[nx,])/dx
-   dY   <- dY - (Flux[2:(nx+1),]-Flux[1:nx,])/dx
-
-   #diffusion in Y-direction
-   Flux <- -Dy * cbind(y[,1]-BNDx,(y[,2:ny]-y[,1:(ny-1)]),BNDx-y[,ny])/dy
-   dY    <- dY - (Flux[,2:(ny+1)]-Flux[,1:ny])/dy
-
-   # extra flux on two sides
-   dY[,1] <- dY[,1]+  10
-   dY[1,] <- dY[1,]+  10
-
-   # and exchange between sides on y-direction
-   dY[,ny] <- dY[,ny]+ (y[,1]-y[,ny])*10
-
-   return(list(as.vector(dY)))
-  }
-
-  # parameters
-  dy    <- dx <- 1   # grid size
-  Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
-  r     <- 0.025     # consumption rate
-
-  nx  <- 50
-  ny  <- 100
-  y  <- matrix(nr=nx,nc=ny,10.)
   print(system.time(
-  ST3 <- steady.2D(y,func=diffusion2Db, parms=NULL, pos=TRUE,
-                   dimens=c(nx,ny),verbose=TRUE,
-                   lrw=283800, atol=1e-10, rtol=1e-10, ctol=1e-10,
-                   cyclicBnd=2)       # y-direction: cyclic boundary
- ))
-  y <- matrix(nr=nx,nc=ny,data=ST3$y)
-    filled.contour(y,color.palette=terrain.colors)
-
+  ST3 <- steady.3D(y, func=diffusion3D, parms=NULL, pos=TRUE,
+                  dimens=c(n,n,n), lrw=100000,
+                  atol=1e-10, rtol=1e-10, ctol=1e-10, verbose=TRUE)
+  ))
+  y <- array(dim=c(n,n,n),data=ST3$y)
+    filled.contour(y[,,n/2],color.palette=terrain.colors)
+    
 
 }
 \details{
-  This is the method of choice for 2-dimensional models, that are only
+  This is the method of choice for 3-dimensional models, that are only
   subjected to transport between adjacent layers.
 
   Based on the dimension of the problem, the method first calculates the
@@ -173,14 +148,14 @@ diffusion2Db <- function(t,Y,par)
 
   Although a reasonable guess of \code{lrw} is made, it may occur that this
   will be too low.
-  In this case, \code{steady.2D} will return with an error message telling
+  In this case, \code{steady.3D} will return with an error message telling
   the size of the work array actually needed. In the second try then, set
   \code{lrw} equal to this number.
 
   In some cases, a cyclic boundary condition exists. This is when the first
-  boxes in x-or y-direction interact with the last boxes. In this case, there
-  will be extra non-zero fringes in the Jacobian which need to be taken
-  into account. The occurrence of cyclic boundaries can be
+  boxes in x-, y-, or z-direction interact with the last boxes.
+  In this case, there will be extra non-zero fringes in the Jacobian which
+  need to be taken into account. The occurrence of cyclic boundaries can be
   toggled on by specifying argument \code{cyclicBnd}. For innstance,
   \code{cyclicBnd = 1} indicates that a cyclic boundary is required only for
   the x-direction, whereas \code{cyclicBnd = c(1,2)} imposes a cyclic boundary
@@ -196,8 +171,8 @@ diffusion2Db <- function(t,Y,par)
  \code{\link{steady.band}}, to find the steady-state of ODE models with a
    banded Jacobian
 
- \code{\link{steady.1D}},
-   \code{\link{steady.3D}}, steady-state solvers for 1-Dand 3-D
+ \code{\link{steady.1D}}, \code{\link{steady.2D}},
+   steady-state solvers for 1-D and 2-D
    partial differential equations.
 
  \code{\link{stode}}, iterative steady-state solver for ODEs with full

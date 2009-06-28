@@ -115,8 +115,8 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   C = (int *) R_alloc(neq, sizeof(int));
     for (j = 0; j < ny; j++) C[j] = 0;
 
-  dims = (int *) R_alloc(3, sizeof(int));
-    for (j = 0; j < 3; j++) dims[j] = 0;
+  dims = (int *) R_alloc(7, sizeof(int));   /* 7 is maximal amount */
+    for (j = 0; j < 7; j++) dims[j] = 0;
 
   IC = (int *) R_alloc(neq, sizeof(int));
     for (j = 0; j < ny; j++) IC[j] = 0;
@@ -151,16 +151,13 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
    {for (j = 0; j < nnz; j++) jan[j] = INTEGER(Jan)[j];} 
    else {for (j = 0; j < nnz; j++) jan[j] = 0;}
    
-  /* 1-D or 2-D problem */
-  if (type == 2)          {
-    dims[0] = INTEGER(NNZ)[1]; /* number components*/ 
-    dims[1] = INTEGER(NNZ)[2]; /* dimension x*/ 
-  } else if (type == 3)   {
-    dims[0] = INTEGER(NNZ)[1]; /* number components*/ 
-    dims[1] = INTEGER(NNZ)[2]; /* dimension x*/ 
-    dims[2] = INTEGER(NNZ)[3]; /* dimension y*/     
-  }
-
+  /* 1-D, 2-D, 3-D problem:  */
+  if (type == 2)        /* 1=ncomp,2:dim(x), 3: cyclic(x)*/
+    for (j = 0; j<3 ; j++) dims[j] = INTEGER(NNZ)[j+1];
+  else if (type == 3)   /* 1=ncomp,2-3:dim(x,y), 4-5: cyclic(x,y)*/
+    for (j = 0; j<5 ; j++) dims[j] = INTEGER(NNZ)[j+1];
+  else if (type == 4)   /* 1=ncomp,2-4:dim(x,y,z), 5-7: cyclic(x,y,z)*/
+    for (j = 0; j<7 ; j++) dims[j] = INTEGER(NNZ)[j+1];
 
   igp = (int *) R_alloc(ngp+1, sizeof(int));
     for (j = 0; j < ngp+1; j++) igp[j] = 0;

@@ -99,7 +99,7 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   int    *ipar, lrpar, lipar, len, isDll, rearrange;
     
   deriv_func *derivs;
-  jac_func   *jac;
+  jac_func   *jac=NULL;
   init_func  *initializer;
 
   init_N_Protect();

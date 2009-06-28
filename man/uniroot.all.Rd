@@ -1,25 +1,42 @@
 \name{uniroot.all}
 \alias{uniroot.all}
-\title{finds many (all?) roots of one equation}
-\description{The function \code{uniroot.all} searches the interval from lower to upper for several roots (i.e., zero's) of a function \code{f} with respect to its first argument. 
-  \cr The number of roots found will depend on the number of subintervals in which the interval is subdivided
-  \cr The function calls \code{uniroot}, the basic R-function.}
-\usage{uniroot.all(f, interval, lower=min(interval), upper=max(interval), 
-   tol=.Machine$double.eps^0.2, maxiter=1000, n=100, ...)}
+\title{
+  Finds many (all) roots of one equation within an interval
+}
+\description{
+  The function \code{uniroot.all} searches the interval from lower to upper
+  for several roots (i.e., zero's) of a function \code{f} with respect to
+  its first argument.
+}
+\usage{
+uniroot.all(f, interval, lower=min(interval), upper=max(interval), 
+  tol=.Machine$double.eps^0.2, maxiter=1000, n=100, ...)}
 \arguments{
-  \item{f }{the function for which the root is sought.}
-  \item{interval }{a vector containing the end-points of the interval to be searched for the root.}
-  \item{lower }{the lower end point of the interval to be searched.}
-  \item{upper }{the upper end point of the interval to be searched.}
-  \item{tol }{the desired accuracy (convergence tolerance).}
-  \item{maxiter }{the maximum number of iterations.}
-  \item{n }{number of subintervals in which the root is sought}
-  \item{... }{additional named or unnamed arguments to be passed to \code{f} (but beware of partial matching to other arguments).}
+  \item{f }{the function for which the root is sought.
+  }
+  \item{interval }{a vector containing the end-points of the interval to
+    be searched for the root.
+  }
+  \item{lower }{the lower end point of the interval to be searched.
+  }
+  \item{upper }{the upper end point of the interval to be searched.
+  }
+  \item{tol }{the desired accuracy (convergence tolerance).
+  }
+  \item{maxiter }{the maximum number of iterations.
+  }
+  \item{n }{number of subintervals in which the root is sought.
+  }
+  \item{... }{additional named or unnamed arguments to be passed to \code{f}
+    (but beware of partial matching to other arguments).
+  }
 }
 \value{
   a vector with the roots found in the interval
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{
+Karline Soetaert <k.soetaert@nioo.knaw.nl>
+}
 \examples{##############################
 ##   Mathematical examples  ##
 ##############################
@@ -41,8 +58,8 @@ f(AA)  # !!!
 ## Ecological modelling example ##
 ##################################
 
-# Example from the book of Soetaert and Herman(2008)
-# A practical guide to ecological modelling
+# Example from the book of Soetaert and Herman(2009)
+# A practical guide to ecological modelling -
 # using R as a simulation platform. Springer
 
 r   <- 0.05
@@ -64,19 +81,34 @@ eig <- vector()
 for (i in 1:length(Eq)) eig[i] <- sign (gradient(rate,Eq[i]))
 
 curve(rate(x),ylab="dx/dt",from=0,to=10,
-main="Budworm model, roots",sub= "Example from book of Soetaert and Herman")
+main="Budworm model, roots",sub= "Example from Soetaert and Herman, 2009")
 abline(h=0)
 points(x=Eq,y=rep(0,length(Eq)),pch=21,cex=2,bg=c("grey","black","white")[eig+2] )
 legend("topleft",pch=22,pt.cex=2,c("stable","saddle","unstable"),
 col=c("grey","black","white"),pt.bg=c("grey","black","white"))}
-\details{\code{f} will be called as \code{f(x, ...)} for a numeric value of \code{x}.
-  \cr Run \code{demo(Jacobandroots)} for an example of the use of uniroot.all for steady-state analysis. 
-  \cr See also second example of \code{gradient} 
-  This example is discussed in the book by Soetaert and Herman (2008).}
-\seealso{\code{\link{uniroot}} for more information about input}
-\note{It is not guaranteed that all roots will be recovered. 
-  \cr This will depend on \code{n}, the number of subintervals in which the interval is divided.
-  \cr If the function "touches" the X-axis (i.e. the root is a saddle point), then this root will generally not be retrieved.
-  (but chances of this are pretty small).}
+\details{
+  \code{f} will be called as \code{f(x, ...)} for a numeric value of \code{x}.
+
+  Run \code{demo(Jacobandroots)} for an example of the use of \code{uniroot.all}
+  for steady-state analysis.
+
+  See also second example of \code{\link{gradient}}
+  This example is discussed in the book by Soetaert and Herman (2009).
+}
+\seealso{
+  \code{\link{uniroot}} for more information about input.
+}
+\note{
+  The function calls \code{uniroot}, the basic R-function.
+
+  It is not guaranteed that all roots will be recovered.
+
+  This will depend on \code{n}, the number of subintervals in which the
+  interval is divided.
+
+  If the function "touches" the X-axis (i.e. the root is a saddle point),
+  then this root will generally not be retrieved.
+  (but chances of this are pretty small).
+}
 \keyword{optimize}
 

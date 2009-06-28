@@ -1,47 +1,87 @@
 \name{steady.1D}
 \alias{steady.1D}
-\title{Steady-state solver for multicomponent 1-D ordinary differential equations}
-\description{Estimates the steady-state condition for a system of ordinary differential equations that result
-from 1-Dimensional reaction-transport models that include transport only between adjacent layers and that model many species.}
-\usage{steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL, 
-                names=NULL,method = "stode",...)}
+\title{
+  Steady-state solver for multicomponent 1-D ordinary differential equations
+}
+\description{
+  Estimates the steady-state condition for a system of ordinary differential
+  equations that result from 1-Dimensional partial differential equation
+  models that have been converted to ODEs by numerical differencing.
+
+  It is assumed that exchange occurs only between adjacent layers.}
+\usage{
+steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL, 
+  names=NULL, method = "stode", cyclicBnd = NULL, ...)}
 \arguments{
-  \item{y }{the initial guess of (state) values for the ODE system, a vector. }
-  \item{time }{time for which steady-state is wanted; the default is time=0}
-  \item{func }{either an \R-function that computes the values of the derivatives in the ode system (the model defininition) at time \code{time}, 
-    or a character string giving the name of a compiled function in a dynamically loaded shared library.
+  \item{y }{the initial guess of (state) values for the ODE system, a vector.
+  }
+  \item{time }{time for which steady-state is wanted; the default is time=0.
+  }
+  \item{func }{either an \R-function that computes the values of the
+    derivatives in the ode system (the model defininition) at time \code{time},
+    or a character string giving the name of a compiled function in a
+    dynamically loaded shared library.
 
-          If \code{func}  is an \R-function, it must be defined as:
-      \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time point
-      in the integration, \code{y} is the current estimate of the variables
-      in the ODE system.  If the initial values \code{y} has a names
-      attribute, the names will be available inside \code{func}.  \code{parms} is
-      a vector or list of parameters; ... (optional) are any other arguments passed to the function. 
+    If \code{func}  is an \R-function, it must be defined as:
+    \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time point
+    in the integration, \code{y} is the current estimate of the variables
+    in the ODE system.  If the initial values \code{y} has a names
+    attribute, the names will be available inside \code{func}. \code{parms} is
+    a vector or list of parameters; ... (optional) are any other arguments
+    passed to the function.
   
-      The return value of \code{func} should be a list, whose first element is a
-      vector containing the derivatives of \code{y} with respect to
-      \code{time}, and whose next elements are global values whose steady-state value is also required.}
-
-  \item{parms }{parameters passed to \code{func}}
-  \item{nspec }{the number of *species* (components) in the model. If NULL, then \code{dimens} should be specified}
-  \item{dimens}{the number of *boxes* in the model. If NULL, then \code{nspec} should be specified}
-  \item{names }{the names of the components; used to label the output, which will be written as a matrix}
-  \item{method }{the solution method, one of "stode", "stodes" or "runsteady"}
-  \item{... }{additional arguments passed to the solver function as defined by \code{method}}
+    The return value of \code{func} should be a list, whose first element is a
+    vector containing the derivatives of \code{y} with respect to
+    \code{time}, and whose next elements are global values whose steady-state
+    value is also required.
+    
+    The derivatives
+    should be specified in the same order as the state variables \code{y}.
+  }
+  \item{parms }{parameters passed to \code{func}.
+  }
+  \item{nspec }{the number of *species* (components) in the model.
+    If \code{NULL}, then \code{dimens} should be specified.
+  }
+  \item{dimens}{the number of *boxes* in the model. If NULL, then
+    \code{nspec} should be specified.
+  }
+  \item{names }{the names of the components; used to label the output, which
+    will be written as a matrix.
+  }
+  \item{method }{the solution method, one of "stode", "stodes" or "runsteady".
+  }
+  \item{cyclicBnd }{if a cyclic boundary exists, a value of \code{1} else
+    \code{NULL}; see details.
+  }
+  \item{... }{additional arguments passed to the solver function as defined
+    by \code{method}.
+  }
 }
 \value{
   A list containing 
-  \item{y }{ if \code{names} is not given: A vector with the state variable values from the last iteration during estimation of steady-state condition of the system of equations.
-  if \code{names} is given, a matrix with one column for every steady-state *component*}
-  \item{... }{ the number of "global" values returned}
+  \item{y }{ if \code{names} is not given: a vector with the state variable
+    values from the last iteration during estimation of steady-state condition
+    of the system of equations.
+    if \code{names} is given, a matrix with one column for every steady-state
+    *component*.
+  }
+  \item{... }{ the number of "global" values returned.
+  }
 
-  The output will have the attribute \code{steady}, which returns TRUE, if steady-state has been reached and the attribute
-    \code{precis} with the precision attained during each iteration.
+  The output will have the attribute \code{steady}, which returns TRUE, if
+  steady-state has been reached and the attribute
+  \code{precis} with the precision attained during each iteration.
 }
-\note{It is advisable though not mandatory to specify BOTH \code{nspec} and \code{dimens}. 
-In this case, the solver can check whether the input makes sense 
-(i.e. if  nspec*dimens = length(y))}
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\note{
+  It is advisable though not mandatory to specify BOTH \code{nspec} and
+  \code{dimens}.
+  In this case, the solver can check whether the input makes sense
+  (i.e. if  nspec*dimens = length(y))
+}
+\author{
+  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+}
 \examples{##################################################################
 ######  EXAMPLE 1: BOD + O2                                 ######
 ##################################################################
@@ -117,7 +157,7 @@ out2  <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
 ######  EXAMPLE 2: Silicate diagenesis                      ######
 ##################################################################
 # Example from the book:
-# Soetaert and Herman (2008).
+# Soetaert and Herman (2009).
 # a practical guide to ecological modelling -
 # using R as a simulation platform.
 # Springer
@@ -224,33 +264,73 @@ plot(Porosity,Depth,ylim=c(10,0),xlab="-" ,
      main="Porosity",   type="l",lwd=2)
 plot(Db,Intdepth,ylim=c(10,0),xlab="cm2/d",
      main="Bioturbation",type="l",lwd=2)
-mtext(outer=TRUE,side=3,line=-2,cex=1.5,"SiDIAmodel")}
-\details{This is the method of choice for multi-species 1-dimensional models, that are only subjected to transport between adjacent layers 
-    \cr More specifically, this method is to be used if the state variables are arranged per species: 
-    \cr A[1],A[2],A[3],....B[1],B[2],B[3],.... (for species A, B)) 
-
-
-Two methods are implemented.
-  \itemize{
-\item The default method rearranges the state variables as A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads to a banded Jacobian with (upper and lower) half bandwidth = number of species. 
-Then function \code{stode} solves the banded problem.
-\item The second method uses function \code{stodes}. Based on the dimension of the problem, the method first calculates the sparsity pattern of the Jacobian, under the assumption 
-  that transport is only occurring between adjacent layers. Then \code{stodes} is called to solve the problem.
-  \cr As \code{stodes} is used to estimate steady-state, it may be necessary to specify the length of the real work array, \code{lrw}.
-  \cr Although a reasonable guess of \code{lrw} is made, it is possible that this will be too low. 
-  In this case, \code{steady.1D} will return with an error message telling
-  the size of the work array actually needed. In the second try then, set \code{lrw} equal to this number.
+mtext(outer=TRUE,side=3,line=-2,cex=1.5,"SiDIAmodel")
 }
+\details{
+  This is the method of choice for multi-species 1-dimensional models, that
+  are only subjected to transport between adjacent layers
+
+  More specifically, this method is to be used if the state variables are
+  arranged per species:
+
+  A[1],A[2],A[3],....B[1],B[2],B[3],.... (for species A, B))
+
+  Two methods are implemented.
+  \itemize{
+    \item The default method rearranges the state variables as
+    A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads to
+    a banded Jacobian with (upper and lower) half bandwidth = number of species.
+    Then function \code{stode} solves the banded problem.
+    \item The second method uses function \code{stodes}. Based on the
+    dimension of the problem, the method first calculates the sparsity pattern
+    of the Jacobian, under the assumption that transport is only occurring
+    between adjacent layers. Then \code{stodes} is called to solve the problem.
+
+    As \code{stodes} is used to estimate steady-state, it may be necessary to
+    specify the length of the real work array, \code{lrw}.
+
+    Although a reasonable guess of \code{lrw} is made, it is possible that
+    this will be too low.
+    In this case, \code{steady.1D} will return with an error message telling
+    the size of the work array actually needed. In the second try then,
+    set \code{lrw} equal to this number.
+  }
 
   For single-species 1-D models, use \code{\link{steady.band}}. 
 
- If state variables are arranged as (e.g. A[1],B[1],A[2],B[2],A[3],B[3],... then the model should be solved with  \code{\link{steady.band}}}
-\seealso{\code{\link{stode}} and \code{\link{stodes}} for the additional options 
+  If state variables are arranged as (e.g. A[1],B[1],A[2],B[2],A[3],B[3],...
+  then the model should be solved with  \code{\link{steady.band}}
+  
+  In some cases, a cyclic boundary condition exists. This is when the first
+  box interacts with the last box and vice versa. In this case, there
+  will be extra non-zero fringes in the Jacobian which need to be taken
+  into account. The occurrence of cyclic boundaries can be
+  toggled on by specifying argument \code{cyclicBnd=1}. If this is the
+  case, then the steady-state will be estimated using \code{stodes}.
+  The default is no cyclic boundaries.
+}
+\seealso{
 
-   \code{\link{steady}}, for solving steady-state when the jacobian matrix is full
+ \code{\link{steady}}, for a general interface to most of the steady-state
+   solvers
 
-   \code{\link{steady.2D}}, for steady-state estimation of 2-D models
+ \code{\link{steady.band}}, to find the steady-state of ODE models with a
+   banded Jacobian
 
-   \code{\link{steady.band}}, for steady-state solution, when the jacobian matrix is banded}
+ \code{\link{steady.2D}},
+   \code{\link{steady.3D}}, steady-state solvers for 2-D and 3-D
+   partial differential equations.
+
+ \code{\link{stode}}, iterative steady-state solver for ODEs with full
+   or banded Jacobian.
+
+ \code{\link{stodes}}, iterative steady-state solver for ODEs with arbitrary
+   sparse Jacobian.
+
+ \code{\link{runsteady}}, steady-state solver by dynamically running to
+   steady-state
+
+}
+
 \keyword{math}
 

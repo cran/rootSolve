@@ -76,12 +76,12 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   SEXP yout, RWORK, ISTATE;    
 
   int  i, j, k, latol, lrtol, lrw, liw, maxit;
-  double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *out, *dy, ss, sumder;
+  double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *out, *dy, ss, sumder=0.;
   int neq, itol, itask, istate, iopt, *iwork, jt, mflag, nout, ntot, is;
   int *ipar, lrpar, lipar, isDll, isOut, Steady;
   
   deriv_func *derivs;
-  jac_func   *jac;
+  jac_func   *jac=NULL;
   init_func  *initializer;
     
 /******************************************************************************/
