@@ -37,11 +37,11 @@ stode         <- function(y, time=0, func, parms=NULL,
   if (!is.function(func) && !is.character(func))
     stop("`func' must be a function or character vector")
   if (is.character(func) && (is.null(dllname) || !is.character(dllname)))
-    stop("You need to specify the name of the dll or shared library where func can be found (without extension)")
+    stop("You need to specify the name of the dll or shared library where 'func' can be found (without extension)")
   if (!is.numeric(maxiter))
     stop("`maxiter' must be numeric")
   if (as.integer(maxiter) < 1)
-    stop ("maxiter must be >=1")
+    stop ("'maxiter' must be >=1")
   if (!is.numeric(rtol))
     stop("`rtol' must be numeric")
   if (!is.numeric(atol))
@@ -67,7 +67,7 @@ stode         <- function(y, time=0, func, parms=NULL,
   else if (jactype == "bandusr" ) imp <- 24 # banded jacobian, specified by user function
   else if (jactype == "bandint" ) imp <- 25 # banded jacobian, specified internally
   else if (jactype == "1Dint"   ) imp <- 0  # banded jacobian, specified+rearranged internally  
-  else stop("jactype must be one of fullint, fullusr, bandusr, or bandint")
+  else stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr', or 'bandint'")
 
   if (imp == 0) {
     nspec<-bandup
@@ -181,9 +181,11 @@ stode         <- function(y, time=0, func, parms=NULL,
     if (!is.list(tmp))
       stop("Model function must return a list\n")
     if (length(tmp[[1]]) != length(y))
-      stop(paste("The number of derivatives returned by func() (",
+      stop(paste("The number of derivatives returned by 'func() (",
       length(tmp[[1]]), "must equal the length of the initial conditions vector (",
       length(y), ")", sep = ""))
+    if (any(is.na(tmp[[1]])))
+      stop("Model function must return a list of values, of which first element has length =length of y\n ")
 
     # use "unlist" here because some output variables are vectors/arrays
     Nglobal <- if (length(tmp) > 1)
@@ -216,7 +218,10 @@ stode         <- function(y, time=0, func, parms=NULL,
      if (min(positive) < 1) stop ("the elements of 'positive' should be >0")
 
   }
-  out <- .Call("call_dsteady", y, as.double(time), Func, as.double(initpar),
+
+  if(is.null(initfunc))
+     initpar <- NULL # parameter init not needed if function is not a DLL
+  out <- .Call("call_dsteady", y, as.double(time), Func,  as.double(initpar),
     ctol, atol, rtol, as.integer(itol), rho,  JacFunc, ModelInit, as.integer(verbose),
     as.integer(imp),as.integer(bandup),as.integer(banddown),as.integer(maxiter),
     as.integer(Pos),as.integer(positive),as.integer(Nglobal),as.integer(nabd),

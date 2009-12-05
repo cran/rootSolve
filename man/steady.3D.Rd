@@ -75,9 +75,9 @@ steady.3D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-#############################################################
-# Diffusion in 3-D; imposed boundary conditions
-#############################################################
+## =======================================================================
+## Diffusion in 3-D; imposed boundary conditions
+## =======================================================================
 diffusion3D <- function(t,Y,par)
   {
    yy    <- array(dim=c(n,n,n),data=Y)  # vector to 3-D array

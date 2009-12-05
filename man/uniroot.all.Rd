@@ -37,9 +37,10 @@ uniroot.all(f, interval, lower=min(interval), upper=max(interval),
 \author{
 Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
-\examples{##############################
-##   Mathematical examples  ##
-##############################
+\examples{
+## =======================================================================
+##   Mathematical examples  
+## =======================================================================
 
 # a well-behaved case...
 fun <- function (x) cos(2*x)^3
@@ -54,9 +55,9 @@ curve(f(x),-5,5,n=500,main="uniroot.all")
 points(AA,rep(0,length(AA)),col="red",pch=16)
 f(AA)  # !!!
 
-##################################
-## Ecological modelling example ##
-##################################
+## =======================================================================
+## Ecological modelling example  
+## =======================================================================
 
 # Example from the book of Soetaert and Herman(2009)
 # A practical guide to ecological modelling -

@@ -38,9 +38,11 @@ gradient(f, x, centered = FALSE, pert=1e-8, ...)
 
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
-\examples{############################################################
-# 1. Sensitivity analysis of the logistic differential equation
-# dN/dt = r*(1-N/K)*N  , N(t0)=N0.
+\examples{
+## =======================================================================
+## 1. Sensitivity analysis of the logistic differential equation
+## dN/dt = r*(1-N/K)*N  , N(t0)=N0.
+## =======================================================================
 
 # analytical solution of the logistic equation:
 logistic <- function (x,times)
@@ -69,14 +71,15 @@ legend("topleft",names(x),pch=1:3,col=1:3)
 # mean scaled sensitivity
 colMeans(sSF)
 
-############################################################
-# 2. Stability of the budworm model, as a function of its
-# rate of increase.
-#
-# Example from the book of Soetaert and Herman(2009)
-# A practical guide to ecological modelling,
-# using R as a simulation platform. Springer
-# code and theory are explained in this book
+## =======================================================================
+## 2. Stability of the budworm model, as a function of its
+## rate of increase.
+##
+## Example from the book of Soetaert and Herman(2009)
+## A practical guide to ecological modelling,
+## using R as a simulation platform. Springer
+## code and theory are explained in this book
+## =======================================================================
 
 r   <- 0.05
 K   <- 10

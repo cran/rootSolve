@@ -12,5 +12,15 @@ citEntry(entry="book",
   Springer, 372 pp.")
          )
 
+citEntry(entry="manual",
+  title = "rootSolve: Nonlinear root finding, equilibrium and steady-state analysis of ordinary differential equations\n",
+  year = "2009",
+  author = personList(as.person("Karline Soetaert")),
+  note = "R package 1.6",
+  textVersion =  paste("Soetaert K. (2009).
+  rootSolve: Nonlinear root finding, equilibrium and steady-state analysis of ordinary differential equations.
+  R-package version 1.6")
+         )
+
 citFooter("rootSolve was created to solve the examples from chapter 7 of our book - ",
           "please cite this book when using it, thank you!")

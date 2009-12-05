@@ -159,9 +159,9 @@ Estimates the steady-state condition for a system of
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-#####################################################
-# Example 1. A simple sediment biogeochemical model
-#####################################################
+## =======================================================================
+## Example 1. A simple sediment biogeochemical model
+## =======================================================================
 
 model<-function(t,y,pars)
 {
@@ -192,11 +192,10 @@ ST <- stode(y=y,func=model,parms=pars,pos=TRUE)
 
 ST
 
+## =======================================================================
+## Example 2. 1000 simultaneous equations
+## =======================================================================
 
-
-#####################################################
-# Example 2. 1000 simultaneous equations
-#####################################################
 model <- function (time,OC,parms,decay,ing)
 {
  # model describing organic Carbon (C) in a sediment, 
@@ -225,9 +224,9 @@ ss   <- stode(runif(N),func=model,parms=NULL,positive=TRUE, decay=5,ing=20)))
 plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
 xlab="Nonlocal exchange",ylab="sediment depth",main="stode, full jacobian")
 
-#####################################################
-# Example 3. Solving a system of linear equations
-#####################################################
+## =======================================================================
+## Example 3. Solving a system of linear equations
+## =======================================================================
 
 # this example is included to demonstrate how to use the "jactype" option.
 # (and that stode is quite efficient).

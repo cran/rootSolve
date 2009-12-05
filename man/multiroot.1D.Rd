@@ -74,17 +74,17 @@ multiroot.1D(f, start, maxiter=100,
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-#===============================================================================
-# Example 1: simple standard problem
-# solve the BVP ODE:
-# d2y/dt^2=-3py/(p+t^2)^2
-# y(t= -0.1)=-0.1/sqrt(p+0.01)
-# y(t=  0.1)= 0.1/sqrt(p+0.01)
-# where p = 1e-5
-#
-# analytical solution y(t) = t/sqrt(p + t^2).
-#
-#===============================================================================
+## =======================================================================
+## Example 1: simple standard problem
+## solve the BVP ODE:
+## d2y/dt^2=-3py/(p+t^2)^2
+## y(t= -0.1)=-0.1/sqrt(p+0.01)
+## y(t=  0.1)= 0.1/sqrt(p+0.01)
+## where p = 1e-5
+##
+## analytical solution y(t) = t/sqrt(p + t^2).
+##
+## =======================================================================
 
 bvp <- function(y) {
   dy2 <- diff(diff(c(ya,y,yb))/dx)/dx
@@ -104,14 +104,14 @@ plot(x,y$root, ylab="y", main="BVP test problem")
 # add analytical solution
 curve(x/sqrt(p+x*x),add=TRUE,type="l",col="red")
 
-#===============================================================================
-# Example 2: bvp test problem 28
-# solve:
-# xi*y'' + y*y' - y=0
-# with boundary conditions:
-# y0=1
-# y1=3/2
-#===============================================================================
+## =======================================================================
+## Example 2: bvp test problem 28
+## solve:
+## xi*y'' + y*y' - y=0
+## with boundary conditions:
+## y0=1
+## y1=3/2
+## =======================================================================
 
 prob28 <-function(y,xi) {
  dy2 = diff(diff(c(ya,y,yb))/dx)/dx             # y''

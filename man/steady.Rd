@@ -60,11 +60,10 @@ steady(y, time=0, func, parms=NULL, method="stode",...)}
   \code{precis} with the precision attained during each iteration.
 }
 \examples{
-#########################################
-### Bacteria growing on a substrate
-#########################################
+## =======================================================================
+##  Bacteria (Bac) growing on a substrate (Sub)
+## =======================================================================
   
-  # Bacteria (Bac) are growing on a substrate (Sub)
   model <- function(t,state,pars)
   {
   with (as.list(c(state,pars)), {

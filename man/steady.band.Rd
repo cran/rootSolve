@@ -70,10 +70,11 @@ steady.band(y, time=0, func, parms=NULL,
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-#############################################################
-# 1000 simultaneous equations, solved 6 times for different 
-# values of parameter "decay"
-#############################################################
+## =======================================================================
+## 1000 simultaneous equations, solved 6 times for different 
+## values of parameter "decay"
+## =======================================================================
+
   model <- function (time,OC,parms,decay)
   {
    # model of particles (OC) that sink out of the water and decay
@@ -100,12 +101,11 @@ steady.band(y, time=0, func, parms=NULL,
   legend("bottomright",legend=seq(from=0.1,to=1.1,by=0.2),lty=1:10,
           title="decay rate",col=1:10,lwd=2)
 
-#############################################################
-# 5001 simultaneous equations: solve
-# dy/dt = 0 = d2y/dx2 + 1/x*dy/dx + (1-1/(4x^2)y - sqrx(x)*cos(x),
-# over the interval [1,6]
-# with boundary conditions: y(1)=1, y(6)=-0.5
-#############################################################
+## =======================================================================
+## 5001 simultaneous equations: solve
+## dy/dt = 0 = d2y/dx2 + 1/x*dy/dx + (1-1/(4x^2)y - sqrx(x)*cos(x),
+## over the interval [1,6], with boundary conditions: y(1)=1, y(6)=-0.5
+## =======================================================================
 
   derivs <- function(t,y,parms, x,dx,N,y1,y6)
   {
@@ -135,7 +135,7 @@ ana <- 0.0588713*cos(xx)/sqrt(xx)+1/4*sqrt(xx)*cos(xx)+
 points(xx,ana)
 legend("topright",pch=c(NA,1),lty=c(1,NA),c("numeric","analytic"))
 
-          }
+}
 \details{
   This is the method of choice for single-species 1-D models.
 

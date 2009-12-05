@@ -13,11 +13,11 @@ void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, in
 		     int *, double *, int *);
 
 /* interface between fortran function call and R function 
-   Fortran code calls lsode_derivs(N, t, y, ydot, yout, iout) 
+   Fortran code calls C_ode_derivs(N, t, y, ydot, yout, iout) 
    R code called as lsode_deriv_func(time, y) and returns ydot 
    Note: passing of parameter values and "..." is done in R-function runsteady*/
 
-static void lsode_derivs (int *neq, double *t, double *y, 
+static void C_ode_derivs (int *neq, double *t, double *y, 
                           double *ydot, double *yout, int *iout)
 {
   int i;
@@ -36,7 +36,7 @@ static void lsode_derivs (int *neq, double *t, double *y,
 
 /* interface between fortran call to jacobian and R function */
 
-static void lsode_jac (int *neq, double *t, double *y, int *ml,
+static void C_ode_jac (int *neq, double *t, double *y, int *ml,
 		    int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
   int i;
@@ -55,10 +55,8 @@ static void lsode_jac (int *neq, double *t, double *y, int *ml,
 
 
 /* give name to data types */
-typedef void deriv_func(int *, double *, double *,double *, double *, int *);
-typedef void jac_func  (int *, double *, double *, int *,
+typedef void C_jac_func_type  (int *, double *, double *, int *,
 		                    int *, double *, int *, double *, int *);
-typedef void init_func (void (*)(int *, double *));
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
 
@@ -76,14 +74,13 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   SEXP yout, RWORK, ISTATE;    
 
   int  i, j, k, latol, lrtol, lrw, liw, maxit;
-  double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *out, *dy, ss, sumder=0.;
-  int neq, itol, itask, istate, iopt, *iwork, jt, mflag, nout, ntot, is;
-  int *ipar, lrpar, lipar, isDll, isOut, Steady;
+  double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *dy, ss, sumder=0.;
+  int neq, itol, itask, istate, iopt, *iwork, jt, mflag, is;
+  int isDll, Steady;
   
-  deriv_func *derivs;
-  jac_func   *jac=NULL;
-  init_func  *initializer;
-    
+  C_deriv_func_type *derivs;
+  C_jac_func_type   *jac=NULL;
+
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
@@ -96,53 +93,18 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   neq = LENGTH(y);              /* number of equations */ 
   
   mflag = INTEGER(verbose)[0];
-  nout   = INTEGER(nOut)[0];    /* number of output variables */
   tin  = REAL(times)[0];        /* start and end time */
   tout = REAL(times)[1];
   Stol = REAL(stol)[0];         /* steady-state tolerance */ 
 
-/* The output:
-    out and ipar are used to pass output variables (number set by nout)
-    followed by other input (e.g. forcing functions) provided 
-    by R-arguments rpar, ipar
-    ipar[0]: number of output variables, ipar[1]: length of rpar, 
-    ipar[2]: length of ipar */
-  
   if (inherits(func, "NativeSymbol"))  /* function is a dll */
-  {
-   isDll = 1;
-   lrpar = nout + LENGTH(Rpar); /* length of rpar; LENGTH(Rpar) is always >0 */
-   lipar = 3 + LENGTH(Ipar);    /* length of ipar */
-   isOut = 1;
-   ntot  = neq + nout;          /* length of yout */
-
-  } else                              /* function is not a dll */
-  {
+    isDll = 1;
+  else                              /* function is not a dll */
    isDll = 0;
-   lipar = 1;
-   lrpar = 1; 
-   isOut = 0;   
-   ntot  = neq ;        
 
-  }
- 
-   out   = (double *) R_alloc(lrpar, sizeof(double));
-   ipar  = (int *)    R_alloc(lipar, sizeof(int));
+/* initialise output ... */
+  initOut(isDll, neq, nOut, Rpar, Ipar);
 
-   if (isDll ==1)
-   {
-    ipar[0] = nout;              /* first 3 elements of ipar are special */
-    ipar[1] = lrpar;
-    ipar[2] = lipar;
-    /* other elements of ipar are set in R-function lsodx via argument *ipar* */
-    for (j = 0; j < LENGTH(Ipar);j++) ipar[j+3] = INTEGER(Ipar)[j];
-
-    /* first nout elements of rpar reserved for output variables 
-      other elements are set in R-function lsodx via argument *rpar* */
-    for (j = 0; j < nout; j++)        out[j] = 0.;  
-    for (j = 0; j < LENGTH(Rpar);j++) out[nout+j] = REAL(Rpar)[j];
-   }
-   
 /* copies of all variables that will be changed in the FORTRAN subroutine */
 
   xytmp = (double *) R_alloc(neq, sizeof(double));
@@ -168,14 +130,9 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   PROTECT(Time = NEW_NUMERIC(1));                  incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));         incr_N_Protect();
   PROTECT(yout = allocVector(REALSXP,ntot));       incr_N_Protect();
-  PROTECT(st_gparms = parms);                      incr_N_Protect();
 
  /* The initialisation routine */
-  if (!isNull(initfunc))
-	  {
-	  initializer = (init_func *) R_ExternalPtrAddr(initfunc);
-	  initializer(Initstparms);
-	  }
+  initParms(initfunc, parms);
 
 /* pointers to functions derivs, jac, passed to FORTRAN */
   dy = (double *) R_alloc(neq, sizeof(double));
@@ -183,12 +140,12 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
 
   if (isDll ==1) 
     { /* DLL address passed to fortran */
-      derivs = (deriv_func *) R_ExternalPtrAddr(func);  
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);  
       /* no need to communicate with R - but output variables set here */
 	  
     } else {
       /* interface function between fortran and R passed to Fortran*/ 
-      derivs = (deriv_func *) lsode_derivs; 
+      derivs = (C_deriv_func_type *) C_ode_derivs; 
       /* needed to communicate with R */
       lsode_deriv_func = func;
       lsode_envir = rho;
@@ -199,10 +156,10 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
     {
       if (isDll ==1)
 	    {
-	     jac = (jac_func *) R_ExternalPtrAddr(jacfunc);
+	     jac = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
 	    } else  {
 	     lsode_jac_func = jacfunc;
-	     jac = lsode_jac;
+	     jac = C_ode_jac;
 	    }
     }
 
@@ -212,6 +169,8 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   if (latol  > 1 && lrtol == 1 ) itol = 2;
   if (latol == 1 && lrtol  > 1 ) itol = 3;
   if (latol  > 1 && lrtol  > 1 ) itol = 4;
+  for (j = 0; j < lrtol; j++) Rtol[j] = REAL(rtol)[j];
+  for (j = 0; j < latol; j++) Atol[j] = REAL(atol)[j];
 
   itask = INTEGER(iTask)[0];   
   istate = 1;
@@ -228,8 +187,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP stol, SEXP rtol,
   for (i = 0; i < maxit; i++)
 	{  /* one step */
     F77_CALL(dlsode) (derivs, &neq, xytmp, &tin, &tout,
-			   &itol, NUMERIC_POINTER(rtol), NUMERIC_POINTER(atol), 
-         &itask, &istate, &iopt, rwork,
+			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
 			   &lrw, iwork, &liw, jac, &jt, out, ipar); 
      /* check steady-state */
     sumder = 0. ;

@@ -1,5 +1,5 @@
 Package: rootSolve
-Version: 1.4
+Version: 1.5
 Title: Nonlinear root finding, equilibrium and steady-state analysis of
         ordinary differential equations
 Author: Karline Soetaert <k.soetaert@nioo.knaw.nl>
@@ -17,10 +17,10 @@ Description: Routines to find the root of nonlinear functions, and to
         2-D, and 3-D partial differential equations, that have been
         converted to ODEs by numerical differencing (using the
         method-of-lines approach). Includes fortran code.
-License: GPL
+License: GPL (>= 2)
 LazyData: yes
 Repository: CRAN
 Repository/R-Forge/Project: rootsolve
-Repository/R-Forge/Revision: 46
-Date/Publication: 2009-06-29 09:40:08
-Packaged: 2009-06-28 21:00:57 UTC; rforge
+Repository/R-Forge/Revision: 52
+Date/Publication: 2009-12-17 17:17:45
+Packaged: 2009-12-05 21:13:20 UTC; rforge

@@ -50,7 +50,7 @@ The Netherlands}
       are included. These allow to estimate the steady-state of 1-D, 2-D
       and 3-D partial differential equations (PDE) that have been rewritten
       as a set of ODEs by numerical differencing.
-    \item Functions calculate the Hessian and Jaobian matrix or - more
+    \item Functions that calculate the Hessian and Jaobian matrix or - more
       general - the gradient of functions with respect to independent variables.
   \end{itemize}
 }
@@ -223,7 +223,7 @@ model(ss2$root)   # the function value at the root
         6 & 7 & 8 & 9 & 10 \\
         11 & 12 & 13 & 14 & 15 \\
         16 & 17 & 18 & 19 & 20 \\
-        21 & 22 & 23 & 24 & 15 \\
+        21 & 22 & 23 & 24 & 25 \\
       \end{array}
     \right]
   \]
@@ -656,10 +656,10 @@ diffusion2D <- function(t,conc,par)
   ST3  <- steady.2D(Conc0,func=diffusion2D,parms=NULL,pos=TRUE,dimens=c(n,n),
                  lrw=1000000,atol=1e-10,rtol=1e-10,ctol=1e-10)
   ))
-  Conc <- matrix(nr=n,nc=n,data=ST3$y)
 @
+The S3 image method is used to generate the steady-state plot.
 <<label=steady2D, include=FALSE>>=
-filled.contour(Conc,color.palette=terrain.colors)
+image(ST3,main="2-D diffusion+production", xlab="x", ylab="y")
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}

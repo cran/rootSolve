@@ -100,14 +100,20 @@ multiroot(f, start, maxiter=100,
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-# example 1  
-# 2 simultaneous equations
+## =======================================================================
+## example 1  
+## 2 simultaneous equations
+## =======================================================================
+
 model <- function(x) c(F1=x[1]^2+ x[2]^2 -1,F2=x[1]^2- x[2]^2 +0.5)
 
 (ss<-multiroot(f=model,start=c(1,1)))
 
-# example 2
-# 3 equations, two solutions
+## =======================================================================
+## example 2
+## 3 equations, two solutions
+## =======================================================================
+
 model <- function(x) c(F1= x[1] + x[2] + x[3]^2 - 12,
                        F2= x[1]^2 - x[2] + x[3] - 2,
                        F3= 2 * x[1] - x[2]^2 + x[3] - 1 )
@@ -120,7 +126,10 @@ model <- function(x) c(F1= x[1] + x[2] + x[3]^2 - 12,
 (ss<-multiroot(model,c(0,0,0)))
 model(ss$root)
 
-# example 3: find a matrix
+## =======================================================================
+## example 3: find a matrix
+## =======================================================================
+
 f2<-function(x)
  {
  X<-matrix(nr=5,x)

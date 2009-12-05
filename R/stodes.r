@@ -133,11 +133,11 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
       print(paste("number of species: ",nnz[2]))
     }
     if (sparsetype =="2D")    {
-      print(paste("dimensions: ",nnz[3],nnz[4]))
+      print(paste("dimensions: ",nnz[4],nnz[3]))
       print(paste("cyclic boundaries: ",nnz[5],nnz[6]))
     }
     if (sparsetype =="3D")    {
-      print(paste("dimensions: ",nnz[3],nnz[4],nnz[5]))
+      print(paste("dimensions: ",nnz[5],nnz[4],nnz[3]))
       print(paste("cyclic boundaries: ",nnz[6],nnz[7],nnz[8]))
     }
   }
@@ -210,6 +210,8 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     stop(paste("The number of derivatives returned by func() (",length(
     tmp[[1]]), "must equal the length of the initial conditions vector (",
        length(y), ")", sep = ""))
+  if (any(is.na(tmp[[1]])))
+      stop("Model function must return a list of values, of which first element has length =length of y\n ")
 
     # use "unlist" here because some output variables are vectors/arrays
   Nglobal <- if (length(tmp) > 1)
@@ -235,7 +237,10 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
       stop ("the elements of 'positive' should be >0")
   }
 
-  out <- .Call("call_stsparse", y, as.double(time), Func, as.double(initpar),
+  if(is.null(initfunc))
+     initpar <- NULL # parameter init not needed if function is not a DLL
+
+  out <- .Call("call_stsparse", y, as.double(time), Func,  as.double(initpar),
     ctol, atol, rtol, as.integer(itol), rho,  ModelInit, as.integer(verbose),
     as.integer(imp),as.integer(nnz),as.integer(lrw),as.integer(ngp),
     as.integer(maxiter),as.integer(Pos),as.integer(positive),

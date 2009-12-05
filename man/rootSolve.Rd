@@ -26,8 +26,8 @@ Functions that:
   \tabular{ll}{
      Package: \tab rootSolve\cr
      Type: \tab Package\cr
-     Version: \tab 1.4\cr
-     Date: \tab 2009-01-31\cr
+     Version: \tab 1.6\cr
+     Date: \tab 2009-10-10\cr
      License: \tab GNU Public License 2 or above\cr
   }
 
@@ -44,6 +44,10 @@ Please cite this work when using rootSolve.
 \references{
   Soetaert, K and Herman, PMJ, 2009. A Practical Guide to Ecological Modelling.
   Using \R as a Simulation Platform. Springer, 372pp, ISBN 978-1-4020-8623-6.
+  
+  Soetaert K., 2009. rootSolve: Nonlinear root finding, equilibrium and 
+  steady-state analysis of ordinary differential equations.
+  R-package version 1.6
 }
 \seealso{
 

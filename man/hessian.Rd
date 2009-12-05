@@ -40,7 +40,9 @@ hessian(f, x, centered = FALSE, pert=1e-8, ...)
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-# the banana function
+## =======================================================================
+## the banana function
+## =======================================================================
    fun <- function(x)  100*(x[2] - x[1]^2)^2 + (1 - x[1])^2
    mm  <-nlm(fun, p=c(0,0))$estimate
    (Hes <- hessian(fun,mm))

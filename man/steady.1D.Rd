@@ -82,11 +82,12 @@ steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL,
 \author{
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
-\examples{##################################################################
-######  EXAMPLE 1: BOD + O2                                 ######
-##################################################################
-# Biochemical Oxygen Demand (BOD) and oxygen (O2) dynamics
-# in a river
+\examples{
+## =======================================================================
+##  EXAMPLE 1: BOD + O2                                
+## =======================================================================
+## Biochemical Oxygen Demand (BOD) and oxygen (O2) dynamics
+## in a river
 
 #==================#
 # Model equations  #
@@ -131,8 +132,8 @@ state <- c(rep(200,N),rep(200,N))
 
 # running the model
 print(system.time(
- out   <- steady.1D (y=state,func=O2BOD,parms=NULL,
-                     nspec=2,pos=TRUE,names=c("BOD","O2"))))
+ out   <- steady.1D (y=state, func=O2BOD, parms=NULL,
+                     nspec=2, pos=TRUE, names=c("BOD","O2"))))
 
 #==================#
 # Plotting output  #
@@ -151,16 +152,22 @@ par(mfrow=mf)
 # same, but now running dynamically to steady-state
 print(system.time(
 out2  <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
-                    time=c(0,1000),method="runsteady")))
+                    time=c(0,1000), method="runsteady", 
+                    names=c("BOD","O2"))))
+                    
+# plot all state variables at once, against "x":
+plot(out2, grid=x, xlab= "Distance from river",
+     ylab="mmol/m3", type="l", lwd=2)
+                         
 
-##################################################################
-######  EXAMPLE 2: Silicate diagenesis                      ######
-##################################################################
-# Example from the book:
-# Soetaert and Herman (2009).
-# a practical guide to ecological modelling -
-# using R as a simulation platform.
-# Springer
+## =======================================================================
+##   EXAMPLE 2: Silicate diagenesis                      
+## =======================================================================
+## Example from the book:
+## Soetaert and Herman (2009).
+## a practical guide to ecological modelling -
+## using R as a simulation platform.
+## Springer
 
 #====================#
 # Model equations    #
@@ -233,21 +240,27 @@ bwDSi    <- 150              # mmol/m3
 # initial guess of state variables-just random numbers between 0,1
 Conc     <- runif(2*N)
 
-# three runs with different deposition rates
+# three runs with different deposition rates                                      n
 BSidepo  <- 0.2*100          # nmol/cm2/day
-sol  <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2)
-CONC <- sol$y
+sol  <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
+  names=c("DSi","BSi"))
+
+BSi <- sol$y[ ,"BSi"]
+DSi <- sol$y[ ,"DSi"]
 
 BSidepo  <- 2*100          # nmol/cm2/day
-sol2 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2)
-CONC <- cbind(CONC,sol2$y)
+sol2 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
+  names=c("DSi","BSi"))
+
+BSi <- cbind(BSi,sol2$y[ ,"BSi"])
+DSi <- cbind(DSi,sol2$y[ ,"DSi"])
 
 BSidepo  <- 3*100          # nmol/cm2/day
-sol3 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2)
-CONC  <- cbind(CONC,sol3$y)
+sol3 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
+  names=c("DSi","BSi"))
 
-DSi  <- CONC[(N+1):(2*N),]
-BSi  <- CONC[1:N,]
+BSi <- cbind(BSi,sol3$y[ ,"BSi"])
+DSi <- cbind(DSi,sol3$y[ ,"DSi"])
 
 #====================#
 # plotting output    #
@@ -265,6 +278,16 @@ plot(Porosity,Depth,ylim=c(10,0),xlab="-" ,
 plot(Db,Intdepth,ylim=c(10,0),xlab="cm2/d",
      main="Bioturbation",type="l",lwd=2)
 mtext(outer=TRUE,side=3,line=-2,cex=1.5,"SiDIAmodel")
+
+
+## one more run, all state variables plotted in one function call 
+
+BSidepo  <- 10*100          # nmol/cm2/day
+Std <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
+  names=c("DSi","BSi"))
+plot(Std, grid=Depth, type="l",xyswap=TRUE,lwd=2, xlab=c("mmolSi/m3 Liquid",
+  "mmolSi/m3 Solid"), ylab="Depth, cm")  
+
 }
 \details{
   This is the method of choice for multi-species 1-dimensional models, that

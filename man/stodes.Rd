@@ -164,7 +164,12 @@ stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
 \author{
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
-\examples{# 1000 simultaneous equations
+\examples{
+
+## =======================================================================
+## 1000 simultaneous equations
+## =======================================================================
+
 model <- function (time,OC,parms,decay,ing)
 {
  # model describing C in a sediment,
@@ -193,7 +198,8 @@ ss   <- stodes(runif(N),func=model,parms=NULL,
 
 plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
      xlab="Nonlocal exchange",ylab="sediment depth",
-     main="stodes, sparse jacobian")}
+     main="stodes, sparse jacobian")
+}
 
 \references{
   For a description of the Newton-Raphson method, e.g.

@@ -45,8 +45,10 @@ jacobian.full(y, func, dy =NULL, time=0, parms=NULL, pert=1e-8, ...)
 \author{
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
-\examples{# 1. Structure of the Jacobian
-#------------------------------
+\examples{
+## =======================================================================
+## 1. Structure of the Jacobian
+## =======================================================================
 mod <- function (t=0,y, parms=NULL,...)
 {
  dy1<-  y[1] + 2*y[2]
@@ -57,8 +59,9 @@ mod <- function (t=0,y, parms=NULL,...)
 }
 jacobian.full(y=c(1,2,3,4),func=mod)
 
-# 2. Stability properties of a physical model
-#------------------------------
+## =======================================================================
+## 2. Stability properties of a physical model
+## =======================================================================
 coriolis <- function (t,velocity,pars,f)
  {
   dvelx <- f*velocity[2]
@@ -72,10 +75,11 @@ Jac <- jacobian.full(y=c(velx=0,vely=0),func=coriolis,
 print(Jac)
 eigen(Jac)$values
 
-# 3. Type of equilibrium
-#----------------------------------------
-# From Soetaert and Herman (2008). A practical guide to ecological 
-# modelling. Using R as a simulation platform. Springer
+## =======================================================================
+## 3. Type of equilibrium
+## =======================================================================
+## From Soetaert and Herman (2009). A practical guide to ecological 
+## modelling. Using R as a simulation platform. Springer
 
 eqn <- function (t,state,pars)
  {
@@ -111,10 +115,11 @@ data.frame(type=c("stable","unstable","saddle","neutral",
            eigenvalue_1=c(A[1],B[1],C[1],D[1],E[1],F[1]),
            eigenvalue_2=c(A[2],B[2],C[2],D[2],E[2],F[2]))
 
-# 4. Limit cycles
-#----------------------------------------
-# From Soetaert and Herman (2008). A practical guide to ecological 
-# modelling. Using R as a simulation platform. Springer
+## =======================================================================
+## 4. Limit cycles
+## =======================================================================
+## From Soetaert and Herman (2009). A practical guide to ecological 
+## modelling. Using R as a simulation platform. Springer
 
 eqn2 <- function (t,state,pars)
  {

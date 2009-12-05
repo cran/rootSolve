@@ -12,7 +12,7 @@ void F77_NAME(dsparse)(void (*)(int *, double *, double *, double *, double*, in
 		     int *, int *, int *, int *, double *, int*,
          int *, double *, int *, int*);
 
-static void stsparse_derivs (int *neq, double *t, double *y, double *ydot, 
+static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot, 
                             double *yout, int *iout)
 {
   int i;
@@ -29,27 +29,20 @@ static void stsparse_derivs (int *neq, double *t, double *y, double *ydot,
 
 }
 
-
-
-typedef void deriv_func(int *, double *, double *,double *,double *, int *);
-typedef void init_func(void (*)(int *, double *));
-
 SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, 
 		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
     SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan)
 {
   SEXP   yout, RWORK, IWORK;
-  int    j, k, ny, isOut, maxit, isSteady;
-  double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol, *out;
+  int    j, k, ny, maxit, isSteady;
+  double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol;
   double *x, *precis, *ewt, *rsp ;
-  int    neq, nnz, nsp, ngp, jt, niter, mflag, nout, ntot, posit, *pos, ipos, Itol, type;
+  int    neq, nnz, nsp, ngp, jt, niter, mflag, posit, *pos, ipos, Itol, type;
   int    *R, *C, *IC, *ian, *jan, *igp, *jgp, *isp, *dims;
-  int    *ipar, lrpar, lipar, len, isDll ;
+  int    len, isDll ;
     
-  deriv_func *derivs;
-  init_func  *initializer;
-
+  C_deriv_func_type *derivs;
   init_N_Protect();
 
   jt    = INTEGER(mf)[0];        
@@ -69,38 +62,15 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
   neq   = ny; 
   mflag = INTEGER(verbose)[0];
-  nout  = INTEGER(nOut)[0];
 
   if (inherits(func, "NativeSymbol"))  /* function is a dll */
-  {
-   isDll = 1;
+     isDll = 1;
+  else
+     isDll = 0;
    if (nout > 0) isOut = 1; 
-   ntot  = neq + nout;          /* length of yout */
-   lrpar = nout + LENGTH(Rpar); /* length of rpar; LENGTH(Rpar) is always >0 */
-   lipar = 3 + LENGTH(Ipar);    /* length of ipar */
 
-  } else                        /* function is not a dll */
-  {
-   isDll = 0;
-   isOut = 0;
-   ntot = neq;
-   lipar = 1;
-   lrpar = 1; 
-  }
- 
-   out   = (double *) R_alloc(lrpar, sizeof(double));
-   ipar  = (int *)    R_alloc(lipar, sizeof(int));
-
-   if (isDll ==1)
-   {
-    ipar[0] = nout;
-    ipar[1] = lrpar;
-    ipar[2] = lipar;
-    for (j = 0; j < LENGTH(Ipar);j++) ipar[j+3] = INTEGER(Ipar)[j];
-   
-    for (j = 0; j < nout; j++) out[j] = 0.;  
-    for (j = 0; j < LENGTH(Rpar);j++) out[nout+j] = REAL(Rpar)[j];
-   }
+  /* initialise output ... */
+  initOut(isDll, neq, nOut, Rpar, Ipar);
 
   /* initialise global variables... */
             
@@ -183,26 +153,19 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   
   PROTECT(yout = allocVector(REALSXP,ntot))    ; incr_N_Protect();
 
-  PROTECT(st_gparms = parms)                   ; incr_N_Protect();  
-
  /* The initialisation routine */
-  if (!isNull(initfunc))
-    	{
-	     initializer = (init_func *) R_ExternalPtrAddr(initfunc);
-	     initializer(Initstparms); 	}
+  initParms(initfunc, parms);
 
  /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 
-  if (inherits(func, "NativeSymbol")) 
+  if (isDll)
     {
-      derivs = (deriv_func *) R_ExternalPtrAddr(func);
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
 
-    } else {  derivs = (deriv_func *) stsparse_derivs;  
+    } else {  derivs = (C_deriv_func_type *) C_stsparse_derivs;  
       PROTECT(stsparse_deriv_func = func); incr_N_Protect();
       PROTECT(stsparse_envir = rho);incr_N_Protect();
     }
-    
-
     
     tin = REAL(time)[0];
       

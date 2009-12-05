@@ -204,8 +204,9 @@
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{
-
-# A simple sediment biogeochemical model
+## =======================================================================
+## A simple sediment biogeochemical model
+## =======================================================================
 
 model<-function(t,y,pars)
 {

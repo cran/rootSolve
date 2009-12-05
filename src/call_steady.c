@@ -3,13 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include "steady.h"   
- /* derivs,
- neq,nabd,tin,svar,beta,alpha,
-    jt,bu,bd,maxit, chtol,atol,rtol,itol,
-    jac
-    posit,pos,ipos, issteady, delt,copyvar,ewt,indx,
-    precis, niter,out,ipar*/
- 
+
 void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, int*),
 		     int *, int *, double *, double *, double *, double *,
 		     int *, int *, int *, int*, double *, double *, double *, int*,
@@ -18,11 +12,11 @@ void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, in
 		     int *, int *, int *, int *, double *, double *, double *, int *,
          double *, int *, double *, int *);
 
-typedef void deriv_func(int *, double *, double *,double *,double *, int *);
-deriv_func *derivb; 
+C_deriv_func_type *derivb;
 
 
-static void steady_derivs (int *neq, double *t, double *y, double *ydot, double *yout, int *iout)
+static void C_steady_derivs (int *neq, double *t, double *y, double *ydot,
+  double *yout, int *iout)
 {
 
   int i;
@@ -31,8 +25,8 @@ static void steady_derivs (int *neq, double *t, double *y, double *ydot, double 
   REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(steady_deriv_func,Time,Y)) ;incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, steady_envir))         ;incr_N_Protect();
+  PROTECT(R_fcall = lang3(Rst_deriv_func,Time,Y)) ;incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, Rst_envir))         ;incr_N_Protect();
 
   for (i = 0; i < *neq; i++)	ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
   my_unprotect(2);      
@@ -41,7 +35,8 @@ static void steady_derivs (int *neq, double *t, double *y, double *ydot, double 
 
 /* assumes 1-D multi-species model; rearrange state vars and rates of change */
 
-static void steady_derivs2(int *neq, double *t, double *y, double *ydot, double *yout, int *iout)
+static void C_steady_derivs2(int *neq, double *t, double *y, double *ydot,
+  double *yout, int *iout)
 {
   int i, j, ii;
      ii = 0;
@@ -62,7 +57,7 @@ static void steady_derivs2(int *neq, double *t, double *y, double *ydot, double 
      }
 
 
-static void steady_jac (int *neq, double *t, double *y, int *ml,
+static void C_steady_jac (int *neq, double *t, double *y, int *ml,
 		    int *mu, double *pd, int *nrowpd, double *RPAR, int *IPAR)
 {
   int i, j;
@@ -71,8 +66,8 @@ static void steady_jac (int *neq, double *t, double *y, int *ml,
   REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(steady_jac_func,Time,Y));  incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, steady_envir));        incr_N_Protect();
+  PROTECT(R_fcall = lang3(Rst_jac_func,Time,Y));  incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, Rst_envir));        incr_N_Protect();
 
   for (i = 0; i < *neq; i++)
     for (j = 0; j < *nrowpd; j++)
@@ -82,9 +77,8 @@ static void steady_jac (int *neq, double *t, double *y, int *ml,
   my_unprotect(2);
 }
 
-typedef void jac_func(int *, double *, double *, int *,
+typedef void C_jac_func_type(int *, double *, double *, int *,
 		                  int *, double *, int *, double *, int *);
-typedef void init_func(void (*)(int *, double *));
 
 SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP jacfunc, SEXP initfunc, 
@@ -92,15 +86,14 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
     SEXP nOut,SEXP nAbd, SEXP nSpec, SEXP nDim, SEXP Rpar, SEXP Ipar)
 {
   SEXP   yout, RWORK, IWORK;
-  int    j, k, ny, isOut, maxit, isSteady;
-  double *svar, *dy, *beta, *alpha, tin, *Atol, *Rtol, Chtol, *out;
+  int    j, k, ny, maxit, isSteady;
+  double *svar, *dy, *beta, *alpha, tin, *Atol, *Rtol, Chtol;
   double *copyvar, *delt, *precis, *ewt ;
-  int    neq, bu, bd, jt, niter, mflag, nout, ntot, nabd, posit, *pos, ipos, *indx, Itol;
-  int    *ipar, lrpar, lipar, len, isDll, rearrange;
+  int    neq, bu, bd, jt, niter, mflag, nabd, posit, *pos, ipos, *indx, Itol;
+  int    len, isDll, rearrange;
     
-  deriv_func *derivs;
-  jac_func   *jac=NULL;
-  init_func  *initializer;
+  C_deriv_func_type *derivs;
+  C_jac_func_type   *jac=NULL;
 
   init_N_Protect();
   jt = INTEGER(mf)[0];        
@@ -119,7 +112,7 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
   neq = ny; 
   mflag = INTEGER(verbose)[0];
-  nout  = INTEGER(nOut)[0];
+
   rearrange = 0;
   if (jt ==0)   /* state variables and rate of changes need rearranging*/
   {
@@ -128,35 +121,12 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   } 
 
   if (inherits(func, "NativeSymbol"))  /* function is a dll */
-  {
    isDll = 1;
-   if (nout > 0) isOut = 1; 
-   ntot  = neq + nout;          /* length of yout */
-
-   lrpar = nout + LENGTH(Rpar); /* length of rpar; LENGTH(Rpar) is always >0 */
-   lipar = 3 + LENGTH(Ipar);    /* length of ipar */
-  } else                        /* function is not a dll */
-  {
+  else                        /* function is not a dll */
    isDll = 0;
-   isOut = 0;
-   ntot = neq;
-   lipar = 1;
-   lrpar = 1; 
-  }
 
-   out   = (double *) R_alloc(lrpar, sizeof(double));
-   ipar  = (int *)    R_alloc(lipar, sizeof(int));
-
-   if (isDll ==1)
-   {
-    ipar[0] = nout;
-    ipar[1] = lrpar;
-    ipar[2] = lipar;
-    for (j = 0; j < LENGTH(Ipar);j++) ipar[j+3] = INTEGER(Ipar)[j];
-   
-    for (j = 0; j < nout; j++) out[j] = 0.;  
-    for (j = 0; j < LENGTH(Rpar);j++) out[nout+j] = REAL(Rpar)[j];
-   }
+  /* initialise output ... */
+  initOut(isDll, neq, nOut, Rpar, Ipar);
 
   /* initialise global variables... */
 
@@ -207,13 +177,9 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   
   PROTECT(yout = allocVector(REALSXP,ntot))    ; incr_N_Protect();
 
-  PROTECT(st_gparms = parms)                   ; incr_N_Protect();  
 
  /* The initialisation routine */
-  if (!isNull(initfunc))
-    	{
-	     initializer = (init_func *) R_ExternalPtrAddr(initfunc);
-	     initializer(Initstparms); 	}
+  initParms(initfunc, parms);
 
  /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 
@@ -221,30 +187,30 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
     { 
     if (rearrange == 0)
       {
-      derivs = (deriv_func *) R_ExternalPtrAddr(func);
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
       } else {
        nspec=INTEGER(nSpec)[0];
        ndim =INTEGER(nDim)[0];
-       derivs = (deriv_func *) steady_derivs2; 
-       derivb = (deriv_func *) R_ExternalPtrAddr(func);
+       derivs = (C_deriv_func_type *) C_steady_derivs2; 
+       derivb = (C_deriv_func_type *) R_ExternalPtrAddr(func);
 
        y2 = (double *) R_alloc(neq, sizeof(double));
        dy2 = (double *) R_alloc(neq, sizeof(double));   
       }
     } else /* not a DLL */
-    {  derivs = (deriv_func *) steady_derivs;  
-      PROTECT(steady_deriv_func = func); incr_N_Protect();
-      PROTECT(steady_envir = rho);incr_N_Protect();
+    {  derivs = (C_deriv_func_type *) C_steady_derivs;  
+      PROTECT(Rst_deriv_func = func); incr_N_Protect();
+      PROTECT(Rst_envir = rho);incr_N_Protect();
     } 
     
    if (!isNull(jacfunc))
     {
       if (inherits(jacfunc,"NativeSymbol"))
      	{
-	    jac = (jac_func *) R_ExternalPtrAddr(jacfunc);
+	    jac = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
 	    } else {
-	    steady_jac_func = jacfunc;
-	    jac = steady_jac;
+	    Rst_jac_func = jacfunc;
+	    jac = C_steady_jac;
 	    }
     }
 

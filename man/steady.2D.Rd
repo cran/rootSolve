@@ -75,9 +75,9 @@ steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
   Karline Soetaert <k.soetaert@nioo.knaw.nl>
 }
 \examples{
-#############################################################
-# Diffusion in 2-D; imposed boundary conditions
-#############################################################
+## =======================================================================
+## Diffusion in 2-D; imposed boundary conditions
+## =======================================================================
 diffusion2D <- function(t,Y,par)
   {
    y    <- matrix(nr=n,nc=n,data=Y)  # vector to 2-D matrix
@@ -109,10 +109,9 @@ diffusion2D <- function(t,Y,par)
     filled.contour(y,color.palette=terrain.colors)
     
 
-
-#############################################################
-# Diffusion in 2-D; extra flux on 2 boundaries, cyclic in y
-#############################################################
+## =======================================================================
+## Diffusion in 2-D; extra flux on 2 boundaries, cyclic in y
+## =======================================================================
 
 diffusion2Db <- function(t,Y,par)
   {
