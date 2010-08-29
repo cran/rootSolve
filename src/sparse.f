@@ -78,7 +78,7 @@ c model and jacobian function
       INTEGER          nout(*) 
       DOUBLE PRECISION time
 c
-      INTEGER i, j, k, esp
+      INTEGER i, j, k, esp, im, jm
       character (len=80) msg
 c-------------------------------------------------------------------------------
       SteadyStateReached = .FALSE.
@@ -91,8 +91,7 @@ c in this case the number of components, dimensions and cyclic bnd are in dims
       CALL xSparseStruct(N, nnz, ian, jan, igp, jgp, maxg, ngp,                &
      &    Svar, ewt, dSvar, beta, xmodel, time, out, nout, nonzero,            &
      &    Type, dims)
-
-c finds a minimum degree ordering of the rows and columns of 
+c find a minimum degree ordering of the rows and columns  
       CALL odrv(N,ian,jan,a,r,ic,nsp,isp,1,flag)
       IF (flag .NE. 0) CALL warnflag(flag,N)
       DO k = 1,N
@@ -109,9 +108,8 @@ c Iterations
       DO I = 1, maxiter 
         niter = I
 
-
 c Create sparse jacobian
-        CALL xSparseJacob (N, nnz, ian, jan, igp, jgp, ngp,                   &
+        CALL xSparseJacob (N, nnz, ian, jan, igp, jgp, ngp,                    &
      &     Svar, ewt, dSvar, beta, xmodel, time, out, nout, a)
 
 c Check convergence 
@@ -138,7 +136,7 @@ c--------------------------------------------------------------
 c first time: path=2; performs nnfc - matrix factorisation
 c next  time: path=4; performs nntc - solves a^T*x=b
 
-        CALL cdrv(N,r,c,ic,  ian,jan,a,beta,x,nsp,isp,rsp,esp,
+        CALL cdrv(N,r,c,ic,  ian,jan,a,beta,x,nsp,isp,rsp,esp,                 &
      &        path,flag)
         IF (flag .NE. 0) CALL warnflag(flag,N)
         path = 4
@@ -194,46 +192,46 @@ c**********************************************************************
 c       WRITE ERROR/WARNINGS OF SPARSE SOLVER                         *
 c**********************************************************************
 
-	     SUBROUTINE warnflag(flag,N)
-	     INTEGER flag, iflag,N
+	 SUBROUTINE warnflag(flag,N)
+	 INTEGER flag, iflag,N
 	 
- 	     character *80 msg
+ 	 character *80 msg
 
-	     iflag = INT(flag/N)
-	     iflag = INT(flag/N)
-	     IF (iflag .EQ. 1) THEN
+	 iflag = INT(flag/N)
+	 IF (iflag .EQ. 1) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	       call rwarn("sparse solver: null row in a")
-         call rwarn(msg)
+	   call rwarn("sparse solver: null row in a")
+         call rexit(msg)
        ELSE if (iflag .EQ. 2) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	       call rwarn("sparse solver: duplicate entry in a")
-         call rwarn(msg)
+	   call rwarn("sparse solver: duplicate entry in a")
+         call rexit(msg)
        ELSE if (iflag .EQ. 3) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	       call rwarn("insufficient storage in nsfc")
-         call rwarn(msg)
+	   call rwarn("insufficient storage in nsfc")
+         call rexit(msg)
        ELSE if (iflag .EQ. 4) THEN
-	       call rwarn("insufficient storage in nnfc")
+	   call rwarn("insufficient storage in nnfc")
        ELSE if (iflag .EQ. 5) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-	       call rwarn("sparse solver: null pivot")
-         call rwarn(msg)
+	   call rwarn("sparse solver: null pivot")
+         call rexit(msg)
        ELSE if (iflag .EQ. 6) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-  	     call rwarn("insufficient storage in nsfc")
-         call rwarn(msg)
+  	   call rwarn("insufficient storage in nsfc")
+         call rexit(msg)
        ELSE if (iflag .EQ. 7) THEN
-	       call rwarn("insufficient storage in nnfc")
+	   call rwarn("insufficient storage in nnfc")
        ELSE if (iflag .EQ. 8) THEN
          write(msg,'(A10,I10)') "  row nr: ", flag-iflag
-  	     call rwarn("sparse solver: zero pivot")
+         call rwarn("sparse solver: zero pivot")
+         call rexit(msg)
        ELSE if (iflag .EQ. 9) THEN
-	       call rwarn("insufficient storage in md")
+	   call rexit("insufficient storage in md")
        ELSE if (iflag .EQ. 10) THEN
-	       call rwarn("insufficient storage in cdrv/odrv")
+	   call rexit("insufficient storage in cdrv/odrv")
        ELSE if (iflag .EQ. 11) THEN
-	       call rwarn("illegal path specifications")
+	   call rexit("illegal path specifications")
        ENDIF
        RETURN
 	     END SUBROUTINE warnflag
@@ -423,7 +421,7 @@ c********************************************************************
 c-------------------------------------------------------------------*
 c Determines the jacobian, based on the known sparsity structure    * 
 c Uses finite differences:                                          *
-c For N state variables there are N+1 calls to the model* 
+c For N state variables there are N+1 calls to the model            * 
 c-------------------------------------------------------------------*
 
        IMPLICIT NONE

@@ -10,12 +10,16 @@
 
   It is assumed that exchange occurs only between adjacent layers.}
 \usage{
-steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL, 
-  names=NULL, method = "stode", cyclicBnd = NULL, ...)}
+steady.1D(y, time=NULL, func, parms = NULL, nspec = NULL, dimens = NULL, 
+  names = NULL, method = "stode", cyclicBnd = NULL, bandwidth = 1, ...)
+}
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
   }
-  \item{time }{time for which steady-state is wanted; the default is time=0.
+  \item{time }{time for which steady-state is wanted; 
+    the default is \code{time=0} (for \code{method = "stode"} or 
+    \code{method = "stodes"}, and \code{time = c(0,Inf)} for 
+    \code{method = "runsteady"}.
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},
@@ -53,6 +57,10 @@ steady.1D(y, time=0, func, parms=NULL, nspec=NULL, dimens=NULL,
   }
   \item{cyclicBnd }{if a cyclic boundary exists, a value of \code{1} else
     \code{NULL}; see details.
+  }
+  \item{bandwidth }{the number of adjacent boxes over which transport occurs.
+    Normally equal to 1 (box i only interacts with box i-1, and i+1). 
+    Values larger than 1 will not work with \code{method = "stodes"}.
   }
   \item{... }{additional arguments passed to the solver function as defined
     by \code{method}.

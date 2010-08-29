@@ -11,13 +11,16 @@
   and \code{runsteady}.
 }
 \usage{
-steady(y, time=0, func, parms=NULL, method="stode",...)}
+steady(y, time=NULL, func, parms=NULL, method="stode",...)}
 
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
     If \code{y} has a name attribute, the names will be used to label the output matrix.
   }
-  \item{time }{time for which steady-state is wanted; the default is time=0.
+  \item{time }{time for which steady-state is wanted; 
+    the default is \code{time=0} (for \code{method = "stode"} or 
+    \code{method = "stodes"}, and \code{time = c(0,Inf)} for 
+    \code{method = "runsteady"}.
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},

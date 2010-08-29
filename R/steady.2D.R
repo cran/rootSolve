@@ -5,8 +5,8 @@
 ## has similar calling sequence as ode.2D from package deSolve
 ## =============================================================================
 
-steady.2D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
-                cyclicBnd = NULL, ...)
+steady.2D    <- function (y, time=0, func, parms=NULL, nspec=NULL, 
+                 dimens, names = NULL, cyclicBnd = NULL, ...)
 {
   if (any(!is.na(pmatch(names(list(...)), "jacfunc")))) 
     stop ("cannot run steady.2D with jacfunc specified - remove jacfunc from call list")
@@ -21,6 +21,8 @@ steady.2D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
     nspec = N/prod(dimens)
   else if (nspec * prod(dimens) != N) 
     stop("cannot run steady.2D: dimens[1]*dimens[2]*nspec is not equal to number of state variables")
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
 
   Bnd <- c(0,0)
   if (! is.null(cyclicBnd)) {
@@ -35,6 +37,7 @@ steady.2D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
   class(out) <- c("steady2D","list")    # a steady-state 
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec
+  attr(out,"ynames") <- names
 
   return(out)
 }

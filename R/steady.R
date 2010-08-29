@@ -4,7 +4,17 @@
 ## has similar calling sequence as integration routines from package deSolve
 ## =============================================================================
 
-steady  <- function (y, time=0, func, parms=NULL, method="stode", ...)  {
+steady  <- function (y, time=NULL, func, parms=NULL, method="stode", ...)  {
+
+  if (!method %in% c("stode", "stodes","runsteady"))
+    stop (" 'method' should be one of 'stode', 'stodes', 'runsteady'")   
+
+  if (is.null(time)) {
+    if (method %in% c("stode", "stodes")) 
+      time <- 0
+    else
+      time <- c(0,Inf)  
+  }  
 
   if (method=="stode")
     stode(y,time,func,parms=parms,...)  else

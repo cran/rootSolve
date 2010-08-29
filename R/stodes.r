@@ -8,7 +8,7 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
         ctol=1e-8, sparsetype="sparseint", verbose=FALSE, nnz=NULL, inz=NULL,
         lrw=NULL, ngp=NULL, positive = FALSE, maxiter=100, ynames=TRUE,
         dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL,
-        ipar=NULL, nout=0, outnames=NULL, ...)  {
+        ipar=NULL, nout=0, outnames=NULL, spmethod="yale", control=NULL, ...)  {
 ## check input
   if (!is.numeric(y))
     stop("`y' must be numeric")
@@ -45,7 +45,6 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   jan <- 0
   if (is.null(ngp))
     ngp = n+1
-        
   if(sparsetype=="sparseint") {
     if (! is.null(inz)) { # sparsity is imposed; create ian, jan
       Type <- 0
@@ -84,32 +83,33 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     dimens <- nnz[2:3]
     nnz   <- c(n*(4+nspec)-2*nspec*(sum(dimens)),nnz)
     ngp    < 4*nspec+1
+    dimmax <- max(dimens)
     if (nnz[5] ==1) {  # cyclic boundary in x-direction
-      nnz[1] <- nnz[1] + 2*dimens[1]*nspec
+      nnz[1] <- nnz[1] + 2*dimmax*nspec
       ngp <- ngp + 1
     }
       
     if (nnz[6] ==1) {
-      nnz[1] <- nnz[1] + 2*dimens[2]*nspec
+      nnz[1] <- nnz[1] + 2*dimmax*nspec
       ngp <- ngp +1
     }
   } else if (sparsetype =="3D")    {
     Type   <- 4
     nspec  <- nnz[1]
     dimens <- nnz[2:4]
+    dimmax <- max(dimens)
     nnz   <- c(n*(6+nspec)-3*nspec*(sum(dimens)),nnz)
     ngp    < 5*nspec+1
     if (nnz[6] ==1) {  # cyclic boundary in x-direction
-      nnz[1] <- nnz[1] + 2*dimens[1]*nspec
+      nnz[1] <- nnz[1] + 2*dimens[2]*dimens[3]*nspec
       ngp <- ngp + 1
     }
-
     if (nnz[7] ==1) {
-      nnz[1] <- nnz[1] + 2*dimens[2]*nspec
+      nnz[1] <- nnz[1] + 2*dimens[1]*dimens[3]*nspec
       ngp <- ngp +1
     }
     if (nnz[8] ==1) {
-      nnz[1] <- nnz[1] + 2*dimens[3]*nspec
+      nnz[1] <- nnz[1] + 2*dimens[1]*dimens[2]*nspec
       ngp <- ngp +1
     }
 
@@ -239,13 +239,25 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
 
   if(is.null(initfunc))
      initpar <- NULL # parameter init not needed if function is not a DLL
-
+  if (spmethod == "yale")
+    imethod <- 1
+  else {
+   if (spmethod == "ilut")
+     imethod <- 2
+   else if (spmethod == "ilutp")  
+    imethod <- 3
+   else
+    stop("`spmethod' must be one of `yale', `ilut' or `ilutp'")
+      
+    control <- checkoption (control)      
+  }
   out <- .Call("call_stsparse", y, as.double(time), Func,  as.double(initpar),
     ctol, atol, rtol, as.integer(itol), rho,  ModelInit, as.integer(verbose),
     as.integer(imp),as.integer(nnz),as.integer(lrw),as.integer(ngp),
     as.integer(maxiter),as.integer(Pos),as.integer(positive),
     as.integer(Nglobal),as.double (rpar), as.integer(ipar), as.integer(Type),
-    as.integer(ian),as.integer(jan), PACKAGE = "rootSolve")
+    as.integer(ian),as.integer(jan), as.integer(imethod), 
+    control, PACKAGE = "rootSolve")
 
 ### saving results
   precis <- attr(out, "precis")
@@ -291,3 +303,24 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   return(out)
 }
 
+
+
+### ============================================================================
+### Check control settings - if method == 
+### ============================================================================
+
+
+checkoption <- function (option) {
+  if (is.null(option)) option <- list()
+  if (is.null(option$droptol))
+     option$droptol <- 1e-3
+  if (is.null(option$permtol))
+     option$permtol <- 1e-3
+  if (is.null(option$fillin))
+    option$fillin <- 10
+  option$fillin<-as.integer(option$fillin) 
+  if (is.null(option$lenplufac))
+    option$lenplufac <- 2
+  option$lenplufac<-as.integer(option$lenplufac) 
+  return(option)
+}   

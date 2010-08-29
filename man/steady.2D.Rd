@@ -12,7 +12,7 @@
 }
 \usage{
 steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
-  cyclicBnd = NULL, ...)
+  names = NULL, cyclicBnd = NULL, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
@@ -49,6 +49,9 @@ steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
   \item{cyclicBnd }{if not \code{NULL} then a number or a 2-valued vector
     with the dimensions where a cyclic boundary is used - \code{1}: x-dimension,
     \code{2}: y-dimension; see details.
+  }
+  \item{names }{the names of the components; used to label the output, 
+    and for plotting.
   }
   \item{... }{additional arguments passed to function \code{stodes}.
   }

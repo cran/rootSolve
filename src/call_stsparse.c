@@ -12,6 +12,33 @@ void F77_NAME(dsparse)(void (*)(int *, double *, double *, double *, double*, in
 		     int *, int *, int *, int *, double *, int*,
          int *, double *, int *, int*);
 
+void F77_NAME(dsparsekit)(void (*)(int *, double *, double *, double *, double*, int*),
+		     int *, int *, int *, double *, double *, double *, double *, double *,
+		     double *, double *, int*, int*, int*, int*, int*,  int*,  int*,  int*,  int*, 
+         int *, double *, double *, double *, int *, int *,
+		     int *, int *, int *, double *, int*,
+         int *, double *, int *, int*, double *, double *, int *, 
+         int *, int*, double *, double *);
+
+/*==================================================
+ extracting elements from a list
+===================================================*/
+
+SEXP getListElement(SEXP list, const char *str) {
+  SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
+  int i;
+  for (i = 0; i < length(list); i++)
+    if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
+      elmt = VECTOR_ELT(list, i);
+      break;
+    }
+  return elmt;
+}
+
+/*==================================================
+ interface FORTRAN and R-code
+===================================================*/
+
 static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot, 
                             double *yout, int *iout)
 {
@@ -32,16 +59,21 @@ static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot,
 SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, 
 		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
-    SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan)
+    SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan,
+    SEXP Met, SEXP Option)
 {
   SEXP   yout, RWORK, IWORK;
-  int    j, k, ny, maxit, isSteady;
+  int    j, k, ny, maxit, isSteady, method, lenplufac, lenplumx, lfill;
   double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol;
-  double *x, *precis, *ewt, *rsp ;
+  double *x, *precis, *ewt, droptol, permtol;
   int    neq, nnz, nsp, ngp, jt, niter, mflag, posit, *pos, ipos, Itol, type;
-  int    *R, *C, *IC, *ian, *jan, *igp, *jgp, *isp, *dims;
-  int    len, isDll ;
-    
+  int    *ian, *jan, *igp, *jgp, *dims;
+  int    len, isDll, ilumethod;
+
+  double *rsp= NULL, *plu= NULL,  *rwork= NULL;
+  int    *R= NULL, *C= NULL, *IC= NULL;
+  int    *isp= NULL, *iwork= NULL, *iperm= NULL, *jlu= NULL, *ju= NULL; 
+
   C_deriv_func_type *derivs;
   init_N_Protect();
 
@@ -53,12 +85,12 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   Itol  = INTEGER(itol)[0];
   maxit = INTEGER(nIter)[0];  
   type  = INTEGER(Type)[0];
+  method = INTEGER(Met)[0];
 
   posit = INTEGER(Posit)[0];   /* positivity of state variables: either specified at once, or via a vector..*/
   ipos = LENGTH(Pos);
   pos = (int *) R_alloc(ipos, sizeof(int));
     for (j = 0; j < ipos; j++) pos[j] = INTEGER(Pos)[j];
-
 
   neq   = ny; 
   mflag = INTEGER(verbose)[0];
@@ -78,18 +110,52 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   PROTECT(Y = allocVector(REALSXP, neq))           ;incr_N_Protect();        
 
   /* copies of all variables that will be changed in the FORTRAN subroutine */
-
-  R = (int *) R_alloc(neq, sizeof(int));
-    for (j = 0; j < ny; j++) R[j] = 0;
+  if (method == 1) {           /* yale sparse matrix solver */
+    R = (int *) R_alloc(neq, sizeof(int));
+     for (j = 0; j < ny; j++) R[j] = 0;
  
-  C = (int *) R_alloc(neq, sizeof(int));
-    for (j = 0; j < ny; j++) C[j] = 0;
+    C = (int *) R_alloc(neq, sizeof(int));
+     for (j = 0; j < ny; j++) C[j] = 0;
+
+    IC = (int *) R_alloc(neq, sizeof(int));
+     for (j = 0; j < ny; j++) IC[j] = 0;
+
+    rsp = (double *) R_alloc(nsp, sizeof(double));
+     for (j = 0; j < nsp; j++) rsp[j] = 0.;
+
+    isp = (int *) R_alloc(2*nsp, sizeof(int));
+     for (j = 0; j < 2*nsp; j++) isp[j] = 0;
+  } else {                    /* sparskit matrix solver */
+    /* get options */
+    lenplufac = INTEGER(getListElement(Option, "lenplufac"))[0];
+    lfill     = INTEGER(getListElement(Option, "fillin")   )[0];
+    droptol   = REAL   (getListElement(Option, "droptol")  )[0];
+    permtol   = REAL   (getListElement(Option, "permtol")  )[0];
+
+    ilumethod = method - 1; /* 1 = ilut, 2 = ilutp */
+    lenplumx = nnz + lenplufac*neq;
+    
+    jlu = (int *) R_alloc(lenplumx, sizeof(int));
+     for (j = 0; j < lenplumx; j++) jlu[j] = 0;
+
+    ju = (int *) R_alloc(neq, sizeof(int));
+     for (j = 0; j < neq; j++) ju[j] = 0;
+
+    iwork = (int *) R_alloc(2*neq, sizeof(int));
+     for (j = 0; j < 2*neq; j++) iwork[j] = 0;
+
+    iperm = (int *) R_alloc(2*neq, sizeof(int));
+     for (j = 0; j < 2*neq; j++) iperm[j] = 0;
+ 
+    plu = (double *) R_alloc(lenplumx, sizeof(double));
+     for (j = 0; j < lenplumx; j++) plu[j] = 0.;
+
+    rwork = (double *) R_alloc(neq, sizeof(double));
+     for (j = 0; j < neq; j++) rwork[j] = 0.;
+  }
 
   dims = (int *) R_alloc(7, sizeof(int));   /* 7 is maximal amount */
     for (j = 0; j < 7; j++) dims[j] = 0;
-
-  IC = (int *) R_alloc(neq, sizeof(int));
-    for (j = 0; j < ny; j++) IC[j] = 0;
 
   svar = (double *) R_alloc(neq, sizeof(double));
     for (j = 0; j < ny; j++) svar[j] = REAL(y)[j];
@@ -108,9 +174,6 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
   ewt = (double *) R_alloc(neq, sizeof(double));
     for (j = 0; j < ny; j++) ewt[j] = 0; 
-
-  rsp = (double *) R_alloc(nsp, sizeof(double));
-    for (j = 0; j < nsp; j++) rsp[j] = 0.;
 
   ian = (int *) R_alloc(neq+1, sizeof(int));
    if (type == 0) {for (j = 0; j < neq; j++) ian[j] = INTEGER(Ian)[j];} 
@@ -135,9 +198,6 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   jgp = (int *) R_alloc(neq, sizeof(int));
     for (j = 0; j < neq; j++) jgp[j] = 0;
 
-  isp = (int *) R_alloc(2*nsp, sizeof(int));
-    for (j = 0; j < 2*nsp; j++) isp[j] = 0;
-    
   len = LENGTH(atol);  
   Atol = (double *) R_alloc(len, sizeof(double));
     for (j = 0; j < len; j++) Atol[j] = REAL(atol)[j];
@@ -169,11 +229,18 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
     
     tin = REAL(time)[0];
       
+  if (method == 1) {
 	  F77_CALL(dsparse) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
          alpha, ewt, rsp, ian, jan, igp, jgp, &ngp, R, C, IC, isp,
 			   &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
          precis, &niter, dims, out, ipar, &type);
-
+  } else {
+	  F77_CALL(dsparsekit) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
+         alpha, ewt, ian, jan, igp, jgp, &ngp, jlu, ju, iwork, iperm,
+			   &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
+         precis, &niter, dims, out, ipar, &type, &droptol, &permtol, &ilumethod,
+         &lfill, &lenplumx, plu, rwork);
+  }
 	  for (j = 0; j < ny; j++)
 	    REAL(yout)[j] = svar[j];
    

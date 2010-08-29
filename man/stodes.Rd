@@ -22,7 +22,8 @@ stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   ctol=1e-8, sparsetype="sparseint",verbose=FALSE,
   nnz=NULL, inz=NULL, lrw=NULL, ngp=NULL, positive=FALSE, maxiter=100,
   ynames=TRUE, dllname=NULL, initfunc=dllname, initpar=parms,
-  rpar=NULL, ipar=NULL, nout=0, outnames = NULL, ...)
+  rpar=NULL, ipar=NULL, nout=0, outnames = NULL, 
+  spmethod="yale", control=NULL,...)
 }
 
 \arguments{
@@ -142,6 +143,15 @@ stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
   }
+  \item{spmethod }{the sparse method to be used, one of \code{"yale", "ilut",
+    "ilutp"}. The default uses the yale sparse matrix solver; the other 
+    use preconditioned GMRES (generalised minimum residual method)
+    solvers from FORTRAN package sparsekit. 
+  }
+  \item{control }{only used if \code{spmethod} not equal to \code{"yale"},
+    a list with the control options of the preconditioned solvers
+  }
+
   \item{... }{additional arguments passed to \code{func} allowing this to be
     a generic function.
   }
@@ -208,12 +218,18 @@ plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
   Numerical Recipes in FORTRAN. The Art of Scientific computing. 2nd edition.
   Cambridge University Press.
 
-  The algorithm uses linear algebra routines from the Yale sparse matrix
-  package:
+  When spmethod = "yale" then the algorithm uses linear algebra routines from 
+  the Yale sparse matrix package:
 
   Eisenstat, S.C., Gursky, M.C., Schultz, M.H., Sherman, A.H., 1982.
   Yale Sparse Matrix Package.
   i. The symmetric codes. Int. J. Num. meth. Eng. 18, 1145-1151.
+  
+  else the functions ilut and ilutp from sparsekit package are used:
+  
+  Youcef Saad, 1994. SPARSKIT: a basic tool kit for
+   sparse matrix computations. VERSION 2
+
 }
 
 \details{The work is done by a Fortran 77 routine that implements the
@@ -222,6 +238,7 @@ plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
   \code{stodes} is to be used for problems, where the Jacobian has a sparse
   structure.
 
+  
   There are two choices for the sparsity specification, depending on whether
   \code{inz} is present.
   \itemize{

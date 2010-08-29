@@ -5,8 +5,8 @@
 ## has similar calling sequence as ode.3D from package deSolve
 ## =============================================================================
 
-steady.3D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
-                cyclicBnd = NULL, ...)
+steady.3D    <- function (y, time=0, func, parms=NULL, nspec=NULL, 
+                dimens, names = NULL, cyclicBnd = NULL, ...)
 {
   if (any(!is.na(pmatch(names(list(...)), "jacfunc")))) 
     stop ("cannot run steady.2D with jacfunc specified - remove jacfunc from call list")
@@ -21,6 +21,8 @@ steady.3D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
     nspec = N/prod(dimens)
   else if (nspec * prod(dimens) != N) 
     stop("cannot run steady.3D: dimens[1]*dimens[2]*dimens[3]*nspec is not equal to number of state variables")
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
 
   Bnd <- c(0,0,0)
   if (! is.null(cyclicBnd)) {
@@ -32,9 +34,10 @@ steady.3D    <- function (y, time=0, func, parms=NULL, nspec=NULL, dimens,
   # Note: stodes expects rev(dimens)..
   out <- stodes(y=y, time=time, func=func, parms=parms,
                 nnz=c(nspec,rev(dimens), rev(Bnd)), sparsetype="3D", ...)
-  class(out) <- c("steady.3D","list")    # a steady-state 
+  class(out) <- c("steady3D","list")    # a steady-state 
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec
+  attr(out,"ynames") <- names
 
   return(out)
 }
