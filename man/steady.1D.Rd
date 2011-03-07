@@ -10,8 +10,10 @@
 
   It is assumed that exchange occurs only between adjacent layers.}
 \usage{
-steady.1D(y, time=NULL, func, parms = NULL, nspec = NULL, dimens = NULL, 
-  names = NULL, method = "stode", cyclicBnd = NULL, bandwidth = 1, ...)
+steady.1D(y, time = NULL, func, parms = NULL, 
+          nspec = NULL, dimens = NULL, 
+          names = NULL, method = "stode", 
+          cyclicBnd = NULL, bandwidth = 1, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
@@ -100,15 +102,14 @@ steady.1D(y, time=NULL, func, parms = NULL, nspec = NULL, dimens = NULL,
 #==================#
 # Model equations  #
 #==================#
-O2BOD <- function(t,state,pars)
+O2BOD <- function(t, state, pars) {
 
-{
   BOD <- state[1:N]
   O2  <- state[(N+1):(2*N)]
 
 # BOD dynamics
-  FluxBOD <-  v*c(BOD_0,BOD)  # fluxes due to water transport
-  FluxO2  <-  v*c(O2_0,O2)
+  FluxBOD <-  v * c(BOD_0, BOD)  # fluxes due to water transport
+  FluxO2  <-  v * c(O2_0, O2)
   
   BODrate <- r*BOD*O2/(O2+10)  # 1-st order consumption, Monod in oxygen
 
@@ -116,9 +117,9 @@ O2BOD <- function(t,state,pars)
   dBOD         <- -diff(FluxBOD)/dx  - BODrate
   dO2          <- -diff(FluxO2)/dx   - BODrate + p*(O2sat-O2)
 
-  return(list(c(dBOD=dBOD,dO2=dO2),BODrate=BODrate))
+  return(list(c(dBOD = dBOD, dO2 = dO2), BODrate = BODrate))
 
- }    # END O2BOD
+}    # END O2BOD
  
  
 #==================#
@@ -127,7 +128,7 @@ O2BOD <- function(t,state,pars)
 # parameters
 dx      <- 100       # grid size, meters
 v       <- 1e2       # velocity, m/day
-x       <- seq(dx/2,10000,by=dx)  # m, distance from river
+x       <- seq(dx/2, 10000, by = dx)  # m, distance from river
 N       <- length(x)
 r       <- 0.1       # /day, first-order decay of BOD
 p       <- 0.1       # /day, air-sea exchange rate
@@ -136,37 +137,44 @@ O2_0    <- 50        # mmol/m3 riverine oxygen conc
 BOD_0   <- 1500      # mmol/m3 riverine BOD concentration
 
 # initial guess:
-state <- c(rep(200,N),rep(200,N))
+state <- c(rep(200, N), rep(200, N))
 
 # running the model
 print(system.time(
- out   <- steady.1D (y=state, func=O2BOD, parms=NULL,
-                     nspec=2, pos=TRUE, names=c("BOD","O2"))))
+ out   <- steady.1D (y = state, func = O2BOD, parms = NULL,
+                     nspec = 2, pos = TRUE, names = c("BOD", "O2"))))
 
 #==================#
 # Plotting output  #
 #==================#
-mf <- par(mfrow=c(2,2))
-plot(x,out$y[,"O2"],xlab= "Distance from river",
-     ylab="mmol/m3",main="Oxygen",type="l")
+mf <- par(mfrow = c(2, 2))
+plot(x, out$y[ ,"O2"], xlab =  "Distance from river",
+     ylab = "mmol/m3", main = "Oxygen", type = "l")
 
-plot(x,out$y[,"BOD"],xlab= "Distance from river",
-     ylab="mmol/m3",main="BOD",type="l")
+plot(x, out$y[ ,"BOD"], xlab = "Distance from river",
+     ylab = "mmol/m3", main = "BOD", type = "l")
 
-plot(x,out$BODrate,xlab= "Distance from river",
-     ylab="mmol/m3/d",main="BOD decay rate",type="l")
+plot(x, out$BODrate, xlab = "Distance from river",
+     ylab = "mmol/m3/d", main = "BOD decay rate", type = "l")
 par(mfrow=mf)
+
+# same plot in one command
+plot(out, which = c("O2","BOD","BODrate"),xlab = "Distance from river",
+     ylab = c("mmol/m3","mmol/m3","mmol/m3/d"), 
+     main = c("Oxygen","BOD","BOD decay rate"), type = "l")
 
 # same, but now running dynamically to steady-state
 print(system.time(
-out2  <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,
-                    time=c(0,1000), method="runsteady", 
-                    names=c("BOD","O2"))))
+out2 <- steady.1D (y = state, func = O2BOD, parms = NULL, nspec = 2,
+                   time = c(0, 1000), method = "runsteady", 
+                   names = c("BOD", "O2"))))
                     
 # plot all state variables at once, against "x":
-plot(out2, grid=x, xlab= "Distance from river",
-     ylab="mmol/m3", type="l", lwd=2)
+plot(out2, grid=x, xlab = "Distance from river",
+     ylab = "mmol/m3", type = "l", lwd = 2)
                          
+plot(out, out2, grid=x, xlab = "Distance from river", which = "BODrate",
+     ylab = "mmol/m3", type = "l", lwd = 2)
 
 ## =======================================================================
 ##   EXAMPLE 2: Silicate diagenesis                      
@@ -181,9 +189,9 @@ plot(out2, grid=x, xlab= "Distance from river",
 # Model equations    #
 #====================#
 
-SiDIAmodel <- function (time=0,    # time, not used here
-                        Conc,      # concentrations: BSi, DSi
-                        parms=NULL) # parameter values; not used
+SiDIAmodel <- function (time = 0,    # time, not used here
+                        Conc,        # concentrations: BSi, DSi
+                        parms = NULL) # parameter values; not used
 {
  BSi<- Conc[1:N]
  DSi<- Conc[(N+1):(2*N)]
@@ -207,11 +215,11 @@ SiDIAmodel <- function (time=0,    # time, not used here
 
  dBSi     <- -diff(BSiFlux)/thick/(1-Porosity)  - Dissolution				
 
- return(list(c(dBSi=dBSi,dDSi=dDSi), # Rates of changes
-        Dissolution=Dissolution,     # Profile of dissolution rates
-        DSiSurfFlux =DSiFlux[1],     # DSi sediment-water exchange rate 
-        DSIDeepFlux =DSiFlux[N+1],   # DSi deep-water (burial) flux
-        BSiDeepFlux =BSiFlux[N+1]))  # BSi deep-water (burial) flux
+ return(list(c(dBSi, dDSi),           # Rates of changes
+        Dissolution = Dissolution,    # Profile of dissolution rates
+        DSiSurfFlux = DSiFlux[1],     # DSi sediment-water exchange rate 
+        DSIDeepFlux = DSiFlux[N+1],   # DSi deep-water (burial) flux
+        BSiDeepFlux = BSiFlux[N+1]))  # BSi deep-water (burial) flux
 }
 
 #====================#
@@ -219,7 +227,7 @@ SiDIAmodel <- function (time=0,    # time, not used here
 #====================#
 # sediment parameters
 thick    <- 0.1                       # thickness of sediment layers (cm)
-Intdepth <- seq(0,10,by=thick)        # depth at upper interface of layers
+Intdepth <- seq(0, 10, by = thick)    # depth at upper interface of layers
 Nint     <- length(Intdepth)          # number of interfaces
 Depth    <- 0.5*(Intdepth[-Nint] +Intdepth[-1]) # depth at middle of layers
 N        <- length(Depth)                       # number of layers
@@ -235,66 +243,48 @@ IntPor   <- pordeep + (por0-pordeep)*exp(-Intdepth*porcoef)
 dB0      <- 1/365           # cm2/day      - bioturbation coefficient
 dBcoeff  <- 2
 mixdepth <- 5               # cm
-Db       <- pmin(dB0,dB0*exp(-(Intdepth-mixdepth)*dBcoeff))
+Db       <- pmin(dB0, dB0*exp(-(Intdepth-mixdepth)*dBcoeff))
 
 # biogeochemical parameters
 SedDisp  <- 0.4             # diffusion coefficient, cm2/d
 rDissSi  <- 0.005           # dissolution rate, /day
 EquilSi  <- 800             # equilibrium concentration
 pow      <- 1
-BSidepo  <- 0.2*100          # nmol/cm2/day
-bwDSi    <- 150              # mmol/m3
+BSidepo  <- 0.2*100         # nmol/cm2/day
+bwDSi    <- 150             # mmol/m3
 
 # initial guess of state variables-just random numbers between 0,1
 Conc     <- runif(2*N)
 
-# three runs with different deposition rates                                      n
+# three runs with different deposition rates                                      
 BSidepo  <- 0.2*100          # nmol/cm2/day
-sol  <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
-  names=c("DSi","BSi"))
-
-BSi <- sol$y[ ,"BSi"]
-DSi <- sol$y[ ,"DSi"]
+sol  <- steady.1D (Conc, func = SiDIAmodel, parms = NULL, nspec = 2, 
+                   names = c("DSi", "BSi"))
 
 BSidepo  <- 2*100          # nmol/cm2/day
-sol2 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
-  names=c("DSi","BSi"))
-
-BSi <- cbind(BSi,sol2$y[ ,"BSi"])
-DSi <- cbind(DSi,sol2$y[ ,"DSi"])
+sol2 <- steady.1D (Conc, func = SiDIAmodel, parms = NULL, nspec = 2, 
+                   names = c("DSi", "BSi"))
 
 BSidepo  <- 3*100          # nmol/cm2/day
-sol3 <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
-  names=c("DSi","BSi"))
-
-BSi <- cbind(BSi,sol3$y[ ,"BSi"])
-DSi <- cbind(DSi,sol3$y[ ,"DSi"])
+sol3 <- steady.1D (Conc, func = SiDIAmodel, parms = NULL, nspec = 2, 
+                   names = c("DSi", "BSi"))
 
 #====================#
 # plotting output    #
 #====================#
 par(mfrow=c(2,2))
 
-matplot(DSi,Depth,ylim=c(10,0),xlab="mmolSi/m3 Liquid",
-        main="DSi",type="l",lwd=c(1,2,1),col="black")
-matplot(BSi,Depth,ylim=c(10,0),xlab="mmolSi/m3 Solid" ,
-        main="BSi",type="l",lwd=c(1,2,1),col="black")
-legend("right",c("0.2","2","3"),title="mmol/m2/d",
-       lwd=c(1,2,1),lty=1:3)
-plot(Porosity,Depth,ylim=c(10,0),xlab="-" ,
-     main="Porosity",   type="l",lwd=2)
-plot(Db,Intdepth,ylim=c(10,0),xlab="cm2/d",
-     main="Bioturbation",type="l",lwd=2)
-mtext(outer=TRUE,side=3,line=-2,cex=1.5,"SiDIAmodel")
-
-
-## one more run, all state variables plotted in one function call 
-
-BSidepo  <- 10*100          # nmol/cm2/day
-Std <- steady.1D (Conc, func=SiDIAmodel, parms=NULL, nspec=2, 
-  names=c("DSi","BSi"))
-plot(Std, grid=Depth, type="l",xyswap=TRUE,lwd=2, xlab=c("mmolSi/m3 Liquid",
-  "mmolSi/m3 Solid"), ylab="Depth, cm")  
+# Plot 3 runs 
+plot(sol, sol2, sol3, xyswap = TRUE, mfrow = c(2, 2),
+     xlab = c("mmolSi/m3 liquid", "mmolSi/m3 solid"), 
+     ylab = "Depth", lwd = 2, lty = 1)
+legend("bottom", c("0.2", "2", "3"), title = "mmol/m2/d",
+       lwd = 2, col = 1:3)
+plot(Porosity, Depth, ylim = c(10, 0), xlab = "-" ,
+     main = "Porosity",    type = "l", lwd = 2)
+plot(Db, Intdepth, ylim = c(10, 0), xlab = "cm2/d",
+     main = "Bioturbation", type = "l", lwd = 2)
+mtext(outer = TRUE, side = 3, line = -2, cex = 1.5, "SiDIAmodel")
 
 }
 \details{

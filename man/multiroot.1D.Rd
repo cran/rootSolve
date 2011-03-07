@@ -13,10 +13,10 @@
 }
 
 \usage{
-multiroot.1D(f, start, maxiter=100,
-  rtol=1e-6, atol=1e-8, ctol=1e-8, 
-  nspec = NULL, dimens = NULL,
-  verbose=FALSE,positive=FALSE, names=NULL, ...)
+multiroot.1D(f, start, maxiter = 100,
+             rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
+             nspec = NULL, dimens = NULL,
+             verbose = FALSE, positive = FALSE, names = NULL, ...)
 }
 \arguments{
   \item{f }{function for which the root is sought; it must return a vector
@@ -87,22 +87,25 @@ multiroot.1D(f, start, maxiter=100,
 ## =======================================================================
 
 bvp <- function(y) {
-  dy2 <- diff(diff(c(ya,y,yb))/dx)/dx
-  return(dy2+3*p*y/(p+x^2)^2)
+  dy2 <- diff(diff(c(ya, y, yb))/dx)/dx
+  return(dy2 + 3*p*y/(p+x^2)^2)
 }
 
-dx<-0.0001
-x<-seq(-0.1,0.1,by = dx)
+dx <- 0.0001
+x <- seq(-0.1, 0.1, by = dx)
 
-p <- 1e-5
-ya<- -0.1/sqrt(p+0.01)
-yb<- 0.1/sqrt(p+0.01)
+p  <- 1e-5
+ya <- -0.1/sqrt(p+0.01)
+yb <-  0.1/sqrt(p+0.01)
 
-print(system.time(y<-multiroot.1D(start=runif(length(x)),f=bvp,nspec=1)))
-plot(x,y$root, ylab="y", main="BVP test problem")
+print(system.time(
+  y <- multiroot.1D(start = runif(length(x)), f = bvp, nspec = 1)
+))
+
+plot(x, y$root, ylab = "y", main = "BVP test problem")
 
 # add analytical solution
-curve(x/sqrt(p+x*x),add=TRUE,type="l",col="red")
+curve(x/sqrt(p+x*x), add = TRUE, type = "l", col = "red")
 
 ## =======================================================================
 ## Example 2: bvp test problem 28
@@ -113,9 +116,9 @@ curve(x/sqrt(p+x*x),add=TRUE,type="l",col="red")
 ## y1=3/2
 ## =======================================================================
 
-prob28 <-function(y,xi) {
- dy2 = diff(diff(c(ya,y,yb))/dx)/dx             # y''
- dy  = 0.5*(diff(c(ya,y)) +diff(c(y,yb)))/dx    # y'  - centered differences
+prob28 <-function(y, xi) {
+ dy2 <- diff(diff(c(ya, y, yb))/dx)/dx          # y''
+ dy  <- 0.5*(diff(c(ya, y)) +diff(c(y, yb)))/dx # y' - centered differences
 
  xi*dy2 +dy*y-y
 }
@@ -123,16 +126,18 @@ prob28 <-function(y,xi) {
 ya <- 1
 yb <- 3/2
 dx <- 0.001
-x <- seq(0,1,by=dx)
+x <- seq(0, 1, by = dx)
+N <- length(x)
 print(system.time(
-  Y1 <- multiroot.1D(f=prob28,start=runif(length(x)),nspec=1, xi=0.1)
+  Y1 <- multiroot.1D(f = prob28, start = runif(N), 
+                     nspec = 1, xi = 0.1)
 ))
-Y2<- multiroot.1D(f=prob28,start=runif(length(x)),nspec=1, xi=0.01)
-Y3<- multiroot.1D(f=prob28,start=runif(length(x)),nspec=1, xi=0.001)
+Y2<- multiroot.1D(f = prob28, start = runif(N), nspec = 1, xi = 0.01)
+Y3<- multiroot.1D(f = prob28, start = runif(N), nspec = 1, xi = 0.001)
 
-plot(x,Y3$root,type="l",col="green",main="bvp test problem 28")
-lines(x,Y2$root,col="red")
-lines(x,Y1$root,col="blue")
+plot(x, Y3$root, type = "l", col = "green", main = "bvp test problem 28")
+lines(x, Y2$root, col = "red")
+lines(x, Y1$root, col = "blue")
 
 }
 \details{

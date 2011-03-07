@@ -3,6 +3,7 @@
 /* global variables */
 SEXP Time, Y ;
 extern SEXP st_gparms;
+extern SEXP st_gforcs;
 
 int ndim, nspec;
 double *y2,*dy2;
@@ -29,6 +30,8 @@ void my_unprotect(int);
 
 void initParms(SEXP Initfunc, SEXP Parms);
 void Initstparms(int *, double *);
+void initForcs(SEXP Initforc, SEXP Forcs);
+void Initstforcs(int *, double *);
 void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
 
 /* output in DLL globals */

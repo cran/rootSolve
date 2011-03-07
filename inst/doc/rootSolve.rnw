@@ -17,6 +17,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
 \newcommand{\ls}{\textbf{\textsf{limSolve }}}
 \newcommand{\rs}{\textbf{\textsf{rootSolve }}}
+\newcommand{\rt}{\textbf{\textsf{ReacTran }}}
+\newcommand{\bs}{\textbf{\textsf{bvpSolve }}}
 \newcommand{\R}{\proglang{R }}
 \newcommand{\ds}{\textbf{\textsf{deSolve }}}
 \newcommand{\rb}[1]{\raisebox{1.5ex}{#1}}
@@ -45,11 +47,13 @@ The Netherlands}
     \item An extension of \R function \code{uniroot}
     \item Functions that find the steady-state condition of a set of
       ordinary differential equations (ODE). These functions are compatible
-      with the ODE solvers in package \ds, which solve initial value ODEs.
+      with the solvers in package \ds \citep{deSolve}, \citep{deSolve_jss}, 
+      which solve initial value differential equatons.
       Separate solvers for full, banded and generally sparse problems
       are included. These allow to estimate the steady-state of 1-D, 2-D
       and 3-D partial differential equations (PDE) that have been rewritten
-      as a set of ODEs by numerical differencing.
+      as a set of ODEs by numerical differencing, e.g. using the functions
+      available in package \rt \citep{ReacTran}.
     \item Functions that calculate the Hessian and Jaobian matrix or - more
       general - the gradient of functions with respect to independent variables.
   \end{itemize}
@@ -129,10 +133,10 @@ options(width=70)
   in the interval [0,8] and plot the curve, we write:
 <<label=fig1plot,include=FALSE>>=
   fun <- function (x) cos(2*x)^3
-  curve(fun(x),0,8)
-  abline(h=0,lty=3)
-  uni <- uniroot(fun,c(0,8))$root
-  points(uni,0,pch=16,cex=2)
+  curve(fun(x), 0, 8)
+  abline(h = 0, lty = 3)
+  uni <- uniroot(fun, c(0, 8))$root
+  points(uni, 0, pch = 16, cex = 2)
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -152,10 +156,10 @@ options(width=70)
   \rs function \emph{uniroot.all} is a simple extension of \emph{uniroot}
   which extracts many (presumably *all*) roots in the interval.
 <<label=uniall,include=FALSE>>=
-  curve(fun(x),0,8)
-  abline(h=0,lty=3)
-  All <- uniroot.all(fun,c(0,8))
-  points(All,y=rep(0,length(All)),pch=16,cex=2)
+  curve(fun(x), 0, 8)
+  abline(h = 0, lty = 3)
+  All <- uniroot.all(fun, c(0, 8))
+  points(All, y = rep(0, length(All)), pch = 16, cex = 2)
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -198,17 +202,17 @@ options(width=70)
 %%\begin{verbatim}
 <<>>=
 model <- function(x) {
-F1=x[1] + x[2] + x[3]^2 -12
-F2=x[1]^2 -x[2] + x[3] -2
-F3=2*x[1] -x[2]^2 + x[3] -1
-c(F1=F1,F2=F2,F3=F3)
+  F1 <- x[1]   + x[2]   + x[3]^2 -12
+  F2 <- x[1]^2 - x[2]   + x[3] -2
+  F3 <- 2*x[1] - x[2]^2 + x[3] -1
+c(F1 = F1, F2 = F2, F3 = F3)
 }
 
 # first solution
-(ss<-multiroot(f=model,start=c(1,1,1)))
+(ss <- multiroot(f = model, start = c(1, 1, 1)))
 
 # second solution; use different start values
-(ss2<-multiroot(model,c(0,0,0)))$root
+(ss2 <- multiroot(model, c(0, 0, 0)))$root
 model(ss2$root)   # the function value at the root
 @
 
@@ -229,15 +233,14 @@ model(ss2$root)   # the function value at the root
   \]
 
 <<>>=
-f2<-function(x)
- {
- X<-matrix(nr=5,x)
- X %*% X %*% X -matrix(nr=5,data=1:25,byrow=TRUE)
- }
+f2<-function(x)  {
+ X <- matrix(nr = 5, x)
+ X %*% X %*% X - matrix(nrow = 5, data = 1:25, byrow = TRUE)
+}
 print(system.time(
-x<-multiroot(f2, start=1:25)$root
+  x<-multiroot(f2, start = 1:25)$root
 ))
-(X<-matrix(nr=5,x))
+(X<-matrix(nrow = 5, x))
 
 X%*%X%*%X
 @
@@ -258,10 +261,10 @@ X%*%X%*%X
   \R's default solver for systems of linear equations. The time it takes to
   do this is printed (in seconds):
 <<>>=
-A <- matrix(nr=500,nc=500,runif(500*500))
+A <- matrix(nrow = 500, ncol = 500, runif(500*500))
 B <- runif(500)
 
-print(system.time(X1 <- solve(A,B)))
+print(system.time(X1 <- solve(A, B)))
 @
 
   To use \code{multiroot} the nonlinear equation solver, it is noted that the
@@ -275,18 +278,20 @@ jfun <- function (x) A
   The function whose root is to be solved receives the current estimate of
   \code{x}, and returns the difference \code{A x-B}:
 <<>>=
-fun <- function(x) A %*%x-B
+fun <- function(x) A %*%x - B
 @
 
 Next \code{multiroot} is called with jactype = "fullusr" (it is a full Jacobian,
 and specified by the user):
 <<>>=
-print(system.time(X <- multiroot(start=1:500, f=fun, jactype="fullusr",
-   jacfunc=jfun)))
+print(system.time(
+X <- multiroot(start = 1:500, f = fun, 
+               jactype = "fullusr", jacfunc = jfun)
+))
 @
   Finally, both solutions are the same
 <<>>=
-sum((X1-X$y)^2)
+sum( (X1 - X$y)^2)
 @
 
 \section{Steady-state analysis}
@@ -301,7 +306,7 @@ sum((X1-X$y)^2)
   system \[\frac{{d\textbf{x}}}{{dt}}=0\] is often referred to as the
   "steady-state" condition.
 
-  Within \R, package \ds \citep{deSolve} is designed to solve so-called
+  Within \R, package \ds \citep{deSolve_jss} is designed to solve so-called
   initial value problems (IVP) of ODEs and PDEs - partial differential
   equations by integration.
   \ds includes integrators that deal efficiently with sparse and banded
@@ -353,19 +358,18 @@ deriv = function(x,t,parms,...)
 
   In \R this model is defined as:
 <<>>=
- model<-function(t,y,pars)
-{
-  with (as.list(c(y,pars)),{
+ model <- function(t, y, pars) {
+  with (as.list(c(y, pars)),{
 
   oxicmin   = r*OM*(O2/(O2+ks))
   anoxicmin = r*OM*(1-O2/(O2+ks))* SO4/(SO4+ks2)
 
   dOM  = Flux - oxicmin - anoxicmin
-  dO2  = -oxicmin      -2*rox*HS*(O2/(O2+ks)) + D*(BO2-O2)
-  dSO4 = -0.5*anoxicmin  +rox*HS*(O2/(O2+ks)) + D*(BSO4-SO4)
-  dHS  = 0.5*anoxicmin   -rox*HS*(O2/(O2+ks)) + D*(BHS-HS)
+  dO2  = -oxicmin       -2*rox*HS*(O2/(O2+ks)) + D*(BO2-O2)
+  dSO4 = -0.5*anoxicmin   +rox*HS*(O2/(O2+ks)) + D*(BSO4-SO4)
+  dHS  =  0.5*anoxicmin   -rox*HS*(O2/(O2+ks)) + D*(BHS-HS)
 
-  list(c(dOM,dO2,dSO4,dHS),SumS=SO4+HS)
+  list(c(dOM, dO2, dSO4, dHS), SumS = SO4+HS)
 })
 }
 @
@@ -373,13 +377,14 @@ deriv = function(x,t,parms,...)
   values (\code{y}), the model can be run to steady-state (\code{runsteady}).
   We specify the maximal length of time the simulation can take ($1e^5$)
 <<>>=
-pars <- c(D=1,Flux=100,r=0.1,rox =1,
-          ks=1,ks2=1,BO2=100,BSO4=10000,BHS = 0)
+pars <- c(D = 1, Flux = 100, r = 0.1, rox = 1,
+          ks = 1, ks2 = 1, BO2 = 100, BSO4 = 10000, BHS = 0)
 
-y<-c(OM=1,O2=1,SO4=1,HS=1)
+y <- c(OM = 1, O2 = 1, SO4 = 1, HS = 1)
 
 print(system.time(
-RS<-runsteady(y=y,fun=model,parms=pars,times=c(0,1e5))
+  RS <- runsteady(y = y, fun = model, 
+                  parms = pars, times = c(0, 1e5))
 ))
 RS
 @
@@ -395,7 +400,7 @@ took to reach steady-state (attribute "time", "steps").
   faster than running dynamically to steady-state, but not all models can be
   solved this way
 <<>>=
-stode(y=y,fun=model,parms=pars,pos=TRUE)
+stode(y = y, fun = model, parms = pars, pos = TRUE)
 @
   Note that we set \code{pos=TRUE} to ensure that only positive values
   are found. Thus the outcome will be biologically realistic (negative
@@ -435,26 +440,25 @@ stode(y=y,fun=model,parms=pars,pos=TRUE)
 
   First the model function is defined:
 <<>>=
-  derivs <- function(t,y,parms, x,dx,N,y1,y6)
-  {
+derivs <- function(t, y, parms, x, dx, N, y1, y6)  {
 
    d2y <- (c(y[-1],y6) -2*y + c(y1,y[-N])) /dx/dx
    dy  <- (c(y[-1],y6) - c(y1,y[-N])) /2/dx
 
-   res <- d2y+dy/x+(1-1/(4*x*x))*y-sqrt(x)*cos(x)
+   res <- d2y + dy/x + (1-1/(4*x*x))*y-sqrt(x)*cos(x)
    return(list(res))
-  }
+}
 @
   Then the interval [1,6] is subdivided in 5001 boxes (\code{x}) and the
   steady-state condition estimated, using \code{steady.band}; we specify that
   there is only one species (\code{nspec=1}).
 <<>>=
 dx     <- 0.001
-x      <- seq(1,6,by=dx)
+x      <- seq(1, 6, by = dx)
 N      <- length(x)
 print(system.time(
-y  <- steady.band(y=rep(1,N),time=0,func=derivs,x=x,dx=dx,
-                  N=N,y1=1,y6=-0.5,nspec=1)$y
+y  <- steady.band(y = rep(1, N), time = 0, func = derivs, x = x,
+                  dx = dx, N = N, y1 = 1, y6 = -0.5, nspec = 1)$y
 ))
 @
   The steady-state of this system of 5001 nonlinear equations is retrieved
@@ -463,12 +467,14 @@ y  <- steady.band(y=rep(1,N),time=0,func=derivs,x=x,dx=dx,
   The analytical solution of this equation is known; after plotting the
   numerical approximation, it is added to the figure (figure \ref{fig:two}):
 <<label=steady1D, include=FALSE>>=
-plot(x,y,type="l",main="5001 nonlinear equations - banded Jacobian")
+plot(x, y, type = "l", 
+     main = "5001 nonlinear equations - banded Jacobian")
 
 curve(0.0588713*cos(x)/sqrt(x)+1/4*sqrt(x)*cos(x)+
-       0.740071*sin(x)/sqrt(x)+1/4*x^(3/2)*sin(x),add=TRUE,type="p")
+      0.740071*sin(x)/sqrt(x)+1/4*x^(3/2)*sin(x),add=TRUE,type="p")
 
-legend("topright",pch=c(NA,1),lty=c(1,NA),c("numeric","analytic"))
+legend("topright", pch = c(NA, 1), lty = c(1, NA),
+       c("numeric", "analytic"))
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -498,8 +504,7 @@ legend("topright",pch=c(NA,1),lty=c(1,NA),c("numeric","analytic"))
   \code{FluxO2}); then the rate of change is written as the sum of -1*Flux
   gradient and the consumption and production rate:
 <<>>=
-O2BOD <- function(t,state,pars)
-{
+O2BOD <- function(t, state, pars) {
   BOD <- state[1:N]
   O2  <- state[(N+1):(2*N)]
 
@@ -512,7 +517,7 @@ O2BOD <- function(t,state,pars)
   dBOD         <- -diff(FluxBOD)/dx  - BODrate
   dO2          <- -diff(FluxO2)/dx   - BODrate + p*(O2sat-O2)
 
-  return(list(c(dBOD=dBOD,dO2=dO2),BODrate=BODrate))
+  return(list(c(dBOD = dBOD, dO2 = dO2), BODrate = BODrate))
  }
 @
   After assigning values to the parameters, and setting up the
@@ -529,13 +534,14 @@ O2sat   <- 300       # mmol/m3 saturated oxygen conc
 O2_0    <- 50        # mmol/m3 riverine oxygen conc
 BOD_0   <- 1500      # mmol/m3 riverine BOD concentration
 
-x       <- seq(dx/2,10000,by=dx)  # m, distance from river
+x       <- seq(dx/2, 10000, by = dx)  # m, distance from river
 N       <- length(x)
 
-state <- c(rep(200,N),rep(200,N))    # initial guess of state variables:
+state <- c(rep(200, N), rep(200, N))    # initial guess of state variables:
 
 print(system.time(
-  out   <- steady.1D (y=state,func=O2BOD,parms=NULL, nspec=2,pos=TRUE)
+  out   <- steady.1D (y = state, func = O2BOD, parms = NULL, 
+    nspec = 2, pos = TRUE)
 ))
 @
   Although this model consists of 2000 nonlinear equations, it takes only 0.09
@@ -543,16 +549,12 @@ print(system.time(
 
   Finally the results are plotted (figure \ref{fig:bod}):
 <<label=BOD, include=FALSE>>=
-mf <- par(mfrow=c(2,2))
-plot(x,out$y[(N+1):(2*N)],xlab= "Distance from river",
-     ylab="mmol/m3",main="Oxygen",type="l")
-
-plot(x,out$y[1:N],xlab= "Distance from river",
-     ylab="mmol/m3",main="BOD",type="l")
-
-plot(x,out$BODrate,xlab= "Distance from river",
-     ylab="mmol/m3/d",main="BOD decay rate",type="l")
-par(mfrow=mf)
+mf <- par(mfrow = c(2, 2))
+plot(out, xlab = "Distance from river", mfrow = NULL,
+     ylab = "mmol/m3", main = c("Oxygen", "BOD"), type = "l")
+plot(x,out$BODrate, xlab = "Distance from river",
+     ylab = "mmol/m3/d", main = "BOD decay rate", type = "l")
+par(mfrow = mf)
 @
 \setkeys{Gin}{width=0.8\textwidth}
 \begin{figure}
@@ -609,22 +611,23 @@ par(mfrow=mf)
   column or row with 0-s.
 
 <<>>=
-diffusion2D <- function(t,conc,par)
-  {
-   Conc     <- matrix(nr=n,nc=n,data=conc)  # vector to 2-D matrix
+diffusion2D <- function(t, conc, par)  {
+   Conc     <- matrix(nrow = n, ncol = n, data = conc)  # vector to 2-D matrix
    dConc    <- -r*Conc*Conc    # consumption
-   BND   <- rep(1,n)           # boundary concentration
+   BND   <- rep(1, n)           # boundary concentration
 
    # constant production in certain cells
    dConc[ii]<-   dConc[ii]+  p
 
    #diffusion in X-direction; boundaries=imposed concentration
 
-   Flux  <- -Dx * rbind(rep(0,n),(Conc[2:n,]-Conc[1:(n-1),]),rep(0,n))/dx
-   dConc <- dConc - (Flux[2:(n+1),]-Flux[1:n,])/dx
+   Flux  <- -Dx * rbind(rep(0, n), (Conc[2:n,]-Conc[1:(n-1),]),
+                        rep(0, n) )/dx
+   dConc <- dConc - (Flux[2:(n+1),] - Flux[1:n,])/dx
 
    #diffusion in Y-direction
-   Flux  <- -Dy * cbind(rep(0,n),(Conc[,2:n]-Conc[,1:(n-1)]),rep(0,n))/dy
+   Flux  <- -Dy * cbind(rep(0, n), (Conc[,2:n]-Conc[,1:(n-1)]),
+                        rep(0, n))/dy
    dConc <- dConc - (Flux[,2:(n+1)]-Flux[,1:n])/dy
 
    return(list(as.vector(dConc)))
@@ -640,7 +643,7 @@ diffusion2D <- function(t,conc,par)
   p     <- 20         # 0-th order production rate (CONC/t)
   n     <- 100
   # 10 random cells where substance is produced at rate p
-  ii    <- trunc(cbind(runif(10)*n+1,runif(10)*n+1))
+  ii    <- trunc(cbind(runif(10)*n+1, runif(10)*n+1))
 @
   The steady-state is found using function \code{steady.2D}.
   It takes as arguments a.o. the dimensionality of the problem (\code{dimens})
@@ -650,16 +653,17 @@ diffusion2D <- function(t,conc,par)
   It takes about 0.5 second to solve this 10000 state variable model.
 
 <<>>=
-  Conc0 <- matrix(nr=n,nc=n,10.)
+  Conc0 <- matrix(nrow = n, ncol = n, 10.)
 
   print(system.time(
-  ST3  <- steady.2D(Conc0,func=diffusion2D,parms=NULL,pos=TRUE,dimens=c(n,n),
-                 lrw=1000000,atol=1e-10,rtol=1e-10,ctol=1e-10)
+  ST3  <- steady.2D(Conc0, func = diffusion2D, parms = NULL,
+                    pos = TRUE, dimens = c(n, n), lrw = 1000000,
+                    atol = 1e-10, rtol = 1e-10, ctol = 1e-10)
   ))
 @
 The S3 image method is used to generate the steady-state plot.
 <<label=steady2D, include=FALSE>>=
-image(ST3,main="2-D diffusion+production", xlab="x", ylab="y")
+image(ST3, main = "2-D diffusion+production", xlab = "x", ylab = "y")
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -683,8 +687,8 @@ image(ST3,main="2-D diffusion+production", xlab="x", ylab="y")
 
   Function \code{multiroot.1D} can also be used to solve boundary value
   problems of ordinary differential equations, but has a simpler function
-  interface. It also uses the method-of-lines approach. Another package,
-  \pkg{bvpSolve} provides two totally different methods to solve boundary
+  interface. It also uses the method-of-lines approach. Another package, \bs
+  provides two totally different methods to solve boundary
   values problems \citep{bvpSolve}.
 
   The following differential equation:
@@ -745,8 +749,8 @@ be found at: \url{http://www.ma.ic.ac.uk/~jcash/BVP_software/PROBLEMS.PDF}.
 First the function whose root has to solved is implemented:
 <<>>=
 bvp22 <- function (y, xi) {
-  dy2 <- diff(diff(c(ya,y,yb))/dx)/dx
-  dy  <- 0.5*(diff(c(ya,y))/dx+diff(c(y,yb))/dx)
+  dy2 <- diff(diff(c(ya, y, yb))/dx)/dx
+  dy  <- 0.5*(diff(c(ya, y))/dx + diff(c(y, yb))/dx)
   
   return(xi*dy2+dy+y^2)
 }
@@ -755,8 +759,8 @@ Then the grid [0,1] is discretised (\code{x}) and the boundary values
 (\code{ya,yb}) defined
 <<>>=
 dx <- 0.001
-x  <- seq(0,1,by=dx)
-N <- length(x)
+x  <- seq(0, 1, by = dx)
+N  <- length(x)
 ya <- 0
 yb <- 0.5
 @
@@ -765,19 +769,19 @@ With the settings of dx, the root of 1001 equations needs to be found; the
 time it takes (in \emph{mili}seconds) is printed for the first application.
 <<>>=
 print(system.time(
-Y1<- multiroot.1D(f=bvp22, start=runif(N), nspec=1, xi=0.1)
+Y1<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.1)
 )*1000)
-Y2<- multiroot.1D(f=bvp22, start=runif(N), nspec=1, xi=0.05)
+Y2<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.05)
 print(system.time(
-Y3<- multiroot.1D(f=bvp22, start=runif(N), nspec=1, xi=0.01)
+Y3<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.01)
 )*1000)
 
 @
 <<label=bnd, include=FALSE>>=
-plot(x,Y3$root, type="l", col="green", lwd=2,
-  main="bvp test problem 22" ,ylab="y")
-lines(x,Y2$root, col="red", lwd=2)
-lines(x,Y1$root, col="blue", lwd=2)
+plot(x, Y3$root, type = "l", col = "green", lwd = 2,
+     main = "bvp test problem 22" , ylab = "y")
+lines(x, Y2$root, col = "red", lwd = 2)
+lines(x, Y1$root, col = "blue", lwd = 2)
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -797,7 +801,7 @@ stodes, steady, steady.1D, steady.2D, steady.3D}) can be written in compiled
 code (C or Fortran).
 
 A vignette ("compiledCode") from package \ds can be consulted for how to do
-that. Here the simple sediment
+that \citep{compiledCode}. Here the simple sediment
 biogeochemical model from chapter 2.1 is implemented in \code{C} and \code{Fortran}.
 
 \subsection{main function in C-code}
@@ -1006,14 +1010,14 @@ dllname="anoxmod",initfunc="myinit",pos=TRUE,nout=1)
 <<>>=
 mod <- function (t=0,y, parms=NULL,...)
 {
- dy1<-  y[1] + 2*y[2]
- dy2<-3*y[1] + 4*y[2] + 5*y[3]
- dy3<-         6*y[2] + 7*y[3] + 8*y[4]
- dy4<-                  9*y[3] +10*y[4]
- return(as.list(c(dy1,dy2,dy3,dy4)))
+ dy1 <-   y[1] + 2*y[2]
+ dy2 <- 3*y[1] + 4*y[2] + 5*y[3]
+ dy3 <-          6*y[2] + 7*y[3] + 8*y[4]
+ dy4 <-                   9*y[3] +10*y[4]
+ return(as.list(c(dy1, dy2, dy3, dy4)))
 }
-jacobian.full(y=c(1,2,3,4),func=mod)
-jacobian.band(y=c(1,2,3,4),func=mod)
+jacobian.full(y = c(1, 2, 3, 4), func = mod)
+jacobian.band(y = c(1, 2, 3, 4), func = mod)
 @
 \clearpage
 \section{Finally}

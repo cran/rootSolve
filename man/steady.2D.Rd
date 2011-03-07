@@ -11,8 +11,9 @@
   It is assumed that exchange occurs only between adjacent layers.
 }
 \usage{
-steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
-  names = NULL, cyclicBnd = NULL, ...)
+steady.2D(y, time = 0, func, parms = NULL, 
+          nspec = NULL, dimens,
+          names = NULL, cyclicBnd = NULL, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
@@ -81,8 +82,8 @@ steady.2D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
 ## =======================================================================
 ## Diffusion in 2-D; imposed boundary conditions
 ## =======================================================================
-diffusion2D <- function(t,Y,par)
-  {
+diffusion2D <- function(t, Y, par)   {
+
    y    <- matrix(nr=n,nc=n,data=Y)  # vector to 2-D matrix
    dY   <- -r*y        # consumption
    BND   <- rep(1,n)   # boundary concentration 
@@ -96,28 +97,32 @@ diffusion2D <- function(t,Y,par)
    dY    <- dY - (Flux[,2:(n+1)]-Flux[,1:n])/dy
 
    return(list(as.vector(dY)))
-  }
+}
 
-  # parameters
-  dy    <- dx <- 1   # grid size
-  Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
-  r     <- 0.025     # consumption rate
+# parameters
+dy    <- dx <- 1   # grid size
+Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
+r     <- 0.025     # consumption rate
 
-  n  <- 100
-  y  <- matrix(nr=n,nc=n,10.)
+n  <- 100
+y  <- matrix(nrow = n, ncol = n, 10.)
 
-  ST3 <- steady.2D(y,func=diffusion2D,parms=NULL,pos=TRUE,dimens=c(n,n),
-                 lrw=1000000,atol=1e-10,rtol=1e-10,ctol=1e-10)
-  y <- matrix(nr=n,nc=n,data=ST3$y)
-    filled.contour(y,color.palette=terrain.colors)
-    
+ST3 <- steady.2D(y, func = diffusion2D, parms = NULL, pos = TRUE,
+                 dimens = c(n, n), lrw = 1000000, 
+                 atol = 1e-10, rtol = 1e-10, ctol = 1e-10)
+
+image(ST3, legend = TRUE)
+
+# The hard way of plotting:    
+#y <- matrix(nr = n, nc = n, data = ST3$y)
+#     filled.contour(y, color.palette = terrain.colors)
 
 ## =======================================================================
 ## Diffusion in 2-D; extra flux on 2 boundaries, cyclic in y
 ## =======================================================================
 
-diffusion2Db <- function(t,Y,par)
-  {
+diffusion2Db <- function(t, Y, par)  {
+
    y    <- matrix(nr=nx,nc=ny,data=Y)  # vector to 2-D matrix
    dY   <- -r*y        # consumption
 
@@ -140,24 +145,25 @@ diffusion2Db <- function(t,Y,par)
    dY[,ny] <- dY[,ny]+ (y[,1]-y[,ny])*10
 
    return(list(as.vector(dY)))
-  }
+}
 
-  # parameters
-  dy    <- dx <- 1   # grid size
-  Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
-  r     <- 0.025     # consumption rate
+# parameters
+dy    <- dx <- 1   # grid size
+Dy    <- Dx <- 1   # diffusion coeff, X- and Y-direction
+r     <- 0.025     # consumption rate
 
-  nx  <- 50
-  ny  <- 100
-  y  <- matrix(nr=nx,nc=ny,10.)
-  print(system.time(
-  ST3 <- steady.2D(y,func=diffusion2Db, parms=NULL, pos=TRUE,
-                   dimens=c(nx,ny),verbose=TRUE,
-                   lrw=283800, atol=1e-10, rtol=1e-10, ctol=1e-10,
-                   cyclicBnd=2)       # y-direction: cyclic boundary
- ))
-  y <- matrix(nr=nx,nc=ny,data=ST3$y)
-    filled.contour(y,color.palette=terrain.colors)
+nx  <- 50
+ny  <- 100
+y  <- matrix(nrow = nx, ncol = ny, 10.)
+print(system.time(
+  ST3 <- steady.2D(y, func = diffusion2Db, parms = NULL, pos = TRUE,
+          dimens = c(nx, ny), verbose = TRUE, lrw = 283800, 
+          atol = 1e-10, rtol = 1e-10, ctol = 1e-10, 
+          cyclicBnd = 2)       # y-direction: cyclic boundary
+))
+image(ST3)
+#y <- matrix(nr=nx,nc=ny,data=ST3$y)
+#    filled.contour(y,color.palette=terrain.colors)
 
 
 }

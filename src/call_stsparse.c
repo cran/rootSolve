@@ -56,8 +56,9 @@ static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot,
 
 }
 
-SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
-		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, 
+SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs, 
+    SEXP chtol, 
+		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, SEXP initforc,
 		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
     SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan,
     SEXP Met, SEXP Option)
@@ -215,6 +216,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
  /* The initialisation routine */
   initParms(initfunc, parms);
+  initForcs(initforc, forcs);
 
  /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 

@@ -14,11 +14,11 @@
 }
 
 \usage{
-multiroot(f, start, maxiter=100, 
-  rtol=1e-6, atol=1e-8, ctol=1e-8, 
-  useFortran=TRUE, positive=FALSE,
-  jacfunc=NULL, jactype="fullint",
-  verbose=FALSE, bandup=1, banddown=1, ...)
+multiroot(f, start, maxiter = 100, 
+          rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
+          useFortran = TRUE, positive = FALSE,
+          jacfunc = NULL, jactype = "fullint",
+          verbose = FALSE, bandup = 1, banddown = 1, ...)
 }
 \arguments{
   \item{f }{function for which the root is sought; it must return a vector
@@ -105,38 +105,38 @@ multiroot(f, start, maxiter=100,
 ## 2 simultaneous equations
 ## =======================================================================
 
-model <- function(x) c(F1=x[1]^2+ x[2]^2 -1,F2=x[1]^2- x[2]^2 +0.5)
+model <- function(x) c(F1 = x[1]^2+ x[2]^2 -1, 
+                       F2 = x[1]^2- x[2]^2 +0.5)
 
-(ss<-multiroot(f=model,start=c(1,1)))
+(ss <- multiroot(f = model, start = c(1, 1)))
 
 ## =======================================================================
 ## example 2
 ## 3 equations, two solutions
 ## =======================================================================
 
-model <- function(x) c(F1= x[1] + x[2] + x[3]^2 - 12,
-                       F2= x[1]^2 - x[2] + x[3] - 2,
-                       F3= 2 * x[1] - x[2]^2 + x[3] - 1 )
+model <- function(x) c(F1 = x[1] + x[2] + x[3]^2 - 12,
+                       F2 = x[1]^2 - x[2] + x[3] - 2,
+                       F3 = 2 * x[1] - x[2]^2 + x[3] - 1 )
 
 # first solution
-(ss<-multiroot(model,c(1,1,1),useFortran=FALSE))
-(ss<-multiroot(f=model,start=c(1,1,1)))
+(ss <- multiroot(model, c(1, 1, 1), useFortran = FALSE))
+(ss <- multiroot(f = model, start = c(1, 1, 1)))
 
 # second solution; use different start values
-(ss<-multiroot(model,c(0,0,0)))
+(ss <- multiroot(model, c(0, 0, 0)))
 model(ss$root)
 
 ## =======================================================================
 ## example 3: find a matrix
 ## =======================================================================
 
-f2<-function(x)
- {
- X<-matrix(nr=5,x)
- X \%*\% X \%*\% X -matrix(nr=5,data=1:25,byrow=TRUE)
- }
-x<-multiroot(f2, start= 1:25 )$root
-X<-matrix(nr=5,x)
+f2<-function(x)   {
+ X <- matrix(nrow = 5, x)
+ X \%*\% X \%*\% X -matrix(nrow = 5, data = 1:25, byrow = TRUE)
+}
+x <- multiroot(f2, start = 1:25 )$root
+X <- matrix(nrow = 5, x)
 
 X\%*\%X\%*\%X
 }

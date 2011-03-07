@@ -34,7 +34,7 @@ steady.3D    <- function (y, time=0, func, parms=NULL, nspec=NULL,
   # Note: stodes expects rev(dimens)..
   out <- stodes(y=y, time=time, func=func, parms=parms,
                 nnz=c(nspec,rev(dimens), rev(Bnd)), sparsetype="3D", ...)
-  class(out) <- c("steady3D","list")    # a steady-state 
+  class(out) <- c("steady3D","rootSolve","list")    # a steady-state 
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec
   attr(out,"ynames") <- names

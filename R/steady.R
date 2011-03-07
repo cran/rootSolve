@@ -17,12 +17,15 @@ steady  <- function (y, time=NULL, func, parms=NULL, method="stode", ...)  {
   }  
 
   if (method=="stode")
-    stode(y,time,func,parms=parms,...)  else
+    out <- stode(y,time,func,parms=parms,...)  else
   if (method=="stodes")
-    stodes(y,time,func,parms=parms,...) else
+    out <- stodes(y,time,func,parms=parms,...) else
   if (method=="runsteady")
-    runsteady(y,times=time,func,parms=parms,...)
-
+    out <- runsteady(y,times=time,func,parms=parms,...)
+  class(out) <- c("steady","rootSolve","list")    # a steady-state 
+  attr(out, "nspec") <- length(y)
+  attr(out,"ynames") <- names(y)
+  return(out)
 }
 
 

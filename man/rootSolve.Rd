@@ -26,8 +26,8 @@ Functions that:
   \tabular{ll}{
      Package: \tab rootSolve\cr
      Type: \tab Package\cr
-     Version: \tab 1.6\cr
-     Date: \tab 2009-10-10\cr
+     Version: \tab 1.7\cr
+     Date: \tab 2010-10-10\cr
      License: \tab GNU Public License 2 or above\cr
   }
 
@@ -79,6 +79,8 @@ Please cite this work when using rootSolve.
    
  \code{\link{gradient}}, \code{\link{hessian}}, estimates the gradient
     matrix or the Hessian.
+
+ \code{\link{plot.steady1D}}, ...  for plotting  steady-state solutions.
 
  package vignette \code{rootSolve}
 }

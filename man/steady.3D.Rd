@@ -11,8 +11,9 @@
   It is assumed that exchange occurs only between adjacent layers.
 }
 \usage{
-steady.3D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
-  names = NULL, cyclicBnd = NULL, ...)
+steady.3D(y, time = 0, func, parms = NULL, 
+          nspec = NULL, dimens, 
+          names = NULL, cyclicBnd = NULL, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
@@ -81,8 +82,7 @@ steady.3D(y, time=0, func, parms=NULL, nspec=NULL, dimens,
 ## =======================================================================
 ## Diffusion in 3-D; imposed boundary conditions
 ## =======================================================================
-diffusion3D <- function(t,Y,par)
-  {
+diffusion3D <- function(t, Y, par)   {
    yy    <- array(dim=c(n,n,n),data=Y)  # vector to 3-D array
    dY   <- -r*yy        # consumption
    BND   <- rep(1,n)   # boundary concentration
@@ -117,7 +117,7 @@ diffusion3D <- function(t,Y,par)
      dY[,,k]    <- dY[,,k] - (Flux[,2:(n+1)]-Flux[,1:n])/dy
    }
    return(list(as.vector(dY)))
-  }
+}
 
   # parameters
   dy    <- dx <- dz <-1   # grid size
@@ -125,21 +125,23 @@ diffusion3D <- function(t,Y,par)
   r     <- 0.025     # consumption rate
 
   n  <- 10
-  y  <- array(dim=c(n,n,n),data=10.)
+  y  <- array(dim=c(n, n, n), data = 10.)
 
   print(system.time(
-  ST3 <- steady.3D(y, func=diffusion3D, parms=NULL, pos=TRUE,
-                  dimens=c(n,n,n), lrw=100000,
-                  atol=1e-10, rtol=1e-10, ctol=1e-10, verbose=TRUE)
+  ST3 <- steady.3D(y, func =diffusion3D, parms = NULL, pos = TRUE,
+                   dimens = c(n, n, n), lrw = 100000,
+                   atol = 1e-10, rtol = 1e-10, ctol = 1e-10, 
+                   verbose = TRUE)
   ))
-  y <- array(dim=c(n,n,n),data=ST3$y)
-    filled.contour(y[,,n/2],color.palette=terrain.colors)
+  y <- array(dim=c(n, n, n), data = ST3$y)
+    filled.contour(y[ , ,n/2], color.palette = terrain.colors)
     
 
 }
 \details{
-  This is the method of choice for 3-dimensional models, that are only
-  subjected to transport between adjacent layers.
+  This is the method of choice to find the steady-state for 
+  3-dimensional models, that are only subjected to transport between 
+  adjacent layers.
 
   Based on the dimension of the problem, the method first calculates the
   sparsity pattern of the Jacobian, under the assumption 

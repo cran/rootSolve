@@ -7,3 +7,4 @@ export(gradient, hessian, jacobian.band, jacobian.full, multiroot, multiroot.1D,
 S3method("plot", "steady1D")
 S3method("image", "steady2D")
 S3method("image", "steady3D")
+S3method("summary","rootSolve")

@@ -26,7 +26,8 @@ stode         <- function(y, time=0, func, parms=NULL,
        rtol=1e-6, atol=1e-8, ctol=1e-8, jacfunc=NULL, jactype = "fullint",
        verbose=FALSE, bandup=1, banddown=1, positive = FALSE, maxiter=100,
        ynames=TRUE, dllname=NULL, initfunc=dllname, initpar=parms,
-       rpar=NULL, ipar=NULL, nout=0, outnames = NULL, ...)  {
+       rpar=NULL, ipar=NULL, nout=0, outnames = NULL, forcings = NULL, 
+        initforc = NULL, fcontrol = NULL, ...)  {
 
 ## check input
   if (!is.numeric(y))
@@ -70,12 +71,12 @@ stode         <- function(y, time=0, func, parms=NULL,
   else stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr', or 'bandint'")
 
   if (imp == 0) {
-    nspec<-bandup
-    ndim <-banddown
+    nspec <- bandup
+    ndim <- banddown
     banddown <- nspec
   } else {
-    nspec<-0
-    ndim <-0
+    nspec <- 0
+    ndim <- 0
   }
   # check if jacfunc is specified if it is needed. 
   if (imp %in% c(21,24) && is.null(jacfunc)) 
@@ -102,11 +103,25 @@ stode         <- function(y, time=0, func, parms=NULL,
   Ynames <- attr(y,"names")
   JacFunc <- NULL
   ModelInit <- NULL
+  ModelForc <- NULL
+  Forc <- NULL
   if ( ! is.null(dllname)) {
      if (is.loaded(initfunc, PACKAGE = dllname,
          type = "") || is.loaded(initfunc, PACKAGE = dllname,
          type = "Fortran"))
          ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
+
+     if (! is.null(initforc))  {
+       if (is.loaded(initforc, PACKAGE = dllname,
+                type = "") || is.loaded(initforc, PACKAGE = dllname,
+                type = "Fortran"))
+       ModelForc <- getNativeSymbolInfo(initforc, PACKAGE = dllname)$address
+       if (is.list(forcings) ) {
+         Forc <- NULL
+         for (i in 1: length(forcings))
+           Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = time, fcontrol))$y)
+       } else Forc <- forcings   
+     }
   }
 
 ## If func is a character vector, then copy its value to funcname
@@ -221,8 +236,10 @@ stode         <- function(y, time=0, func, parms=NULL,
 
   if(is.null(initfunc))
      initpar <- NULL # parameter init not needed if function is not a DLL
-  out <- .Call("call_dsteady", y, as.double(time), Func,  as.double(initpar),
-    ctol, atol, rtol, as.integer(itol), rho,  JacFunc, ModelInit, as.integer(verbose),
+  out <- .Call("call_dsteady", y, as.double(time), Func,  as.double(initpar),     
+     as.double(Forc), ctol, atol, rtol, 
+
+    as.integer(itol), rho,  JacFunc, ModelInit, ModelForc, as.integer(verbose),
     as.integer(imp),as.integer(bandup),as.integer(banddown),as.integer(maxiter),
     as.integer(Pos),as.integer(positive),as.integer(Nglobal),as.integer(nabd),
     as.integer(nspec),as.integer(ndim),
@@ -241,8 +258,16 @@ stode         <- function(y, time=0, func, parms=NULL,
       out2 <- Func2(time, y)[-1]
       out <- c(list(y=y), out2)
     } else {
-      out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
-      names(out$var) <- Nmtot
+#      out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
+#      names(out$var) <- Nmtot
+      var=out[(n+1):(n+Nglobal)]
+      cnames <- Nmtot
+      unames <- unique(Nmtot)
+      var <- lapply (unames, FUN = function(x) var[which(cnames == x)])
+      names(var)<-unames
+      y <- out[1:n]
+      out <- c(y=1,var)
+      out[[1]] <- y
     }
 
   } else {

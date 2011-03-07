@@ -14,7 +14,7 @@ void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, in
 
 C_deriv_func_type *derivb;
 
-
+                                        
 static void C_steady_derivs (int *neq, double *t, double *y, double *ydot,
   double *yout, int *iout)
 {
@@ -80,8 +80,9 @@ static void C_steady_jac (int *neq, double *t, double *y, int *ml,
 typedef void C_jac_func_type(int *, double *, double *, int *,
 		                  int *, double *, int *, double *, int *);
 
-SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol, 
-		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP jacfunc, SEXP initfunc, 
+SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs, 
+		SEXP chtol, SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP jacfunc, 
+    SEXP initfunc, SEXP initforc,  
 		SEXP verbose, SEXP mf, SEXP BU, SEXP BD, SEXP nIter, SEXP Posit, SEXP Pos,
     SEXP nOut,SEXP nAbd, SEXP nSpec, SEXP nDim, SEXP Rpar, SEXP Ipar)
 {
@@ -114,7 +115,7 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
   mflag = INTEGER(verbose)[0];
 
   rearrange = 0;
-  if (jt ==0)   /* state variables and rate of changes need rearranging*/
+  if (jt == 0)   /* state variables and rate of changes need rearranging*/
   {
    jt =25;
    rearrange = 1;
@@ -180,7 +181,8 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP chtol,
 
  /* The initialisation routine */
   initParms(initfunc, parms);
-
+  initForcs(initforc, forcs);
+ 
  /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 
   if (isDll==1) 

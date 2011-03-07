@@ -11,7 +11,7 @@
   \deqn{d^2(f(x))/d(x_i)/d(x_j)}
 }
 \usage{
-hessian(f, x, centered = FALSE, pert=1e-8, ...)
+hessian(f, x, centered = FALSE, pert = 1e-8, ...)
 }
 \arguments{
   \item{f }{function returning one function value, or a vector of
@@ -44,8 +44,8 @@ hessian(f, x, centered = FALSE, pert=1e-8, ...)
 ## the banana function
 ## =======================================================================
    fun <- function(x)  100*(x[2] - x[1]^2)^2 + (1 - x[1])^2
-   mm  <-nlm(fun, p=c(0,0))$estimate
-   (Hes <- hessian(fun,mm))
+   mm  <- nlm(fun, p = c(0, 0))$estimate
+   (Hes <- hessian(fun, mm))
    # can also be estimated by nlm(fun, p=c(0,0), hessian=TRUE)
    solve(Hes)   # estimate of parameter uncertainty
 }

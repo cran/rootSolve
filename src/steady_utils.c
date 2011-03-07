@@ -30,6 +30,7 @@ SEXP Rst_deriv_func;
 SEXP Rst_jac_func;
 SEXP Rst_envir;
 SEXP st_gparms;
+SEXP st_gforcs;
 
 SEXP stsparse_deriv_func;
 SEXP stsparse_jac_func;
@@ -74,6 +75,38 @@ void Initstparms(int *N, double *parms)
     }
 }
   
+/* same for forcing functions */
+
+void initForcs(SEXP Initforc, SEXP Forcs) {
+
+  if (inherits(Initforc, "NativeSymbol"))  {
+    C_init_func_type *initializer;
+
+    PROTECT(st_gforcs = Forcs);     incr_N_Protect();
+    initializer = (C_init_func_type *) R_ExternalPtrAddr(Initforc);
+    initializer(Initstforcs);
+  }
+
+}
+
+void Initstforcs(int *N, double *forcs)
+{
+  int i, Nforcs;
+
+  Nforcs = LENGTH(st_gforcs);
+  if ((*N) != Nforcs)
+    {
+      warning("Number of forcings passed to solver, %i; number in DLL, %i\n",
+      Nforcs, *N);
+      PROBLEM "Confusion over the length of forcs"
+      ERROR;
+    } 
+  else
+    {
+      for (i = 0; i < *N; i++) forcs[i] = REAL(st_gforcs)[i];
+    }
+}
+
 /*==================================================
  output initialisation function
 

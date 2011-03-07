@@ -12,8 +12,8 @@
 
 }
 \usage{
-steady.band(y, time=0, func, parms=NULL, 
-  nspec=NULL, bandup=nspec, banddown=nspec, ...)}
+steady.band(y, time = 0, func, parms = NULL, 
+            nspec = NULL, bandup = nspec, banddown = nspec, ...)}
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
     If \code{y} has a name attribute, the names will be used to label the
@@ -75,31 +75,33 @@ steady.band(y, time=0, func, parms=NULL,
 ## values of parameter "decay"
 ## =======================================================================
 
-  model <- function (time,OC,parms,decay)
-  {
-   # model of particles (OC) that sink out of the water and decay
-   # exponentially declining sinking rate, maximal 100 m/day
-   sink <- 100*exp(-0.01*dist)
+model <- function (time, OC, parms, decay)  {
+  # model of particles (OC) that sink out of the water and decay
+  # exponentially declining sinking rate, maximal 100 m/day
+  sink <- 100 * exp(-0.01*dist)
   
-   # boundary flux; upper boundary=imposed concentration (100)
-   Flux <- sink * c(100 ,OC)     
+  # boundary flux; upper boundary=imposed concentration (100)
+  Flux <- sink * c(100 ,OC)     
    
-   # Rate of change= Flux gradient and first-order consumption
-   dOC  <- -diff(Flux)/dx - decay*OC
-   list(dOC,maxC=max(OC))
-  }
-  dx   <- 1                          # thickness of boxes
-  dist <- seq(0,1000,by=dx)          # water depth at each modeled box interface
+  # Rate of change= Flux gradient and first-order consumption
+  dOC  <- -diff(Flux)/dx - decay*OC
+  list(dOC, maxC = max(OC))
+}
 
-  ss   <- NULL 
-  for (decay in seq(from=0.1,to=1.1,by=0.2))
-    ss   <- cbind(ss,steady.band(runif(1000),func=model,
-    parms=NULL,nspec=1,decay=decay)$y)  
+dx   <- 1                          # thickness of boxes
+dist <- seq(0, 1000, by = dx)      # water depth at each modeled box interface
 
-  matplot(ss,1:1000,type="l",lwd=2,main="steady.band", ylim=c(1000,0),
-          ylab="water depth, m", xlab="concentration of sinking particles")
-  legend("bottomright",legend=seq(from=0.1,to=1.1,by=0.2),lty=1:10,
-          title="decay rate",col=1:10,lwd=2)
+ss   <- NULL 
+for (decay in seq(from = 0.1, to = 1.1, by = 0.2))
+  ss   <- cbind(ss, steady.band(runif(1000), func = model,
+                parms = NULL, nspec = 1, decay = decay)$y)  
+
+matplot(ss, 1:1000, type = "l", lwd = 2, main = "steady.band", 
+  ylim=c(1000, 0), ylab = "water depth, m", 
+  xlab = "concentration of sinking particles")
+
+legend("bottomright", legend = seq(from = 0.1, to = 1.1, by = 0.2),
+   lty = 1:10, title = "decay rate", col = 1:10, lwd = 2)
 
 ## =======================================================================
 ## 5001 simultaneous equations: solve
@@ -107,8 +109,7 @@ steady.band(y, time=0, func, parms=NULL,
 ## over the interval [1,6], with boundary conditions: y(1)=1, y(6)=-0.5
 ## =======================================================================
 
-  derivs <- function(t,y,parms, x,dx,N,y1,y6)
-  {
+derivs <- function(t, y, parms, x, dx, N, y1, y6)  {
 
   # Numerical approximation of derivates:
   # d2y/dx2 = (yi+1-2yi+yi-1)/dx^2
@@ -119,21 +120,22 @@ steady.band(y, time=0, func, parms=NULL,
 
    res <- d2y+dy/x+(1-1/(4*x*x))*y-sqrt(x)*cos(x)
    return(list(res))
-  }
+}
 
 dx     <- 0.001
 x      <- seq(1,6,by=dx)
 N      <- length(x)
-y  <- steady.band(y=rep(1,N),time=0,func=derivs,x=x,dx=dx,
-                  N=N,y1=1,y6=-0.5,nspec=1)$y
-plot(x,y,type="l",main="5001 nonlinear equations - banded Jacobian")
+y  <- steady.band(y = rep(1, N), time = 0, func = derivs, x = x, dx = dx,
+                  N = N, y1 = 1, y6 = -0.5, nspec = 1)$y
+plot(x, y, type = "l", main = "5001 nonlinear equations - banded Jacobian")
 
 # add the analytic solution for comparison:
-xx     <- seq(1,6,by=0.1)
+xx     <- seq(1, 6, by = 0.1)
 ana <- 0.0588713*cos(xx)/sqrt(xx)+1/4*sqrt(xx)*cos(xx)+
        0.740071*sin(xx)/sqrt(xx)+1/4*xx^(3/2)*sin(xx)
-points(xx,ana)
-legend("topright",pch=c(NA,1),lty=c(1,NA),c("numeric","analytic"))
+points(xx, ana)
+legend("topright", pch = c(NA, 1), lty = c(1, NA),
+       c("numeric", "analytic"))
 
 }
 \details{

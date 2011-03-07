@@ -21,11 +21,16 @@
   method (e.g. make choices about the type of the Jacobian).
 }
 
-\usage{runsteady(y, times=c(0,Inf), func, parms, stol=1e-8, rtol=1e-6, atol=1e-6,  
-  jacfunc=NULL, jactype="fullint", mf=NULL, verbose=FALSE, tcrit=NULL,  
-  hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord=NULL, bandup=NULL, 
-  banddown=NULL, maxsteps=100000, dllname=NULL, initfunc=dllname,
-  initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, ...)
+\usage{
+runsteady(y, times = c(0, Inf), func, parms, 
+          stol = 1e-8, rtol = 1e-6, atol = 1e-6,  
+          jacfunc = NULL, jactype = "fullint", mf = NULL, 
+          verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, 
+          hini = 0, ynames = TRUE, maxord = NULL, bandup = NULL, 
+          banddown = NULL, maxsteps = 100000, dllname = NULL, 
+          initfunc = dllname, initpar = parms, rpar = NULL, 
+          ipar = NULL, nout = 0, outnames = NULL, 
+          forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
 }
 
 \arguments{
@@ -171,6 +176,24 @@
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
   }
+  \item{forcings }{only used if \file{dllname} is specified: a vector with the 
+    forcing function values, or a list with the forcing function data sets, 
+    each present as a two-columned matrix, with (time,value); interpolation 
+    outside the interval [min(\code{times}), max(\code{times})] is done by 
+    taking the value at the closest data extreme.
+
+    This feature is here for compatibility with models defined in compiled code
+    from package deSolve; see deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
   \item{... }{additional arguments passed to \code{func} and \code{jacfunc}
     allowing this to be a generic function.
   }
@@ -208,10 +231,9 @@
 ## A simple sediment biogeochemical model
 ## =======================================================================
 
-model<-function(t,y,pars)
-{
+model<-function(t, y, pars) {
 
-with (as.list(c(y,pars)),{
+with (as.list(c(y, pars)),{
 
   Min       = r*OM
   oxicmin   = Min*(O2/(O2+ks))
@@ -222,23 +244,26 @@ with (as.list(c(y,pars)),{
   dSO4 = -0.5*anoxicmin  +rox*HS*(O2/(O2+ks)) + D*(BSO4-SO4)
   dHS  = 0.5*anoxicmin   -rox*HS*(O2/(O2+ks)) + D*(BHS-HS)
 
-  list(c(dOM,dO2,dSO4,dHS),SumS=SO4+HS)
+  list(c(dOM, dO2, dSO4, dHS), SumS = SO4+HS)
 })
 }
 
 # parameter values
-pars <- c(D=1,Flux=100,r=0.1,rox =1,
-          ks=1,ks2=1,BO2=100,BSO4=10000,BHS = 0)
+pars <- c(D = 1, Flux = 100, r = 0.1, rox = 1,
+          ks = 1, ks2 = 1, BO2 = 100, BSO4 = 10000, BHS = 0)
 # initial conditions
-y<-c(OM=1,O2=1,SO4=1,HS=1)
+y <- c(OM = 1, O2 = 1, SO4 = 1, HS = 1)
 
 # direct iteration
-print( system.time(ST <- stode(y=y,func=model,parms=pars,pos=TRUE)))
+print( system.time(
+  ST <- stode(y = y, func = model, parms = pars, pos = TRUE)
+))
 
 print( system.time(
-ST2 <- runsteady(y=y,func=model,parms=pars,times=c(0,1000))))
+  ST2 <- runsteady(y = y, func = model, parms = pars, times = c(0, 1000))
+))
 
-rbind("Newton Raphson"=ST$y,"Runsteady"=ST2$y)
+rbind("Newton Raphson" = ST$y, "Runsteady" = ST2$y)
 }
 \references{ Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
    Solvers," in Scientific Computing, R. S. Stepleman, et al., Eds.

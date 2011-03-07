@@ -11,7 +11,8 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, 
   maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=100000,
   dllname=NULL,initfunc=dllname, initpar=parms, 
-  rpar=NULL, ipar=NULL, nout=0, outnames=NULL,...)  
+  rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings = NULL, 
+  initforc = NULL, fcontrol = NULL, ...)  
 {
 ## check input
   if (!is.numeric(y))
@@ -62,9 +63,12 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     else if (jactype == "fullusr" ) imp <- 21 # full jacobian, specified by user function
     else if (jactype == "bandusr" ) imp <- 24 # banded jacobian, specified by user function
     else if (jactype == "bandint" ) imp <- 25 # banded jacobian, specified internally
+    else if (jactype == "1Dint"   ) imp <- 25  # banded jacobian, specified+rearranged internally  
+
     else
       stop("jactype must be one of fullint, fullusr, bandusr or bandint if mf not specified")
   } else imp <- mf
+
 
   if (! imp %in% c(10:15, 20:25)) 
     stop ("lsode: cannot perform integration: method flag mf not allowed")
@@ -95,6 +99,8 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   Ynames <- attr(y,"names")
 
   ModelInit <- NULL
+  ModelForc <- NULL
+  Forc <- NULL
 
   if ( ! is.null(dllname)) {
 
@@ -115,6 +121,18 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     if ( is.loaded(funcname, PACKAGE = dllname)) {
       Func <- getNativeSymbolInfo(funcname, PACKAGE = dllname)$address
     } else stop(paste("cannot integrate: dyn function not loaded",funcname))
+
+     if (! is.null(initforc))  {
+       if (is.loaded(initforc, PACKAGE = dllname,
+                type = "") || is.loaded(initforc, PACKAGE = dllname,
+                type = "Fortran"))
+       ModelForc <- getNativeSymbolInfo(initforc, PACKAGE = dllname)$address
+       if (is.list(forcings) ) {
+         Forc <- NULL
+         for (i in 1: length(forcings))
+           Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = times[1], fcontrol))$y)
+       } else Forc <- forcings   
+     }
 
     ## Finally, is there a jacobian?
     if (!is.null(jacfunc)) {
@@ -204,6 +222,15 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     }
   } # character func
 
+  if (jactype == "1Dint"   )  {  
+    imp <- 0  # banded jacobian, specified+rearranged internally
+    nspec <- bandup
+    ndim <- banddown
+    banddown <- nspec
+  } else {
+    nspec <- 0
+    ndim <- 0
+  }
 
 ### work arrays iwork, rwork
 # length of rwork and iwork 
@@ -234,7 +261,7 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
 # the task to be performed: always take one step and return after which 
 # c-cde will check steady-state.
   itask = 2
-
+  
 # print to screen...
   if (verbose) {
     print("--------------------")
@@ -268,11 +295,12 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
     
-  out <- .Call("call_lsode",y,times,Func,as.double(initpar),
-               as.double(stol),rtol, atol, rho, tcrit, JacFunc, ModelInit,
-               as.integer(verbose), as.integer(itask), as.double(rwork),
+  out <- .Call("call_lsode",y,times,Func,as.double(initpar), as.double(Forc),
+               as.double(stol),rtol, atol, rho, tcrit, JacFunc, ModelInit, 
+               ModelForc, as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
-               as.integer(lrw),as.integer(liw),as.double (rpar), as.integer(ipar),
+               as.integer(lrw),as.integer(liw),as.integer(nspec), as.integer(ndim),
+               as.double (rpar), as.integer(ipar),
                PACKAGE="rootSolve")
 
 ### saving results    

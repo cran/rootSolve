@@ -8,7 +8,8 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
         ctol=1e-8, sparsetype="sparseint", verbose=FALSE, nnz=NULL, inz=NULL,
         lrw=NULL, ngp=NULL, positive = FALSE, maxiter=100, ynames=TRUE,
         dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL,
-        ipar=NULL, nout=0, outnames=NULL, spmethod="yale", control=NULL, ...)  {
+        ipar=NULL, nout=0, outnames=NULL, forcings = NULL, 
+        initforc = NULL, fcontrol = NULL, spmethod="yale", control=NULL, ...)  {
 ## check input
   if (!is.numeric(y))
     stop("`y' must be numeric")
@@ -145,6 +146,8 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
 ## model and jacobian function
   Ynames <- attr(y,"names")
   ModelInit <- NULL
+  ModelForc <- NULL
+  Forc <- NULL
   if(!is.null(dllname)) {
      if (is.loaded(initfunc, PACKAGE = dllname,
                 type = "") || is.loaded(initfunc, PACKAGE = dllname,
@@ -162,7 +165,17 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     } else
       stop(paste("cannot calculate steady-state: dyn function not loaded: ",funcname))
 
-
+     if (! is.null(initforc))  {
+       if (is.loaded(initforc, PACKAGE = dllname,
+                type = "") || is.loaded(initforc, PACKAGE = dllname,
+                type = "Fortran"))
+       ModelForc <- getNativeSymbolInfo(initforc, PACKAGE = dllname)$address
+       if (is.list(forcings) ) {
+         Forc <- NULL
+         for (i in 1: length(forcings))
+           Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = time, fcontrol))$y)
+       } else Forc <- forcings   
+     }
     # If we go this route, the number of "global" results is in nout
     Nglobal <- nout
     rho     <- NULL
@@ -252,7 +265,9 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     control <- checkoption (control)      
   }
   out <- .Call("call_stsparse", y, as.double(time), Func,  as.double(initpar),
-    ctol, atol, rtol, as.integer(itol), rho,  ModelInit, as.integer(verbose),
+    as.double(Forc), 
+    ctol, atol, rtol, as.integer(itol), rho,  ModelInit, ModelForc, 
+    as.integer(verbose),
     as.integer(imp),as.integer(nnz),as.integer(lrw),as.integer(ngp),
     as.integer(maxiter),as.integer(Pos),as.integer(positive),
     as.integer(Nglobal),as.double (rpar), as.integer(ipar), as.integer(Type),
@@ -271,8 +286,15 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
       out2 <- Func2(time, y)[-1]
       out <- c(list(y=y), out2)
     } else {
-      out <- list(y=out[1:n],var=out[(n+1):(n+Nglobal)])
-      names(out$var) <- Nmtot
+      var=out[(n+1):(n+Nglobal)]
+      cnames <- Nmtot
+      unames <- unique(Nmtot)
+      var <- lapply (unames, FUN = function(x) var[which(cnames == x)])
+      names(var)<-unames
+
+      y <- out[1:n]
+      out <- c(y=1,var)
+      out[[1]] <- y
     }
   } else {
    if(ynames)  attr(out,"names")  <-  Ynames

@@ -35,10 +35,6 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
   if (nspec == 1 & method == "stode") {
     out <- steady.band(y, time, func, parms, nspec, 
       bandup = nspec*bandwidth, banddown = nspec*bandwidth,...)
-    if (! is.null(names)) {
-      out[[1]] <- matrix(ncol=nspec,data=out[[1]])
-      colnames(out[[1]]) <- names
-    }
   } else if (method=="stodes") {
     dimens <- N/nspec
     Bnd <- 0
@@ -50,15 +46,21 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
 
     out <- stodes(y=y,time=time,func=func,parms=parms,
                   nnz=c(nspec,dimens,Bnd),sparsetype="1D",...)
+             
   } else if (is.character(func)) {
     ii    <- as.vector(t(matrix(ncol=nspec,1:N)))   # from ordering per slice -> per spec
     if (bandwidth != 1)
       stop ("cannot combine DLL with 'bandwidth' not = 1") 
-    if (method!="stode")
-      stop ("cannot run steady.1D: method should be stode if func is a DLL")
-    out <- stode(y=y[ii],time=time,func=func,parms=parms,
+    if (method == "stode")
+      out <- stode(y=y[ii],time=time,func=func,parms=parms,
                 jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
-                
+    else if (method == "runsteady")
+      out <- runsteady (y=y[ii],time=time,func=func,parms=parms,
+                jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
+   
+    else
+      stop ("cannot run steady.1D: method should be 'stode' or 'runsteady' if func is a DLL")
+            
     out[[1]][ii] <- out[[1]]
   } else {
 
@@ -85,12 +87,13 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
                 jactype="bandint",...)
 
     out[[1]][ii] <- out[[1]]
+  }
+  class(out) <- c("steady1D","rootSolve","list")    # a steady-state 
     if (! is.null(names)) {
       out[[1]] <- matrix(ncol=nspec,data=out[[1]])
       colnames(out[[1]]) <- names
     }
-  }
-  class(out) <- c("steady1D","list")    # a steady-state 
+  if (is.null(dimens))  dimens <- N/nspec
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec
   attr(out,"ynames") <- names

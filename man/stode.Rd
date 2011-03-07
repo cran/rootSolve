@@ -16,12 +16,15 @@ Estimates the steady-state condition for a system of
   The system of ODE's is written as an \R function or defined in
   compiled code that has been dynamically loaded.
 }
-\usage{stode(y, time=0, func, parms=NULL, 
-  rtol=1e-6, atol=1e-8, ctol=1e-8, jacfunc=NULL, 
-  jactype="fullint", verbose=FALSE, bandup=1, banddown=1,   
-  positive=FALSE, maxiter=100, ynames=TRUE, 
-  dllname=NULL, initfunc=dllname, initpar=parms, 
-  rpar=NULL, ipar=NULL, nout=0, outnames = NULL,...)}
+\usage{
+stode(y, time = 0, func, parms = NULL, 
+      rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
+      jacfunc = NULL, jactype = "fullint", verbose = FALSE, 
+      bandup = 1, banddown = 1, positive = FALSE, 
+      maxiter = 100, ynames = TRUE, 
+      dllname = NULL, initfunc = dllname, initpar = parms, 
+      rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
+      forcings = NULL, initforc = NULL, fcontrol = NULL, ...)}
 \arguments{
   \item{y }{the initial guess of (state) values for the ode system, a vector.
     If \code{y} has a name attribute, the names will be used to label the
@@ -137,6 +140,24 @@ Estimates the steady-state condition for a system of
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
   }
+  \item{forcings }{only used if \file{dllname} is specified: a vector with the 
+    forcing function values, or a list with the forcing function data sets, 
+    each present as a two-columned matrix, with (time,value); interpolation 
+    outside the interval [min(\code{times}), max(\code{times})] is done by 
+    taking the value at the closest data extreme.
+
+    This feature is here for compatibility with models defined in compiled code
+    from package deSolve; see deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
   \item{... }{additional arguments passed to \code{func} and \code{jacfunc}
     allowing this to be a generic function.
   }
@@ -163,10 +184,10 @@ Estimates the steady-state condition for a system of
 ## Example 1. A simple sediment biogeochemical model
 ## =======================================================================
 
-model<-function(t,y,pars)
+model<-function(t, y, pars)
 {
 
-with (as.list(c(y,pars)),{
+with (as.list(c(y, pars)),{
 
   Min       = r*OM
   oxicmin   = Min*(O2/(O2+ks))
@@ -177,18 +198,18 @@ with (as.list(c(y,pars)),{
   dSO4 = -0.5*anoxicmin  +rox*HS*(O2/(O2+ks)) + D*(BSO4-SO4)
   dHS  = 0.5*anoxicmin   -rox*HS*(O2/(O2+ks)) + D*(BHS-HS)
 
-  list(c(dOM,dO2,dSO4,dHS),SumS=SO4+HS)
+  list(c(dOM, dO2, dSO4, dHS), SumS = SO4+HS)
 })
 }
 
 # parameter values
-pars <- c(D=1,Flux=100,r=0.1,rox =1,
-          ks=1,ks2=1,BO2=100,BSO4=10000,BHS = 0)
+pars <- c(D = 1, Flux = 100, r = 0.1, rox = 1,
+          ks = 1, ks2 = 1, BO2 = 100, BSO4 = 10000, BHS = 0)
 # initial conditions
-y<-c(OM=1,O2=1,SO4=1,HS=1)
+y<-c(OM = 1, O2 = 1, SO4 = 1, HS = 1)
 
 # direct iteration  - enforces  positivitiy..
-ST <- stode(y=y,func=model,parms=pars,pos=TRUE)
+ST <- stode(y = y, func = model, parms = pars, pos = TRUE)
 
 ST
 
@@ -196,8 +217,7 @@ ST
 ## Example 2. 1000 simultaneous equations
 ## =======================================================================
 
-model <- function (time,OC,parms,decay,ing)
-{
+model <- function (time, OC, parms, decay, ing) {
  # model describing organic Carbon (C) in a sediment, 
  # Upper boundary = imposed flux, lower boundary = zero-gradient
  Flux  <- v * c(OC[1] ,OC) +              # advection
@@ -212,6 +232,7 @@ model <- function (time,OC,parms,decay,ing)
  dOC[N/2]  <- dOC[N/2] + ing*sum(OC[1:5])
  list(dOC)
 }
+
 v    <- 0.1    # cm/yr
 flux <- 10
 dx   <- 0.01
@@ -219,10 +240,12 @@ N    <- 1000
 dist <- seq(dx/2,by=dx,len=N)
 Kz   <- 1  #bioturbation (diffusion), cm2/yr
 print( system.time(
-ss   <- stode(runif(N),func=model,parms=NULL,positive=TRUE, decay=5,ing=20)))
+ss   <- stode(runif(N), func = model, parms = NULL, positive = TRUE, 
+              decay = 5, ing = 20)))
 
-plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
-xlab="Nonlocal exchange",ylab="sediment depth",main="stode, full jacobian")
+plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
+     xlab = "Nonlocal exchange", ylab = "sediment depth",
+     main = "stode, full jacobian")
 
 ## =======================================================================
 ## Example 3. Solving a system of linear equations
@@ -231,26 +254,26 @@ xlab="Nonlocal exchange",ylab="sediment depth",main="stode, full jacobian")
 # this example is included to demonstrate how to use the "jactype" option.
 # (and that stode is quite efficient).
 
-A <- matrix(nr=500,nc=500,runif(500*500))
+A <- matrix(nrow = 500, ncol = 500, runif(500*500))
 B <- 1:500
 
 # this is how one would solve this in R
-print(system.time(X1<-solve(A,B)))
+print(system.time(X1 <- solve(A, B)))
 
 # to use stode:
 # 1. create a function that receives the current estimate of x
 # and that returns the difference A\%*\%x-b, as a list:
 
-fun <- function (t,x,p)  # t and p are dummies here...
+fun <- function (t, x, p)  # t and p are dummies here...
   list(A\%*\%x-B)
 
 # 2. jfun returns the Jacobian: here this equals "A"
-jfun <- function (t,x,p) # all input parameters are dummies
+jfun <- function (t, x, p) # all input parameters are dummies
   A
 
 # 3. solve with jactype="fullusr" (a full Jacobian, specified by user)
 print (system.time(
-  X <- stode(y=1:500,func=fun, jactype="fullusr", jacfunc=jfun)
+  X <- stode(y = 1:500, func = fun, jactype = "fullusr", jacfunc = jfun)
   ))
 
 # the results are the same (within precision)

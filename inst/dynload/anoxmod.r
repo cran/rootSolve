@@ -64,7 +64,7 @@ with (as.list(c(y,pars)),
 
 print(system.time(
 for (i in 1:100)
-ST <- steady(y=y,fun=model,parms=pars,pos=TRUE)
+  ST <- steady(y = y, fun = model, parms = pars, pos = TRUE)
 )/100)
 
 
@@ -79,8 +79,8 @@ ST <- steady(y=y,fun=model,parms=pars,pos=TRUE)
 dyn.load("anoxmod.dll")
 print(system.time(
 for (i in 1:100)
-ST2 <- steady(y=y,fun="anoxmod",parms=pars,dllname="anoxmod",
-              initfunc="initanox",pos=TRUE,nout=1)
+  ST2 <- steady(y = y, fun = "anoxmod", parms = pars, dllname = "anoxmod",
+              initfunc = "initanox", pos = TRUE, nout = 1)
 )/100)
 dyn.unload("anoxmod.dll")
 
@@ -96,8 +96,8 @@ dyn.unload("anoxmod.dll")
 dyn.load("anoxmodc.dll")
 print(system.time(
 for (i in 1:100)
-ST3 <- steady(y=y,fun="anoxmod",parms=pars,dllname="anoxmodc",
-              initfunc="initanox",pos=TRUE,nout=1)
+  ST3 <- steady(y = y, fun = "anoxmod", parms = pars, dllname = "anoxmodc",
+              initfunc = "initanox", pos = TRUE, nout = 1)
 )/100)
 dyn.unload("anoxmodc.dll")
 

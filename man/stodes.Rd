@@ -18,12 +18,14 @@
 }
 
 \usage{
-stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
-  ctol=1e-8, sparsetype="sparseint",verbose=FALSE,
-  nnz=NULL, inz=NULL, lrw=NULL, ngp=NULL, positive=FALSE, maxiter=100,
-  ynames=TRUE, dllname=NULL, initfunc=dllname, initpar=parms,
-  rpar=NULL, ipar=NULL, nout=0, outnames = NULL, 
-  spmethod="yale", control=NULL,...)
+stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
+       ctol = 1e-8, sparsetype = "sparseint", verbose = FALSE,
+       nnz = NULL, inz = NULL, lrw = NULL, ngp = NULL, 
+       positive = FALSE, maxiter = 100, ynames = TRUE, 
+       dllname = NULL, initfunc = dllname, initpar = parms,
+       rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
+       forcings = NULL, initforc = NULL, fcontrol = NULL,
+       spmethod = "yale", control = NULL,...)
 }
 
 \arguments{
@@ -151,6 +153,24 @@ stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   \item{control }{only used if \code{spmethod} not equal to \code{"yale"},
     a list with the control options of the preconditioned solvers
   }
+  \item{forcings }{only used if \file{dllname} is specified: a vector with the 
+    forcing function values, or a list with the forcing function data sets, 
+    each present as a two-columned matrix, with (time,value); interpolation 
+    outside the interval [min(\code{times}), max(\code{times})] is done by 
+    taking the value at the closest data extreme.
+
+    This feature is here for compatibility with models defined in compiled code
+    from package deSolve; see deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See deSolve's package vignette \code{"compiledCode"}.
+  }
 
   \item{... }{additional arguments passed to \code{func} allowing this to be
     a generic function.
@@ -180,7 +200,7 @@ stodes(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
 ## 1000 simultaneous equations
 ## =======================================================================
 
-model <- function (time,OC,parms,decay,ing)
+model <- function (time, OC, parms, decay, ing)
 {
  # model describing C in a sediment,
  # Upper boundary = imposed flux, lower boundary = zero-gradient
@@ -197,18 +217,19 @@ model <- function (time,OC,parms,decay,ing)
  dOC[N/2]  <- dOC[N/2] + ing*sum(OC[1:5])
  list(dOC)
 }
+
 v    <- 0.1    # cm/yr
 flux <- 10
 dx   <- 0.01
 N    <- 1000
-dist <- seq(dx/2,by=dx,len=N)
+dist <- seq(dx/2, by = dx, len = N)
 Kz   <- 1  #bioturbation (diffusion), cm2/yr
-ss   <- stodes(runif(N),func=model,parms=NULL,
-               positive=TRUE, decay=5,ing=20,verbose=TRUE)
+ss   <- stodes(runif(N), func = model, parms = NULL,
+               positive = TRUE, decay = 5, ing = 20, verbose = TRUE)
 
-plot(ss$y[1:N],dist,ylim=rev(range(dist)),type="l",lwd=2,
-     xlab="Nonlocal exchange",ylab="sediment depth",
-     main="stodes, sparse jacobian")
+plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
+     xlab = "Nonlocal exchange", ylab = "sediment depth",
+     main = "stodes, sparse jacobian")
 }
 
 \references{
