@@ -133,9 +133,17 @@ diffusion3D <- function(t, Y, par)   {
                    atol = 1e-10, rtol = 1e-10, ctol = 1e-10, 
                    verbose = TRUE)
   ))
+
+  # image plot
   y <- array(dim=c(n, n, n), data = ST3$y)
-    filled.contour(y[ , ,n/2], color.palette = terrain.colors)
+  filled.contour(y[ , ,n/2], color.palette = terrain.colors)
     
+  # rootSolve's image plot, looping over 3rd dimension
+  image(ST3, mfrow = c(4,3))
+
+  # loop over 1st dimension, contours, legends added
+  image(ST3, mfrow = c(2, 2), add.contour = TRUE, legend = TRUE,
+        dimselect = list(x = c(1, 4, 8, 10)))
 
 }
 \details{

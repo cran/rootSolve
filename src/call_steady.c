@@ -237,6 +237,8 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   PROTECT(RWORK = allocVector(REALSXP, niter));incr_N_Protect();
   for (k = 0;k<niter;k++) REAL(RWORK)[k] = precis[k];
 
+  if (mflag == 1) Rprintf("mean residual derivative %g",precis[niter-1]);
+
   setAttrib(yout, install("precis"), RWORK);    
 
   PROTECT(IWORK = allocVector(INTSXP, 1));incr_N_Protect();

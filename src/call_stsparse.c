@@ -59,7 +59,7 @@ static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot,
 SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs, 
     SEXP chtol, 
 		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, SEXP initforc,
-		SEXP verbose, SEXP mf, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
+		SEXP verbose, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
     SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan,
     SEXP Met, SEXP Option)
 {
@@ -67,7 +67,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   int    j, k, ny, maxit, isSteady, method, lenplufac, lenplumx, lfill;
   double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol;
   double *x, *precis, *ewt, droptol, permtol;
-  int    neq, nnz, nsp, ngp, jt, niter, mflag, posit, *pos, ipos, Itol, type;
+  int    neq, nnz, nsp, ngp, niter, mflag, posit, *pos, ipos, Itol, type;
   int    *ian, *jan, *igp, *jgp, *dims;
   int    len, isDll, ilumethod;
 
@@ -78,8 +78,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   C_deriv_func_type *derivs;
   init_N_Protect();
 
-  jt    = INTEGER(mf)[0];        
-  nnz   = INTEGER(NNZ)[0];        
+  nnz   = INTEGER(NNZ)[0];
   nsp   = INTEGER(NSP)[0];  
   ngp   = INTEGER(NGP)[0];  
   ny    = LENGTH(y);
@@ -255,6 +254,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
  
   PROTECT(RWORK = allocVector(REALSXP, niter));incr_N_Protect();
   for (k = 0;k<niter;k++) REAL(RWORK)[k] = precis[k];
+  if (mflag == 1) Rprintf("mean residual derivative %g",precis[niter-1]);
 
   setAttrib(yout, install("precis"), RWORK);    
 

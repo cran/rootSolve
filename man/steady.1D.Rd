@@ -286,6 +286,15 @@ plot(Db, Intdepth, ylim = c(10, 0), xlab = "cm2/d",
      main = "Bioturbation", type = "l", lwd = 2)
 mtext(outer = TRUE, side = 3, line = -2, cex = 1.5, "SiDIAmodel")
 
+# similar, but shorter
+plot(sol, sol2, sol3, vertical =TRUE,
+     lwd = 2, lty = 1,
+     main = c("DSi [mmol/m3 liq]","BSi [mmol/m3 sol]"),
+     ylab= "depth [cm]")
+legend("bottom", c("0.2", "2", "3"), title = "mmol/m2/d",
+       lwd = 2, col = 1:3)
+
+
 }
 \details{
   This is the method of choice for multi-species 1-dimensional models, that
@@ -331,7 +340,8 @@ mtext(outer = TRUE, side = 3, line = -2, cex = 1.5, "SiDIAmodel")
   The default is no cyclic boundaries.
 }
 \seealso{
-
+ \code{\link{plot.steady1D}} for plotting the output of steady.1D
+ 
  \code{\link{steady}}, for a general interface to most of the steady-state
    solvers
 

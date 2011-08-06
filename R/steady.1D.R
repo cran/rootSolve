@@ -55,7 +55,7 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
       out <- stode(y=y[ii],time=time,func=func,parms=parms,
                 jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
     else if (method == "runsteady")
-      out <- runsteady (y=y[ii],time=time,func=func,parms=parms,
+      out <- runsteady (y=y[ii],times = time,func=func,parms=parms,
                 jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
    
     else

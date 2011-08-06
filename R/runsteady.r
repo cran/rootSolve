@@ -315,7 +315,7 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     if (!is.character(func)) {
            
 #            if (ynames) 
-      out2 <- Func2(time, y)[-1]
+      out2 <- Func2(times[1], y)[-1]
       out <- c(list(y = y), out2)
     } else out <- list(y = out[1:n], var = out[(n + 1):(n +
             Nglobal)])

@@ -272,7 +272,6 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 	    }
 /*                    ####  an error occurred   ####                          */    
   if (istate < 0 ) warning("Returning early.  Results are accurate, as far as they go\n");
-//       warning("sumder, time, %g %g",sumder, tin);
 
   PROTECT(ISTATE = allocVector(INTSXP, 24));incr_N_Protect();
   for (k = 0;k<22;k++) INTEGER(ISTATE)[k+1] = iwork[k];
@@ -284,10 +283,9 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 
   REAL(RWORK)[5] = sumder/neq;
   REAL(RWORK)[6] = tin;
-
+  if (mflag == 1) Rprintf("mean residual derivative %g",sumder/neq);
   setAttrib(yout, install("rstate"), RWORK);    
   setAttrib(yout, install("istate"), ISTATE);    
-//       error("sumder, time, %g %g",sumder, tin);
 
 /*                       ####   termination   ####                            */    
   unprotect_all();

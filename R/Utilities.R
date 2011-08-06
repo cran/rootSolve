@@ -175,7 +175,8 @@ mergeObs <- function(obs, Newobs) {
 ### ============================================================================
 
 plot.steady1D <- function (x, ..., which = NULL, grid = NULL, 
-  xyswap = FALSE, ask = NULL, obs = NULL, obspar = list()) {
+  xyswap = FALSE, ask = NULL, obs = NULL, obspar = list(),
+  vertical = FALSE ) {
 
 ## if x is vector, check it; put in correct format  
     checkX <- function (x) {
@@ -358,7 +359,8 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
     dotpoints$col  <- expanddots(dots$col, 1:nx,      nx)
     dotpoints$bg   <- expanddots(dots$bg,  1:nx,      nx)
 
-    xyswap <- rep(xyswap, length  = np)
+    xyswap   <- rep(xyswap, length  = np)
+    vertical <- rep(vertical, length = np)
 
     if (nobs > 0) 
       Obspar <- setdots(obspar, nobs)
@@ -377,7 +379,14 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
         Ylog  <- length(grep("y", Dotmain$log))
         Xlog  <- length(grep("x", Dotmain$log))
       }       
-      
+      if (vertical[ip])  {  # overrules other settings; vertical profiles
+        xyswap[ip] = TRUE
+        Dotmain$axes = FALSE
+#        Dotmain$frame.plot = TRUE
+        Dotmain$xlab = ""
+        Dotmain$xaxs = "i"
+        Dotmain$yaxs = "i"
+      }
       if (! xyswap[ip]) {            
 
         if ( is.null (yylim[[ip]])){
@@ -404,9 +413,9 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
 
         } else 
           Dotmain$xlim <- xxlim[[ip]]  
-            
-        do.call("plot", c(alist(grid, xx[, i]), Dotmain, Dotpoints))
-         
+
+         do.call("plot", c(alist(grid, xx[, i]), Dotmain, Dotpoints))
+
         if (nother>0)        # if other rootSolve outputs
           for (j in 2:nx) 
             do.call("lines", c(alist(grid, x2[[j-1]][, i]), 
@@ -440,11 +449,18 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
           if (! is.na(io)) 
              yrange <- Range(yrange, obs[,1], Ylog)
           Dotmain$ylim <- rev(yrange)
-        } else
+        } else {
           Dotmain$ylim <- yylim[[ip]]  
-
+          if (vertical[ip])
+            Dotmain$ylim <- Dotmain$ylim[c(2,1)]
+        }
         do.call("plot", c(alist(xx[, i], grid), Dotmain, Dotpoints))
-         
+        if (vertical[ip]) {
+          abline(h=Dotmain$ylim[2])
+          abline(v=Dotmain$xlim[1])
+          axis(side = 2)
+          axis(side = 3, mgp = c(3,0.5,0))
+        }
         if (nother>0)       # if other rootSolve outputs
           for (j in 2:nx) 
             do.call("lines", c(alist(x2[[j-1]][, i],grid), 
@@ -467,6 +483,7 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
 
 drawlegend <- function (parleg, dots) {
         Plt <- par(plt = parleg)
+        usr <- par("usr")
         par(new = TRUE)
         ix <- 1
         minz <- dots$zlim[1]
@@ -481,6 +498,8 @@ drawlegend <- function (parleg, dots) {
         do.call("axis", list(side = 4, mgp = c(3,1,0), las=2))
       
         par(plt = Plt)
+        par(usr = usr)
+        par(new = FALSE)
 }
 
 ### ============================================================================
@@ -522,7 +541,6 @@ image.steady2D <- function (x, which = NULL,
    BlueRed <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
              "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
-
 # if x is vector, check if there is more than one species...  
     X <- x$y
     out <- list()
@@ -531,7 +549,7 @@ image.steady2D <- function (x, which = NULL,
     if (is.vector(X)) {
       if (length(X) - nspec*prod(dimens) != 0) 
         stop("length of 'x' should be = 'nspec' * prod(dimens) if x is a vector")
-      x <- matrix(ncol = nspec, data = X)
+      # x <- matrix(ncol = nspec, data = X)
       
       for ( i in 1:nspec){
         istart <- (i-1)*prod(dimens) 
@@ -539,11 +557,20 @@ image.steady2D <- function (x, which = NULL,
           X[(istart+1):(istart+prod(dimens))])
       }
     } else 
-        out <- X   # only state variables
+        out <- X   # only one state variable
+
+    varnames <- attributes(x)$ynames
+    if (is.null(varnames)) varnames <- 1:nspec
+
+    if (length(x) > 1) {
+       for ( ii in 2:length(x)) {
+        out[[i+ii-1]] <- x[[ii]]
+        varnames <- c(varnames,names(x)[ii])
+       }
+      }          
 
 # ADD NON-STATE VARIABLES...      
     if (is.null(which)) which <- 1:nspec
-    varnames <- 1:nspec
     which <- selectstvar(which,varnames)
     
     np <- length(which)
@@ -645,7 +672,7 @@ image.steady2D <- function (x, which = NULL,
 
 ### ============================================================================
 
-image.steady3D <- function (x, which = NULL, 
+image.steady3D <- function (x, which = NULL, dimselect = NULL,
     add.contour = FALSE, grid = NULL, ask = NULL, 
     method="image", legend = FALSE, ...) {
 
@@ -657,6 +684,8 @@ image.steady3D <- function (x, which = NULL,
     out    <- list()
     nspec  <- attributes(x)$nspec
     dimens <- attributes(x)$dimens
+    Nx <- dimens[1]
+    Ny <- dimens[2]
     Nz <- dimens[3]
     if (is.vector(X)) {
       if (length(X) - nspec*prod(dimens) != 0) 
@@ -690,7 +719,7 @@ image.steady3D <- function (x, which = NULL,
     }
     
    Dots  <- setdots(dots, np)   # expand dots to np values (no defaults)
-   Dots$main <- NULL 
+   ismain <- !is.null(dots$main)
     # different from the default
    Dotsmain  <- expanddots(dots$main, varnames[which], np)
    Dots$xlab  <- expanddots(dots$xlab, "x",  np)
@@ -724,27 +753,59 @@ image.steady3D <- function (x, which = NULL,
       plt.or <- par(plt = parplt)
       on.exit(par(plt = plt.or))
    }  
-
-    for (i in 1:np) {
+  
+    dselect <- 1:Nz
+    sel <- 3
+    Nn <- Nz
+    if(!is.null(dimselect$z)) {
+      dselect <- dimselect$z
+    } else if (! is.null(dimselect$y)) {
+      dselect <- dimselect$y
+      sel <- 2
+      Nn <- Ny
+    } else if (! is.null(dimselect$x)) {
+      dselect <- dimselect$x
+      sel <- 1
+      Nn <- Nx
+    }
+    
+    if (max(dselect) > Nn) 
+        stop("Numbers in 'dimselect' can not be larger than corresponding dimension")
+    if (min(dselect) < 1) 
+        stop("Numbers in 'zselect' can not be < 1")
+    
+    for (d in dselect) {
+      for (i in 1:np) {
         ii <- which[i]
-
         dots      <- extractdots(Dots, i)
+        if (ismain)
+           dots$main <-  Dotsmain[i]
+        else   
+           dots$main <- paste("var", Dotsmain[i], "dim ",sel," = ", d)
+        if (sel == 1)
+          zdat <- out[[i]][d, , ]
+        else if (sel == 2)
+          zdat <- out[[i]][, d, ]
+        else if (sel == 3)
+          zdat <- out[[i]][, , d]
+
         if (! is.null(xxlim)) dots$xlim <- xxlim[[i]]
         if (! is.null(yylim)) dots$ylim <- yylim[[i]]
+
         if (! is.null(zzlim)) 
           dots$zlim <- zzlim[[i]]
         else
-          dots$zlim <- range(out[[ii]], na.rm=TRUE)
+          dots$zlim <- range(out[[ii]], na.rm = TRUE)
         
         if (method=="persp") {
           if (is.null(dots$zlim))  # this to prevent error when range = 0
-            if (diff(range(out[[i]], na.rm=TRUE)) == 0) 
+            if (diff(range(out[[i]], na.rm = TRUE)) == 0) 
               dots$zlim <- c(0, 1)
 
           if(is.null(dotscol))
-             dots$col <- drapecol(out[[ii]], col = BlueRed (100), Range = dots$zlim)
+             dots$col <- drapecol(zdat, col = BlueRed (100), Range = dots$zlim)
           else
-             dots$col <- drapecol(out[[ii]], col = dotscol, Range = dots$zlim)
+             dots$col <- drapecol(zdat, col = dotscol, Range = dots$zlim)
 
         } else if (method == "filled.contour")
           dots$color.palette <- dotscolorpalette
@@ -756,9 +817,6 @@ image.steady3D <- function (x, which = NULL,
           List$x <- grid[[1]]
           List$y <- grid[[2]]
         }
-        for (z in 1:Nz){
-          dots$main <- paste("var",Dotsmain[i],"z = ", z)
-          zdat <- out[[i]][,,z]
           List$z <- zdat
         
           do.call(method, c(List, dots)) 

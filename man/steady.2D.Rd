@@ -162,7 +162,7 @@ print(system.time(
           cyclicBnd = 2)       # y-direction: cyclic boundary
 ))
 image(ST3)
-#y <- matrix(nr=nx,nc=ny,data=ST3$y)
+#y <- matrix(nrow = nx, ncol = ny, data = ST3$y)
 #    filled.contour(y,color.palette=terrain.colors)
 
 

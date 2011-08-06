@@ -234,7 +234,6 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     }
 
 ## calling solver
-  imp <- 22
   storage.mode(y) <- "double"
   storage.mode(rtol) <- storage.mode(atol) <- storage.mode(ctol) <- "double"
   Pos <- FALSE
@@ -268,7 +267,7 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     as.double(Forc), 
     ctol, atol, rtol, as.integer(itol), rho,  ModelInit, ModelForc, 
     as.integer(verbose),
-    as.integer(imp),as.integer(nnz),as.integer(lrw),as.integer(ngp),
+    as.integer(nnz),as.integer(lrw),as.integer(ngp),
     as.integer(maxiter),as.integer(Pos),as.integer(positive),
     as.integer(Nglobal),as.double (rpar), as.integer(ipar), as.integer(Type),
     as.integer(ian),as.integer(jan), as.integer(imethod), 

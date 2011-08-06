@@ -547,12 +547,14 @@ print(system.time(
   Although this model consists of 2000 nonlinear equations, it takes only 0.09
   seconds to solve it \footnote{on my computer that dates from 2008}.
 
-  Finally the results are plotted (figure \ref{fig:bod}):
+  Finally the results are plotted (figure \ref{fig:bod}), using \code{rootSolve}s
+  plot functions:
 <<label=BOD, include=FALSE>>=
 mf <- par(mfrow = c(2, 2))
-plot(out, xlab = "Distance from river", mfrow = NULL,
+plot(out, grid = x, xlab = "Distance from river", mfrow = NULL,
      ylab = "mmol/m3", main = c("Oxygen", "BOD"), type = "l")
-plot(x,out$BODrate, xlab = "Distance from river",
+plot(out, which = "BODrate", grid = x, mfrow = NULL,
+     xlab = "Distance from river",
      ylab = "mmol/m3/d", main = "BOD decay rate", type = "l")
 par(mfrow = mf)
 @
@@ -663,7 +665,8 @@ diffusion2D <- function(t, conc, par)  {
 @
 The S3 image method is used to generate the steady-state plot.
 <<label=steady2D, include=FALSE>>=
-image(ST3, main = "2-D diffusion+production", xlab = "x", ylab = "y")
+image(ST3, main = "2-D diffusion+production", xlab = "x", ylab = "y",
+      legend = TRUE)
 @
 \setkeys{Gin}{width=0.4\textwidth}
 \begin{figure}
@@ -677,8 +680,87 @@ image(ST3, main = "2-D diffusion+production", xlab = "x", ylab = "y")
 \end{figure}
 
 \subsection{Steady-state solution of 3-D PDEs}
-  Function \code{steady.3D} the steady-state of
-  3-dimensional problems. See its help file for an example.
+  Function \code{steady.3D} estimates the steady-state of
+  3-dimensional problems. We repeat the example from its help file, which 
+  models diffusion in 3-D, and with imposed boundary values.
+<<>>=
+diffusion3D <- function(t, Y, par)   {
+   yy    <- array(dim=c(n,n,n),data=Y)  # vector to 3-D array
+   dY   <- -r*yy        # consumption
+   BND   <- rep(1,n)   # boundary concentration
+   for (i in 1:n) {
+     y <- yy[i,,]
+
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dy * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dy
+     dY[i,,]   <- dY[i,,] - (Flux[2:(n+1),]-Flux[1:n,])/dy
+
+     #diffusion in Y-direction
+     Flux <- -Dz * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dz
+     dY[i,,]    <- dY[i,,] - (Flux[,2:(n+1)]-Flux[,1:n])/dz
+   }
+   for (j in 1:n) {
+     y <- yy[,j,]
+
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dx * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dx
+     dY[,j,]   <- dY[,j,] - (Flux[2:(n+1),]-Flux[1:n,])/dx
+
+     #diffusion in Y-direction
+     Flux <- -Dz * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dz
+     dY[,j,]    <- dY[,j,] - (Flux[,2:(n+1)]-Flux[,1:n])/dz
+   }
+   for (k in 1:n) {
+     y <- yy[,,k]
+
+     #diffusion in X-direction; boundaries=imposed concentration
+     Flux <- -Dx * rbind(y[1,]-BND,(y[2:n,]-y[1:(n-1),]),BND-y[n,])/dx
+     dY[,,k]   <- dY[,,k] - (Flux[2:(n+1),]-Flux[1:n,])/dx
+
+     #diffusion in Y-direction
+     Flux <- -Dy * cbind(y[,1]-BND,(y[,2:n]-y[,1:(n-1)]),BND-y[,n])/dy
+     dY[,,k]    <- dY[,,k] - (Flux[,2:(n+1)]-Flux[,1:n])/dy
+   }
+   return(list(as.vector(dY)))
+}
+
+  # parameters
+  dy    <- dx <- dz <-1   # grid size
+  Dy    <- Dx <- Dz <-1   # diffusion coeff, X- and Y-direction
+  r     <- 0.025     # consumption rate
+
+  n  <- 10
+  y  <- array(dim=c(n, n, n), data = 10.)
+
+  print(system.time(
+  ST3 <- steady.3D(y, func =diffusion3D, parms = NULL, pos = TRUE,
+                   dimens = c(n, n, n), lrw = 100000,
+                   atol = 1e-10, rtol = 1e-10, ctol = 1e-10, 
+                   verbose = TRUE)
+  ))
+@
+
+
+The S3 image method is used to generate the steady-state plot. We can loop
+over either one of the dimensions. Here we loop over the first dimenstion,
+selecting a subset of the 10 cells (\code{dimselect}). 
+We add contours and a legend.
+
+<<label=steady3D, include=FALSE>>=
+  image(ST3, mfrow = c(2, 2), add.contour = TRUE, legend = TRUE,
+        dimselect = list(x = c(1, 4, 8, 10)))
+@
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}
+\begin{center}
+<<label=fig3D,fig=TRUE,echo=FALSE>>=
+<<steady3D>>
+@
+\end{center}
+\caption{Steady-state solution of the 3-Dimensional model}
+\label{fig:threeD}
+\end{figure}
+ 
   
 \section{Boundary value problems}
   The previous example from functions \code{steady.1D, steady.2D and steady.3D}
@@ -769,11 +851,11 @@ With the settings of dx, the root of 1001 equations needs to be found; the
 time it takes (in \emph{mili}seconds) is printed for the first application.
 <<>>=
 print(system.time(
-Y1<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.1)
+  Y1<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.1)
 )*1000)
-Y2<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.05)
+  Y2<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.05)
 print(system.time(
-Y3<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.01)
+  Y3<- multiroot.1D(f = bvp22, start = runif(N), nspec = 1, xi = 0.01)
 )*1000)
 
 @
@@ -960,8 +1042,8 @@ be as follows:
 \begin{verbatim}
 dyn.load("anoxmod.dll")
 
-ST2 <- stode(y=y,func="model",parms=pars,)
-dllname="anoxmod",initfunc="myinit",pos=TRUE,nout=1)
+ST2 <- stode(y = y, func = "model", parms = pars,
+       dllname = "anoxmod", initfunc = "myinit", pos = TRUE, nout = 1)
 \end{verbatim}
 
   Examples in both C and Fortran are in the \code{dynload} subdirectory of
