@@ -119,7 +119,7 @@ stode         <- function(y, time=0, func, parms=NULL,
        if (is.list(forcings) ) {
          Forc <- NULL
          for (i in 1: length(forcings))
-           Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = time, fcontrol))$y)
+           Forc <- c(Forc, do.call(approx,list(x = forcings[[i]], y = NULL, xout = time, fcontrol))$y)
        } else Forc <- forcings   
      }
   }

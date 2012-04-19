@@ -37,7 +37,7 @@ hessian(f, x, centered = FALSE, pert = 1e-8, ...)
     
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

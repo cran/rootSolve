@@ -90,7 +90,7 @@ as.data.frame(steady(y = c(Bact = 0.1, Sub = 0), time = c(0, 1e5),
 
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \details{
   This is simply a wrapper around the various steady-state solvers.

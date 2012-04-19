@@ -74,7 +74,6 @@ c Internal acronyms for type of jacobian
 
        PARAMETER (FullJacUser = 21,  FullJacIntern   = 22,                     &   
      &            BandJacUser = 24,  BandJacIntern   = 25)
-       CHARACTER (LEN=80) msg
 c-------------------------------------------------------------------------------
 
        SteadyStateReached = .FALSE.     ! Steady state not yet reached
@@ -128,8 +127,7 @@ c Invert jacobian
               IF (info .NE. 0) THEN
                call rwarn("error during factorisation of matrix (dgefa);       &
      &         singular matrix")
-                 write (msg,'(A30,I10)')"diagonal element is zero",info
-                 call rwarn(msg)
+                 call intpr("diagonal element is zero ",-1,info,1)
                  EXIT
               ENDIF
               CALL DGESL(ALPHA,N,N,xIndx,Beta,info)
@@ -142,8 +140,7 @@ c Invert jacobian
               IF (info .ne. 0) THEN
                call rwarn("error during factorisation of matrix (dgbfa);       &
      &           singular matrix")
-                 write (msg,'(A30,I10)')"diagonal element is zero",info
-                 call rwarn(msg)
+                 call intpr ("diagonal element is zero", -1, info, 1)
                  EXIT
               ENDIF  
               CALL dgbsl(alpha,NumABD,N,BandDown,BandUp,xindx,                 &
@@ -328,7 +325,6 @@ c-------------------------------------------------------------------*
      
        INTEGER  NIter, Nband, I, J, K, Istart, Istop
        DOUBLE PRECISION Val, divDelta, dSvar(N), perturb
-       CHARACTER (LEN=80) msg
 c--------------------------------------------------------------------
 c Number of iterations and total width of the 'band'
        NIter  = MIN(N,ML+MU+1)        

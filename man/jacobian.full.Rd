@@ -44,7 +44,7 @@ jacobian.full(y, func, dy = NULL, time = 0, parms = NULL,
 }
 
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

@@ -1,6 +1,7 @@
 \name{plot.steady1D}
 \alias{plot.steady1D}
 \alias{image.steady2D}
+\alias{subset.steady2D}
 \alias{image.steady3D}
 \alias{summary.rootSolve}
 \title{
@@ -16,6 +17,7 @@ Plot the output of steady-state solver routines.
 \method{image}{steady2D}(x, which = NULL, add.contour = FALSE, 
               grid = NULL, ask = NULL, 
               method = "image", legend = FALSE, ...)
+\method{subset}{steady2D}(x, which = NULL, ...)
 \method{image}{steady3D}(x, which = NULL, dimselect = NULL, 
               add.contour = FALSE, grid = NULL, ask = NULL, 
               method = "image", legend = FALSE, ...)

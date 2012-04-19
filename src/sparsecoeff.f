@@ -30,13 +30,12 @@ c maximal number of indices, sparsity arrays
        INTEGER nnz, ian(*), jan(*)
 c
        INTEGER N, I, J, ij, K, L, isp
- 	     character *80 msg
 
 c check input
        IF (INT(Ntot/Nspec)*Nspec .NE. Ntot) THEN
-         write(msg,*)
+
+         call rexit
      &("cannot generate sparse jacobian - N and nspec not compatible")
-         call rexit(msg)
        ENDIF
 
 c number of boxes
@@ -106,13 +105,11 @@ c maximal number of indices, sparsity arrays
        INTEGER nnz, ian(*), jan(*)
 c
        INTEGER N, I, J, ij, K, L, M , isp
- 	     character *80 msg
 
 c check input
        IF (INT(Ntot/Nspec)*Nspec .NE. Ntot) THEN
-         write(msg,*)
+         call rexit
      &("cannot generate sparse jacobian - N and nspec not compatible")
-         call rexit(msg)
        ENDIF
 
 c number of boxes
@@ -180,24 +177,22 @@ c
 
       SUBROUTINE interact (ij, NNZ, ian, jan, M, ival)
       INTEGER IJ, NNZ, ival, ian(*), jan(*), i, isave
-	character *80 msg
 
 
       isave = 1
 c check if not yet present for current state
-	DO I = ian(M), ij-1
-	  IF (jan(I) .EQ. ival) THEN
-	     isave = 0
-	     exit
-	  ENDIF
-	ENDDO
+      DO I = ian(M), ij-1
+       IF (jan(I) .EQ. ival) THEN
+	       isave = 0
+	       exit
+       ENDIF
+	    ENDDO
 
 c save 
-	IF (isave .EQ. 1) THEN
+	    IF (isave .EQ. 1) THEN
         IF (ij .GT. nnz) THEN
-          WRITE (msg,*)
-     &("cannot generate sparse jacobian - not enough room for nonzeros")
-          CALL rexit(msg)
+          CALL rexit
+     &("cannot generate sparse jacobian - not enough room for nonzeros")        
         ENDIF
         jan(ij) = ival
         ij = ij +1      
@@ -228,13 +223,11 @@ c maximal number of indices, sparsity arrays
        INTEGER nnz, ian(*), jan(*)
 c
        INTEGER N, I, J, ij, K, L, M, isp, im
- 	     character *80 msg
 
 c check input
        IF (INT(Ntot/Nspec)*Nspec .NE. Ntot) THEN
-         write(msg,*)
+         call rexit
      &("cannot generate sparse jacobian - N and nspec not compatible")
-         call rexit(msg)
        ENDIF
 
 c number of boxes

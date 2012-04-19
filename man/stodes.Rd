@@ -72,8 +72,9 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   \item{ctol }{if between two iterations, the maximal change in y is less
     than this amount, steady-state is assumed to be reached.
   }
-  \item{sparsetype }{the sparsity pattern, to date only "sparseint", sparse
-    jacobian, estimated internally by stodes.
+  \item{sparsetype }{the sparsity pattern, several options are available, 
+    but to date only "sparseint", sparse jacobian, estimated internally by stodes
+    is probably needed. See details.
   }
   \item{verbose }{if TRUE: full output to the screen, e.g. will output the
     steady-state settings.
@@ -148,10 +149,16 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   \item{spmethod }{the sparse method to be used, one of \code{"yale", "ilut",
     "ilutp"}. The default uses the yale sparse matrix solver; the other 
     use preconditioned GMRES (generalised minimum residual method)
-    solvers from FORTRAN package sparsekit. 
+    solvers from FORTRAN package sparsekit. ilut stands for incomplete LU 
+    factorisation with trheshold (or tolerances, droptol); the "p" iin ilutp stands for pivoting.
   }
   \item{control }{only used if \code{spmethod} not equal to \code{"yale"},
-    a list with the control options of the preconditioned solvers
+    a list with the control options of the preconditioned solvers. The 
+    default is \code{list( droptol = 1e-3, permtol = 1e-3, fillin = 10, 
+    lenplufac = 2)}.  
+    droptol is the tolerance in ilut, ilutp to decide when to drop a value.
+    permtol is used in ilutp, to decide whether or not to permute variables.
+    See Saad 1994, the manual of sparskit and Saad 2003, chapter 10 for details.
   }
   \item{forcings }{only used if \file{dllname} is specified: a vector with the 
     forcing function values, or a list with the forcing function data sets, 
@@ -192,7 +199,7 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   rate of change (sum(abs(dy))/n).
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 
@@ -248,9 +255,11 @@ plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
   
   else the functions ilut and ilutp from sparsekit package are used:
   
-  Youcef Saad, 1994. SPARSKIT: a basic tool kit for
+  Yousef Saad, 1994. SPARSKIT: a basic tool kit for
    sparse matrix computations. VERSION 2
 
+  Yousef Saad, 2003. Iterative methods for Sparse Linear Systems. Society for
+  Industrial and Applied Mathematics.
 }
 
 \details{The work is done by a Fortran 77 routine that implements the
@@ -260,31 +269,48 @@ plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
   structure.
 
   
-  There are two choices for the sparsity specification, depending on whether
-  \code{inz} is present.
+  There are several choices for the sparsity specification, selected by
+  argument \code{sparsetype}.
   \itemize{
-    \item If matrix \code{inz} is present, the sparsity is determined by
-      the user. \code{inz} should contain indices (row, column) to the
-      nonzero elements in the Jacobian matrix.
-      In this case, \code{nnz} will be set equal to the number of rows
-      in \code{inz}.
-    \item If matrix \code{inz} is NOT present, the sparsity is estimated
+    \item \code{sparsetype} = \code{"sparseint"}.  The sparsity is estimated
       by the solver, based on numerical differences.
       In this case, it is advisable to provide an estimate of the number
       of non-zero elements in the Jacobian (\code{nnz}).
       This value can be approximate; upon return the number of nonzero
       elements actually required will be known (1st element of attribute
       \code{dims}).
+      In this case, \code{inz} need not be specified. 
+    \item \code{sparsetype} = \code{"sparseusr"}. The sparsity is determined by
+      the user.
+      In this case, \code{inz} should be a \code{matrix}, containing indices 
+      (row, column) to the  nonzero elements in the Jacobian matrix.
+      The number of nonzeros \code{nnz} will be set equal to the number of rows
+      in \code{inz}.
+    \item \code{sparsetype} = \code{"sparsejan"}. The sparsity is also determined by
+      the user.
+      In this case, \code{inz} should be a \code{vector}, containting the \code{ian} and 
+      \code{jan} elements of the sparse storage format, as used in the sparse solver.
+      Elements of \code{ian} should be the first \code{n+1} elements of this vector, and 
+      contain the starting locations in \code{jan} of columns 1.. n. 
+      \code{jan} contains the row indices of the nonzero locations of           
+      the jacobian, reading in columnwise order.
+      The number of nonzeros \code{nnz} will be set equal to the length of \code{inz} - (n+1).
+    \item \code{sparsetype} = \code{"1D"}, \code{"2D"}, \code{"3D"}. 
+      The sparsity is estimated by the solver, based on numerical differences.
+      Assumes finite differences in a 1D, 2D or 3D regular grid - used by 
+      functions \code{ode.1D}, \code{ode.2D}, \code{ode.3D}.
+      Similar are \code{"2Dmap"}, and \code{"3Dmap"}, which also include a 
+      mapping variable (passed in nnz). 
   }
 
-  Either way, the Jacobian itself is always generated by the solver (i.e.
+  The Jacobian itself is always generated by the solver (i.e.
   there is no provision to provide an analytic Jacobian).
 
   This is done by perturbing simulataneously a combination of state variables
   that do not affect each other.
 
   This significantly reduces computing time. The number of groups with
-  independent state variables can be given by \code{ngp}
+  independent state variables can be given by \code{ngp}.
 
   The input parameters \code{rtol}, \code{atol} and \code{ctol} determine
   the \bold{error control} performed by the solver. See help for \code{stode}
@@ -292,6 +318,26 @@ plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
 
   \bold{Models} may be defined in compiled C or Fortran code, as well as in
   \R. See package vignette for details on how to write models in compiled code.
+
+When the \code{spmethod} equals \code{ilut} or \code{ilutp}, a number of parameters
+can be specified in argument \code{control}. They are:
+
+fillin, the fill-in parameter. Each row of L and each row
+           of U will have a maximum of lfil elements (excluding the 
+           diagonal element). lfil must be >= 0.
+
+droptol, sets the threshold for dropping small terms in the
+           factorization. 
+
+When \code{ilutp} is chosen the following arguments can also be specified:           
+
+permtol = tolerance ratio used to  determne whether or not to permute
+           two columns.  At step i columns i and j are permuted when 
+                     abs(a(i,j))*permtol .gt. abs(a(i,i))
+           [0 --> never permute; good values 0.1 to 0.01]
+
+lenplufac   = sets the working array - increase its value if a warning.
+
 }
 
 \seealso{

@@ -90,7 +90,7 @@ steady.1D(y, time = NULL, func, parms = NULL,
   (i.e. if  nspec*dimens = length(y))
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

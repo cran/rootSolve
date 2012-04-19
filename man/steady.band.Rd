@@ -67,7 +67,7 @@ steady.band(y, time = 0, func, parms = NULL,
   \code{precis} with the precision attained during each iteration.
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

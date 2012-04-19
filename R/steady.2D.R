@@ -33,7 +33,7 @@ steady.2D    <- function (y, time=0, func, parms=NULL, nspec=NULL,
 
   # Note: stodes expects rev(dimens)..
   out <- stodes(y=y, time=time, func=func, parms=parms,
-                nnz=c(nspec,rev(dimens), rev(Bnd)), sparsetype="2D", ...)
+                nnz=c(nspec,rev(dimens), rev(Bnd)), sparsetype = "2D", ...)
   class(out) <- c("steady2D","rootSolve","list")    # a steady-state 
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec

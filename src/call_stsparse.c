@@ -5,20 +5,20 @@
 #include "steady.h"   
                            
 void F77_NAME(dsparse)(void (*)(int *, double *, double *, double *, double*, int*),
-		     int *, int *, int *, double *, double *, double *, double *, double *,
-		     double *, double *, double *, int*, int*, int*, int*, int*, 
+             int *, int *, int *, double *, double *, double *, double *, double *,
+             double *, double *, double *, int*, int*, int*, int*, int*, 
          int*, int*, int*, int*, 
          int *, double *, double *, double *, int *,
-		     int *, int *, int *, int *, double *, int*,
-         int *, double *, int *, int*);
+             int *, int *, int *, int *, double *, int*,
+         int *, double *, int *, int*, int*);
 
 void F77_NAME(dsparsekit)(void (*)(int *, double *, double *, double *, double*, int*),
-		     int *, int *, int *, double *, double *, double *, double *, double *,
-		     double *, double *, int*, int*, int*, int*, int*,  int*,  int*,  int*,  int*, 
+             int *, int *, int *, double *, double *, double *, double *, double *,
+             double *, double *, int*, int*, int*, int*, int*,  int*,  int*,  int*,  int*, 
          int *, double *, double *, double *, int *, int *,
-		     int *, int *, int *, double *, int*,
+             int *, int *, int *, double *, int*,
          int *, double *, int *, int*, double *, double *, int *, 
-         int *, int*, double *, double *);
+         int *, int*, double *, double *, int *);
 
 /*==================================================
  extracting elements from a list
@@ -51,15 +51,15 @@ static void C_stsparse_derivs (int *neq, double *t, double *y, double *ydot,
   PROTECT(R_fcall = lang3(stsparse_deriv_func,Time,Y)) ;incr_N_Protect();
   PROTECT(ans = eval(R_fcall, stsparse_envir))         ;incr_N_Protect();
 
-  for (i = 0; i < *neq; i++)	ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
+  for (i = 0; i < *neq; i++)    ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
   my_unprotect(2);      
 
 }
 
 SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs, 
     SEXP chtol, 
-		SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, SEXP initforc,
-		SEXP verbose, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
+        SEXP atol, SEXP rtol, SEXP itol, SEXP rho, SEXP initfunc, SEXP initforc,
+        SEXP verbose, SEXP NNZ, SEXP NSP, SEXP NGP, SEXP nIter, SEXP Posit,
     SEXP Pos, SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP Ian, SEXP Jan,
     SEXP Met, SEXP Option)
 {
@@ -67,12 +67,12 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   int    j, k, ny, maxit, isSteady, method, lenplufac, lenplumx, lfill;
   double *svar, *dsvar, *beta, *alpha, tin, *Atol, *Rtol, Chtol;
   double *x, *precis, *ewt, droptol, permtol;
-  int    neq, nnz, nsp, ngp, niter, mflag, posit, *pos, ipos, Itol, type;
-  int    *ian, *jan, *igp, *jgp, *dims;
+  int    neq, nnz, nsp, ngp, niter, mflag, posit, TotN, ipos, Itol, type;
+  int    *ian, *jan, *igp, *jgp, *dims, *pos;
   int    len, isDll, ilumethod;
 
   double *rsp= NULL, *plu= NULL,  *rwork= NULL;
-  int    *R= NULL, *C= NULL, *IC= NULL;
+  int    *R= NULL, *C= NULL, *IC= NULL, *indDIM = NULL;
   int    *isp= NULL, *iwork= NULL, *iperm= NULL, *jlu= NULL, *ju= NULL; 
 
   C_deriv_func_type *derivs;
@@ -191,6 +191,17 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
     for (j = 0; j<5 ; j++) dims[j] = INTEGER(NNZ)[j+1];
   else if (type == 4)   /* 1=ncomp,2-4:dim(x,y,z), 5-7: cyclic(x,y,z)*/
     for (j = 0; j<7 ; j++) dims[j] = INTEGER(NNZ)[j+1];
+  else if (type == 30)  { /* same as type 3 (2-D) but with mapping */
+    for (j = 0; j<5 ; j++) dims[j] = INTEGER(NNZ)[j+1];
+    TotN = INTEGER(NNZ)[6];
+	  indDIM = (int *) R_alloc(TotN, sizeof(int));
+    for (j = 0; j < TotN ; j++) indDIM[j] = INTEGER(NNZ)[j+7];
+  }  else if (type == 40)  { /* same as type 4 (3-D) but with mapping */
+    for (j = 0; j<7 ; j++) dims[j] = INTEGER(NNZ)[j+1];
+    TotN = INTEGER(NNZ)[8];
+	  indDIM = (int *) R_alloc(TotN, sizeof(int));
+    for (j = 0; j < TotN ; j++) indDIM[j] = INTEGER(NNZ)[j+9];
+  }
 
   igp = (int *) R_alloc(ngp+1, sizeof(int));
     for (j = 0; j < ngp+1; j++) igp[j] = 0;
@@ -231,30 +242,30 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
     tin = REAL(time)[0];
       
   if (method == 1) {
-	  F77_CALL(dsparse) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
+      F77_CALL(dsparse) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
          alpha, ewt, rsp, ian, jan, igp, jgp, &ngp, R, C, IC, isp,
-			   &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
-         precis, &niter, dims, out, ipar, &type);
+         &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
+         precis, &niter, dims, out, ipar, &type, indDIM);
   } else {
-	  F77_CALL(dsparsekit) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
+      F77_CALL(dsparsekit) (derivs, &neq, &nnz, &nsp, &tin, svar, dsvar, beta, x,
          alpha, ewt, ian, jan, igp, jgp, &ngp, jlu, ju, iwork, iperm,
-			   &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
+         &maxit,  &Chtol, Atol, Rtol, &Itol, &posit, pos, &ipos, &isSteady,
          precis, &niter, dims, out, ipar, &type, &droptol, &permtol, &ilumethod,
-         &lfill, &lenplumx, plu, rwork);
+         &lfill, &lenplumx, plu, rwork, indDIM);
   }
-	  for (j = 0; j < ny; j++)
-	    REAL(yout)[j] = svar[j];
+      for (j = 0; j < ny; j++)
+        REAL(yout)[j] = svar[j];
    
-	  if (isOut == 1) 
+      if (isOut == 1) 
     {
         derivs (&neq, &tin, svar, dsvar, out, ipar) ;
-	      for (j = 0; j < nout; j++)
-	       REAL(yout)[j + ny] = out[j]; 
+          for (j = 0; j < nout; j++)
+           REAL(yout)[j + ny] = out[j]; 
     }
  
   PROTECT(RWORK = allocVector(REALSXP, niter));incr_N_Protect();
   for (k = 0;k<niter;k++) REAL(RWORK)[k] = precis[k];
-  if (mflag == 1) Rprintf("mean residual derivative %g",precis[niter-1]);
+  if (mflag == 1) Rprintf("mean residual derivative %g\n",precis[niter-1]);
 
   setAttrib(yout, install("precis"), RWORK);    
 

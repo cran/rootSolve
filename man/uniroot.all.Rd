@@ -35,7 +35,7 @@ uniroot.all(f, interval, lower = min(interval), upper = max(interval),
   a vector with the roots found in the interval
 }
 \author{
-Karline Soetaert <k.soetaert@nioo.knaw.nl>
+Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

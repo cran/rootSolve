@@ -225,7 +225,7 @@ runsteady(y, times = c(0, Inf), func, parms,
   be written to the screen.
 
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## A simple sediment biogeochemical model

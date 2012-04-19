@@ -37,7 +37,7 @@ gradient(f, x, centered = FALSE, pert = 1e-8, ...)
   the elements on i-th row and j-th column contain: \eqn{d((f(x))_i)/d(x_j)}
 
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## 1. Sensitivity analysis of the logistic differential equation

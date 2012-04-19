@@ -177,7 +177,7 @@ stode(y, time = 0, func, parms = NULL,
   rate of change (sum(abs(dy))/n).
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

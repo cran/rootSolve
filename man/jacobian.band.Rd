@@ -70,7 +70,7 @@ jacobian.band(y, func, bandup = 1, banddown = 1,
   }
 }
 
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 

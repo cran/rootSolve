@@ -76,7 +76,7 @@ steady.2D(y, time = 0, func, parms = NULL,
   do NOT use this method for problems that are not 2D.
 }
 \author{
-  Karline Soetaert <k.soetaert@nioo.knaw.nl>
+  Karline Soetaert <karline.soetaert@nioz.nl>
 }
 \examples{
 ## =======================================================================

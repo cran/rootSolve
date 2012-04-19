@@ -4,12 +4,13 @@
 ##       Sparse Jacobian
 ## =============================================================================
 
-stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
-        ctol=1e-8, sparsetype="sparseint", verbose=FALSE, nnz=NULL, inz=NULL,
-        lrw=NULL, ngp=NULL, positive = FALSE, maxiter=100, ynames=TRUE,
-        dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL,
-        ipar=NULL, nout=0, outnames=NULL, forcings = NULL, 
-        initforc = NULL, fcontrol = NULL, spmethod="yale", control=NULL, ...)  {
+stodes <- function(y, time = 0, func, parms = NULL, 
+        rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
+        sparsetype = "sparseint", verbose = FALSE, nnz = NULL, inz = NULL,
+        lrw = NULL, ngp = NULL, positive = FALSE, maxiter = 100, ynames = TRUE,
+        dllname = NULL, initfunc = dllname, initpar = parms, rpar = NULL,
+        ipar = NULL, nout = 0, outnames = NULL, forcings = NULL, 
+        initforc = NULL, fcontrol = NULL, spmethod = "yale", control = NULL, ...)  {
 ## check input
   if (!is.numeric(y))
     stop("`y' must be numeric")
@@ -41,13 +42,19 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   if (length(atol)==n && length(rtol)!=n) itol <- 2 else
   if (length(atol)!=n && length(rtol)==n) itol <- 3
 
+  if (sparsetype=="sparseusr" && is.null(inz))
+    stop("'inz' must be specified if 'sparsetype' = 'sparseusr'")
+  if (sparsetype=="sparsejan" && is.null(inz))
+    stop("'inz' must be specified if 'sparsetype' = 'sparsejan'")
+
   Type <- 1            # sparsity to be determined numerically
   ian <- 0
   jan <- 0
   if (is.null(ngp))
     ngp = n+1
-  if(sparsetype=="sparseint") {
-    if (! is.null(inz)) { # sparsity is imposed; create ian, jan
+  if(sparsetype=="sparseint") { 
+   if (is.null(nnz)) nnz <- n*n
+  } else if (sparsetype =="sparseusr")  {  # sparsity is imposed; create ian, jan
       Type <- 0
       nnz <- nrow(inz)
       jan <- numeric(nnz)
@@ -66,8 +73,11 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
         ian[i+1] <- i2+1
         if (il>0) jan[i1:i2] <- inz[ii,1]
       }
-    } else if (is.null(nnz))
-       nnz = n*n
+  } else if (sparsetype =="sparsejan") {
+      Type <- 0
+      nnz <- length(inz) - n
+      ian <- inz[1:(n+1)] 
+      jan <- inz[(n+2):length(inz)] 
   } else if (sparsetype == "1D")   {
     Type   <- 2
     nspec  <- nnz[1]
@@ -78,11 +88,16 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
       ngp <- ngp + 1
     }
     
-  } else if (sparsetype =="2D")    {
+  } else if (sparsetype %in% c("2D", "2Dmap"))    {
     Type   <- 3
+    if (sparsetype == "2Dmap") Type <- 30
     nspec  <- nnz[1]
     dimens <- nnz[2:3]
-    nnz   <- c(n*(4+nspec)-2*nspec*(sum(dimens)),nnz)
+    if (Type == 3) 
+      nnz   <- c(n*(4+nspec)-2*nspec*(sum(dimens)),nnz)
+    else
+      nnz   <- c((nspec*prod(dimens))*(4+nspec)-2*nspec*(sum(dimens)),nnz)
+      
     ngp    < 4*nspec+1
     dimmax <- max(dimens)
     if (nnz[5] ==1) {  # cyclic boundary in x-direction
@@ -94,12 +109,17 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
       nnz[1] <- nnz[1] + 2*dimmax*nspec
       ngp <- ngp +1
     }
-  } else if (sparsetype =="3D")    {
+  } else if (sparsetype  %in% c("3D", "3Dmap"))    {
     Type   <- 4
+    if (sparsetype == "3Dmap") Type <- 40
     nspec  <- nnz[1]
     dimens <- nnz[2:4]
     dimmax <- max(dimens)
-    nnz   <- c(n*(6+nspec)-3*nspec*(sum(dimens)),nnz)
+    if (Type == 4) 
+      nnz   <- c(n*(6+nspec)-3*nspec*(sum(dimens)),nnz)
+    else
+      nnz   <- c((nspec*prod(dimens))*(6+nspec)-3*nspec*(sum(dimens)),nnz)
+    
     ngp    < 5*nspec+1
     if (nnz[6] ==1) {  # cyclic boundary in x-direction
       nnz[1] <- nnz[1] + 2*dimens[2]*dimens[3]*nspec
@@ -123,10 +143,17 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
   if (verbose) {
     print("Steady-state settings")
     if (is.character(func)) print(paste("model function a DLL: ",func))
-    if (sparsetype=="sparseint")txt<-"sparse jacobian, calculated internally" else
-    if (sparsetype=="1D")    txt<-"sparse 1-D jacobian, calculated internally" else
-    if (sparsetype=="2D")    txt<-"sparse 2-D jacobian, calculated internally"
-    if (sparsetype=="3D")    txt<-"sparse 3-D jacobian, calculated internally"
+    if (sparsetype %in% c("sparseusr","sparsejan"))
+        txt <-"  The user has supplied indices to nonzero elements of Jacobian,
+        the Jacobian will be estimated internally, by differences" else
+    if (sparsetype=="sparseint")
+        txt<-"sparse jacobian, calculated internally" else
+    if (sparsetype=="1D")    
+        txt<-"sparse 1-D jacobian, calculated internally" else
+    if (sparsetype %in% c("2D","2Dmap"))    
+        txt<-"sparse 2-D jacobian, calculated internally"
+    if (sparsetype %in% c("3D","3Dmap"))    
+        txt<-"sparse 3-D jacobian, calculated internally"
     print(data.frame(sparseType = sparsetype, message=txt))
     if (sparsetype %in% c("1D","2D","3D"))    {
       print(paste("estimated number of nonzero elements: ",nnz[1]))
@@ -223,7 +250,8 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
     stop(paste("The number of derivatives returned by func() (",length(
     tmp[[1]]), "must equal the length of the initial conditions vector (",
        length(y), ")", sep = ""))
-  if (any(is.na(tmp[[1]])))
+  if (!sparsetype %in% c("2Dmap","3Dmap")) 
+    if (any(is.na(tmp[[1]])))
       stop("Model function must return a list of values, of which first element has length =length of y\n ")
 
     # use "unlist" here because some output variables are vectors/arrays
@@ -327,7 +355,7 @@ stodes        <- function(y, time=0, func, parms=NULL, rtol=1e-6, atol=1e-8,
 
 
 ### ============================================================================
-### Check control settings - if method == 
+### Check control settings - if method == ilut, ilutp
 ### ============================================================================
 
 

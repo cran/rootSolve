@@ -23,7 +23,7 @@ c**********************************************************************
      &                   maxiter,TolChange,atol,rtol,itol,Positivity,          &
      &                   Pos,ipos,SteadyStateReached,Precis,niter,             &
      &                   dims,out,nout,Type,droptol,permtol,imethod,           &
-     &                   lfill,lenplumx,plu,rwork)
+     &                   lfill,lenplumx,plu,rwork,pres)
 
 c------------------------------------------------------------------------------*
 c Solves a system of nonlinear equations using the Newton-Raphson method       *
@@ -39,7 +39,7 @@ c actual number of nonzeros, max and actual iterations
       INTEGER  nonzero, maxiter, niter, dims(*)
 
 c indices to nonzero elements and to groups of independent state variables 
-      INTEGER ian(*), jan(*), igp(*),jgp(*)
+      INTEGER ian(*), jan(*), igp(*),jgp(*), pres(*)
 c locals....      
       integer iao(N+1), jao(nnz)
       double precision ao(nnz)
@@ -85,7 +85,6 @@ c model and jacobian function
       DOUBLE PRECISION time
 c
       INTEGER i, j, k, esp, ierr
-      character (len=80) msg
 c-------------------------------------------------------------------------------
       SteadyStateReached = .FALSE.
 
@@ -97,7 +96,7 @@ c in this case the number of components, dimensions and cyclic bnd are in dims
 
       CALL xSparseStruct(N, nnz, ian, jan, igp, jgp, maxg, ngp,                &
      &    Svar, ewt, dSvar, beta, xmodel, time, out, nout, nonzero,            &
-     &    Type, dims)
+     &    Type, dims, pres)
 
 c initial guess for x
       DO j=1, N
@@ -216,24 +215,27 @@ c**********************************************************************
 
       SUBROUTINE warnflagkit(ierr)
       INTEGER Ierr
-      CHARACTER (len = 80) msg
 c-------------------------------------------------------------------------------
 
       IF (IERR .GT. 0) THEN 
-        write(msg,'(A35,I10)')"zero pivot encountered at step nr ",IERR
-        call rwarn(msg)
+        call intpr("zero pivot encountered at step nr ",35, IERR, 1)
+C        write(msg,'(A35,I10)')"zero pivot encountered at step nr ",IERR
+C        call rwarn(msg)
       ELSE IF (IERR .EQ. -1) THEN
         call rwarn("input matrix may be wrong; elimination process ")
         call rwarn("generated a row in L or U ")
-        call rexit("with length exceeding N")
+        call rwarn("with length exceeding N")
+        call rexit("stopped")
       ELSE IF (IERR .EQ. -2) THEN
         call rwarn("matrix L overflows")
-        call rwarn("increase value of lenplufac or decrease value")
-        call rexit("lfill if lenplufac cannot be increased")
+        call rwarn("increase value of lenplufac or decrease value of")
+        call rwarn("lfill if lenplufac cannot be increased")
+        call rexit("stopped")
       ELSE IF (IERR .EQ. -3) THEN
         call rwarn("matrix U overflows")
         call rwarn("increase value of lenplufac or decrease value")
-        call rexit("lfill if lenplufac cannot be increased")
+        call rwarn("lfill if lenplufac cannot be increased")
+        call rexit("stopped")
       ELSE IF (IERR .EQ. -4) THEN
         call rexit("illegal value for lfill")
       ELSE IF (IERR .EQ. -5) THEN

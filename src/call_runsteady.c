@@ -283,7 +283,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 
   REAL(RWORK)[5] = sumder/neq;
   REAL(RWORK)[6] = tin;
-  if (mflag == 1) Rprintf("mean residual derivative %g",sumder/neq);
+  if (mflag == 1) Rprintf("mean residual derivative %g\n",sumder/neq);
   setAttrib(yout, install("rstate"), RWORK);    
   setAttrib(yout, install("istate"), ISTATE);    
 
