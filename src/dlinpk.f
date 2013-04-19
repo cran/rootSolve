@@ -1,6 +1,6 @@
       subroutine dgefa(a,lda,n,ipvt,info)
-      integer lda,n,ipvt(1),info
-      double precision a(lda,1)
+      integer lda,n,ipvt(*),info
+      double precision a(lda,*)
 c
 c     dgefa factors a double precision matrix by gaussian elimination.
 c
@@ -102,8 +102,8 @@ c
       return
       end
       subroutine dgesl(a,lda,n,ipvt,b,job)
-      integer lda,n,ipvt(1),job
-      double precision a(lda,1),b(1)
+      integer lda,n,ipvt(*),job
+      double precision a(lda,*),b(*)
 c
 c     dgesl solves the double precision system
 c     a * x = b  or  trans(a) * x = b
@@ -219,8 +219,8 @@ c
       return
       end
       subroutine dgbfa(abd,lda,n,ml,mu,ipvt,info)
-      integer lda,n,ml,mu,ipvt(1),info
-      double precision abd(lda,1)
+      integer lda,n,ml,mu,ipvt(*),info
+      double precision abd(lda,*)
 c
 c     dgbfa factors a double precision band matrix by elimination.
 c
@@ -393,8 +393,8 @@ c
       return
       end
       subroutine dgbsl(abd,lda,n,ml,mu,ipvt,b,job)
-      integer lda,n,ml,mu,ipvt(1),job
-      double precision abd(lda,1),b(1)
+      integer lda,n,ml,mu,ipvt(*),job
+      double precision abd(lda,*),b(*)
 c
 c     dgbsl solves the double precision band system
 c     a * x = b  or  trans(a) * x = b
@@ -533,7 +533,7 @@ c     constant times a vector plus a vector.
 c     uses unrolled loop for increments equal to one.
 c     jack dongarra, linpack, 3/11/78.
 c
-      double precision dx(1),dy(1),da
+      double precision dx(*),dy(*),da
       integer i,incx,incy,ix,iy,m,mp1,n
 c
       if(n.le.0)return
@@ -580,7 +580,7 @@ c     copies a vector, x, to a vector, y.
 c     uses unrolled loops for increments equal to 1.
 c     jack dongarra, linpack, 3/11/78.
 c
-      double precision sx(1),sy(1)
+      double precision sx(*),sy(*)
       integer i,incx,incy,ix,iy,m,mp1,n
 c
       if(n.le.0)return
@@ -629,7 +629,7 @@ c     scales a vector by a constant.
 c     uses unrolled loop for increment equal to one.
 c     jack dongarra, linpack, 3/11/78.
 c
-      double precision da,dx(1)
+      double precision da,dx(*)
       integer i,incx,m,mp1,n,nincx
 c
       if(n.le.0)return
@@ -670,7 +670,7 @@ c     forms the dot product of two vectors.
 c     uses unrolled loop for increments equal to one.
 c     jack dongarra, linpack, 3/11/78.
 c
-      double precision dx(1),dy(1),dtemp
+      double precision dx(*),dy(*),dtemp
       integer i,incx,incy,ix,iy,m,mp1,n
 c
       ddot = 0.0d0
@@ -717,7 +717,7 @@ c
 c     finds the index of element having max. absolute value.
 c     jack dongarra, linpack, 3/11/78.
 c
-      double precision dx(1),dmax
+      double precision dx(*),dmax
       integer i,incx,ix,n
 c
       idamax = 0

@@ -54,7 +54,8 @@ steady.3D(y, time = 0, func, parms = NULL,
   \item{names }{the names of the components; used to label the output, 
     and for plotting.
   }
-  \item{... }{additional arguments passed to function \code{stodes}.
+  \item{... }{additional arguments passed to function \link{stodes}.
+    See note.
   }
 }
 \value{
@@ -62,11 +63,15 @@ steady.3D(y, time = 0, func, parms = NULL,
   \item{y }{ a vector with the state variable values from the last iteration
     during estimation of steady-state condition of the system of equations.
   }
-  \item{... }{ the number of "global" values returned.
+  \item{... }{ the "global" values returned.
   }
   The output will have the attribute \code{steady}, which returns \code{TRUE},
   if steady-state has been reached and the attribute
+
   \code{precis} with the precision attained during each iteration.
+  Another attribute, called \code{dims} returns a.o. the length of the work 
+  array actually required. 
+  This can be specified with input argument \code{lrw}. See note and first example.
 }
 \note{
   It is advisable though not mandatory to specify BOTH \code{nspec} and
@@ -74,6 +79,12 @@ steady.3D(y, time = 0, func, parms = NULL,
   sense (as nspec*dimens[1]*dimens[2]*dimens[3] = length(y))
 
   do NOT use this method for problems that are not 3D.
+
+  It is likely that the estimated length of the work array (argument \code{lrw}),
+  required for the solver \link{stodes} will be too small. 
+  If that is the case, the solver will return with an error
+  saying to increase \code{lrw}. The current value of the work array can be 
+  found via the \code{attributes} of the output. See first example.
 }
 \author{
   Karline Soetaert <karline.soetaert@nioz.nl>
@@ -127,12 +138,19 @@ diffusion3D <- function(t, Y, par)   {
   n  <- 10
   y  <- array(dim=c(n, n, n), data = 10.)
 
+  # stodes is used, so we should specify the size of the work array (lrw)
+  # We take a rather large value initially
+
   print(system.time(
   ST3 <- steady.3D(y, func =diffusion3D, parms = NULL, pos = TRUE,
                    dimens = c(n, n, n), lrw = 100000,
                    atol = 1e-10, rtol = 1e-10, ctol = 1e-10, 
                    verbose = TRUE)
   ))
+
+  # the actual size of lrw is in the attributes()$dims vector.     
+  # it is best to set lrw as small as possible 
+  attributes(ST3)     
 
   # image plot
   y <- array(dim=c(n, n, n), data = ST3$y)
@@ -156,6 +174,15 @@ diffusion3D <- function(t, Y, par)   {
   that transport is only occurring between adjacent layers.
   Then \code{stodes} is called to find the steady-state.
   
+  In some cases, a cyclic boundary condition exists. This is when the first
+  boxes in x-, y-, or z-direction interact with the last boxes.
+  In this case, there will be extra non-zero fringes in the Jacobian which
+  need to be taken into account. The occurrence of cyclic boundaries can be
+  toggled on by specifying argument \code{cyclicBnd}. For innstance,
+  \code{cyclicBnd = 1} indicates that a cyclic boundary is required only for
+  the x-direction, whereas \code{cyclicBnd = c(1,2)} imposes a cyclic boundary
+  for both x- and y-direction. The default is no cyclic boundaries.
+
   As \code{stodes} is used, it will probably be necessary to specify the
   length of the real work array, \code{lrw}.
 
@@ -165,14 +192,20 @@ diffusion3D <- function(t, Y, par)   {
   the size of the work array actually needed. In the second try then, set
   \code{lrw} equal to this number.
 
-  In some cases, a cyclic boundary condition exists. This is when the first
-  boxes in x-, y-, or z-direction interact with the last boxes.
-  In this case, there will be extra non-zero fringes in the Jacobian which
-  need to be taken into account. The occurrence of cyclic boundaries can be
-  toggled on by specifying argument \code{cyclicBnd}. For innstance,
-  \code{cyclicBnd = 1} indicates that a cyclic boundary is required only for
-  the x-direction, whereas \code{cyclicBnd = c(1,2)} imposes a cyclic boundary
-  for both x- and y-direction. The default is no cyclic boundaries.
+  As \code{stodes} is used, it will probably be necessary to specify the
+  length of the real work array, \code{lrw}.
+
+  Although a reasonable guess of \code{lrw} is made, it may occur that this
+  will be too low.
+  In this case, \code{steady.2D} will return with an error message telling
+  that there was insufficient storage. In the second try then, increase
+  \code{lrw}. you may need to experiment to find suitable value. The smaller the better.
+
+  The error message that says to increase \code{lrw} may look like this:
+\preformatted{   
+ In stodes(y = y, time = time, func = func, parms = parms, nnz = c(nspec,  :
+  insufficient storage in nnfc
+}      
 
   See \code{stodes} for the additional options.
 }

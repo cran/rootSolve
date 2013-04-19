@@ -4,7 +4,7 @@ c
 c STEADY-STATE SOLVER - sparse jacobian
 c
 c FINDS THE ROOT OF A SET OF NONLINEAR EQUATIONS               
-c implementation: karline Soetaert, NIOO-CEME, the Netherlands
+c implementation: karline Soetaert, NIOZ-yerseke, the Netherlands
 c
 c uses linear algebra routines from the sparsekit package:
 c

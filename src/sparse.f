@@ -3,7 +3,7 @@ c
 c STEADY-STATE SOLVER - sparse jacobian
 c
 c FINDS THE ROOT OF A SET OF NONLINEAR EQUATIONS               
-c implementation: karline Soetaert, NIOO-CEME, the Netherlands
+c implementation: karline Soetaert, royal NIOZ Yerseke, the Netherlands
 c
 c uses linear algebra routines from the Yale sparse matrix package:
 c
@@ -206,27 +206,27 @@ c**********************************************************************
        ELSE if (iflag .EQ. 3) THEN
 	       call intpr ("insufficient storage in nsfc", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
-         call rexit("stopped")
+         call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 4) THEN
-	       call rwarn("insufficient storage in nnfc")
+	       call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 5) THEN
          call rwarn("sparse solver: null pivot")
          call intpr ("  row nr: ", 10, flag-iflag, 1)
-         call rexit("stopped")
+         call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 6) THEN
          call intpr ("insufficient storage in nsfc", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
-         call rexit("stopped")
+         call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 7) THEN
-	       call rwarn("insufficient storage in nnfc")
+	       call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 8) THEN
          call intpr ("sparse solver: zero pivot", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 9) THEN
-	       call rexit("insufficient storage in md")
+	       call rexit("insufficient storage in md - increase lrw")
        ELSE if (iflag .EQ. 10) THEN
-	       call rexit("insufficient storage in cdrv/odrv")
+	     call rexit("insufficient storage in cdrv/odrv-increase lrw")
        ELSE if (iflag .EQ. 11) THEN
 	       call rexit("illegal path specifications")
        ENDIF

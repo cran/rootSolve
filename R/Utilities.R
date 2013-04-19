@@ -622,7 +622,7 @@ image.steady2D <- function (x, which = NULL,
       parplt <- par("plt") - c(0,0.07,0,0) 
       parleg <- c(parplt[2]+0.02, parplt[2]+0.05, parplt[3], parplt[4])
       plt.or <- par(plt = parplt)
-      on.exit(par(plt = plt.or))
+#      on.exit(par(plt = plt.or))
    }  
 
     for (i in 1:np) {
@@ -678,6 +678,9 @@ image.steady2D <- function (x, which = NULL,
         if (is.null(dots$zlim)) dots$zlim <- range(out, na.rm=TRUE)
 
         drawlegend(parleg, dots)      
+      par(plt = plt.or)  
+      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
+        
       }    
    }
 }
@@ -763,7 +766,7 @@ image.steady3D <- function (x, which = NULL, dimselect = NULL,
       parplt <- par("plt") - c(0,0.07,0,0) 
       parleg <- c(parplt[2]+0.02, parplt[2]+0.05, parplt[3], parplt[4])
       plt.or <- par(plt = parplt)
-      on.exit(par(plt = plt.or))
+#      on.exit(par(plt = plt.or))
    }  
   
     dselect <- 1:Nz
@@ -843,6 +846,9 @@ image.steady3D <- function (x, which = NULL, dimselect = NULL,
             if (is.null(dots$zlim)) dots$zlim <- range(out, na.rm=TRUE)
 
             drawlegend(parleg, dots)      
+      par(plt = plt.or)  
+      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
+            
           }   
         }
      }   

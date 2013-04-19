@@ -3,7 +3,7 @@ c
 c STEADY-STATE SOLVER - banded or full Jacobian
 c
 c FINDS THE ROOT OF A SET OF NONLINEAR EQUATIONS               
-c implementation: karline Soetaert, NIOO-CEME, the Netherlands
+c implementation: karline Soetaert, NIOZ, the Netherlands
 c
 c######################################################################
 

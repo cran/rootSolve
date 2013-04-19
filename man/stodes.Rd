@@ -72,9 +72,10 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   \item{ctol }{if between two iterations, the maximal change in y is less
     than this amount, steady-state is assumed to be reached.
   }
-  \item{sparsetype }{the sparsity pattern, several options are available, 
-    but to date only "sparseint", sparse jacobian, estimated internally by stodes
-    is probably needed. See details.
+  \item{sparsetype }{the sparsity structure of the Jacobian, one of
+    "sparseint" or "sparseusr", "sparsejan", ..., 
+    The sparsity can be estimated internally by stodes (first option)
+    or given by the user (last two). See details.
   }
   \item{verbose }{if TRUE: full output to the screen, e.g. will output the
     steady-state settings.
@@ -87,17 +88,24 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
     If a solution is found, the minimal value of \code{nnz} actually required
     is returned by the solver (1st element of attribute \code{dims}).
   }
-  \item{inz }{(row,column) indices to the nonzero elements in the sparse
-    Jacobian. If this is NULL, the sparsity will be determined by \code{stodes}.
+  \item{inz }{if \code{sparsetype} equal to "sparseusr", a two-columned matrix
+    with the (row, column) indices to the nonzero elements in the sparse
+    Jacobian. If \code{sparsetype} = "sparsejan", a vecotr with the elements 
+    ian followed by he elements jan as used in the stodes code. See details.
+    In all other cases, ignored. 
+    If \code{inz} is NULL, the sparsity will be determined by \code{stodes}.
   }
-  \item{lrw }{the length of the work array of solver; due to the sparsicity,
-    this cannot be readily predicted. If NULL, a guess will be made, and
+  \item{lrw }{the length of the work array of the solver; due to the sparsicity,
+    this cannot be readily predicted. If \code{NULL}, a guess will be made, and
     if not sufficient, \code{stodes} will return with a message indicating
-    the size actually required. Therefore, some experimentation may be
-    necessary to estimate the value of \code{lrw}
+    that lrw should be increased. Therefore, some experimentation may be
+    necessary to estimate the value of \code{lrw}. 
 
     If a solution is found, the minimal value of \code{lrw} actually required
     is returned by the solver (3rd element of attribute \code{dims}).
+    
+    In case of an error induced by a too small value of \code{lrw}, its value
+    can be assessed by the \code{attributes()$dims} value.
   }
   \item{ngp }{number of groups of independent state variables. Due to the
     sparsicity, this cannot be readily predicted. If NULL, a guess will be
@@ -237,6 +245,9 @@ ss   <- stodes(runif(N), func = model, parms = NULL,
 plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
      xlab = "Nonlocal exchange", ylab = "sediment depth",
      main = "stodes, sparse jacobian")
+
+# the size of lrw is in the attributes()$dims vector.     
+attributes(ss)     
 }
 
 \references{
