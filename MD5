@@ -1,6 +1,6 @@
-63f15b87c33f897cef789e99fb9419a5 *DESCRIPTION
+32b59b159e9b51d2139cc0dd84919321 *DESCRIPTION
 9dcc8cd86684282771dccc43ae32c657 *NAMESPACE
-c4b6ca2f8c456494e00c2695db503487 *R/Utilities.R
+442d33ea48c3c15aceaba128b6913b0a *R/Utilities.R
 abd53a8b204d265a88307f27105223f1 *R/gradient.R
 f49037d5a31fb5a1fe413054864bfbd2 *R/hessian.R
 b7e78366df5a3059e53adbbf5e59326d *R/internal.R
@@ -17,14 +17,14 @@ f11de5477712a5a4e3fe202cd5b8a8a0 *R/multiroot.R
 9a625b59170fd0733fc8826bb0791d86 *R/stodes.R
 5beb748660153c8b05006d16b125270e *R/summary.R
 05fc4819ca1774240e4d8576556481ad *R/uniroot.all.R
+d849848dd8365695497dffd9078436a7 *build/vignette.rds
 fb03d15432ef0d6caaa951a6ddc70f3b *demo/00Index
 57a0db155d06ac0a39340abc2f73c447 *demo/Jacobandroots.R
 cb1e68e0d07e4a5210ac69ed7d978683 *demo/Steadystate.R
 dc05a37a9025b6707d72d084c314c63a *inst/CITATION
 d9346f8724bf936dc2a2de1ceac3f24b *inst/doc/rootSolve.R
 e536b0d763a0d0514ed3fe2718a0b527 *inst/doc/rootSolve.Rnw
-dfc32cea344971bf41f9ee913fba9ff5 *inst/doc/rootSolve.pdf
-4f608f9d9a952c05ad3bbe1e1573da07 *inst/doc/vignettes.bib
+f92cd36c24ab6f48a2ed4e2647637d60 *inst/doc/rootSolve.pdf
 87aa1be13422cbf4f22aa1a84e47c871 *inst/dynload/anoxmod.R
 53fded71c845e0911bd973370b54c653 *inst/dynload/anoxmod.f
 c47e812cbccaa2c43e3d86e24bf704f6 *inst/dynload/anoxmodc.c
@@ -44,7 +44,7 @@ d29f8dbdad337d77a0bc624216057b34 *man/steady.Rd
 2e5ccf8137fe484e7273a2c244780f77 *man/steady.band.Rd
 1a4a31f4499c505e65d2d8b18629416b *man/stode.Rd
 6659ccd62f3a78d1467f3369e0b94215 *man/stodes.Rd
-eba2f418f2a7e9661585835bd88cccf1 *man/uniroot.all.Rd
+9303e87a538a779c359b40bad4796b08 *man/uniroot.all.Rd
 d74f0faa60d4f1afa70bc2f3e0e11206 *src/call_runsteady.c
 3011e0c85d528c2c292508aae5473ed8 *src/call_steady.c
 1cd8144239b0fc8e6f6b0aff90a53d5c *src/call_stsparse.c
@@ -58,3 +58,5 @@ a6d9578f713e4f39a790ade387ddc8be *src/dsparsk.f
 60c01ef5edb14a09a82ed6cd312df0ab *src/steady.h
 df9eae07fa219222996b8890f7f0ef06 *src/steady_utils.c
 3a8f258b0517d0868e5ea9f8ecc2f40f *src/testMap.f
+e536b0d763a0d0514ed3fe2718a0b527 *vignettes/rootSolve.Rnw
+4f608f9d9a952c05ad3bbe1e1573da07 *vignettes/vignettes.bib

@@ -94,7 +94,33 @@ points(x = Eq, y = rep(0, length(Eq)), pch = 21, cex = 2,
 legend("topleft", pch = 22, pt.cex = 2,
        c("stable", "saddle", "unstable"),
        col = c("grey", "black", "white"), 
-       pt.bg = c("grey", "black", "white"))}
+       pt.bg = c("grey", "black", "white"))
+       
+## =======================================================================
+## Vectorisation:
+## =======================================================================
+# from R-help Digest, Vol 130, Issue 27
+#https://stat.ethz.ch/pipermail/r-help/2013-December/364799.html
+
+integrand1 <- function(x) 1/x*dnorm(x) 
+integrand2 <- function(x) 1/(2*x-50)*dnorm(x) 
+integrand3 <- function(x, C) 1/(x+C)
+
+res <- function(C) {
+  integrate(integrand1, lower = 1, upper = 50)$value + 
+  integrate(integrand2, lower = 50, upper = 100)$value - 
+  integrate(integrand3, C = C, lower = 1, upper = 100)$value
+}
+
+# uniroot passes one value at a time to the function, so res can be used as such
+uniroot(res, c(1, 1000))
+
+# Need to vectorise the function to use uniroot.all:
+res <- Vectorize(res)
+uniroot.all(res, c(1,1000))
+       
+}
+
 \details{
   \code{f} will be called as \code{f(x, ...)} for a numeric value of \code{x}.
 
@@ -118,6 +144,13 @@ legend("topleft", pch = 22, pt.cex = 2,
   If the function "touches" the X-axis (i.e. the root is a saddle point),
   then this root will generally not be retrieved.
   (but chances of this are pretty small).
+
+
+  Whereas \code{unitroot} passes values one at a time to the function,
+  \code{uniroot.all} passes a vector of values to the function. 
+  Therefore \code{f} should be written such that it can handle a vector of values.
+  See last example.
+  
 }
 \keyword{optimize}
 

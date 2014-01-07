@@ -678,11 +678,13 @@ image.steady2D <- function (x, which = NULL,
         if (is.null(dots$zlim)) dots$zlim <- range(out, na.rm=TRUE)
 
         drawlegend(parleg, dots)      
-      par(plt = plt.or)  
-      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
         
       }    
    }
+  if (legend)  {
+        par(plt = plt.or)  
+      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
+  }
 }
 
 ### ============================================================================
@@ -846,12 +848,14 @@ image.steady3D <- function (x, which = NULL, dimselect = NULL,
             if (is.null(dots$zlim)) dots$zlim <- range(out, na.rm=TRUE)
 
             drawlegend(parleg, dots)      
-      par(plt = plt.or)  
-      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
             
           }   
         }
      }   
+   if (legend) {
+      par(plt = plt.or)  
+      par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
+   }
 }
 
 
