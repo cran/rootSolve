@@ -1,3 +1,4 @@
+
 ## =============================================================================
 ## runsteady -- runs to steadystate by integrating ordinary differential equation systems
 ## based on ODEPACK method lsode. The user has to specify whether or not
@@ -15,6 +16,24 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   initforc = NULL, fcontrol = NULL, ...)  
 {
 ## check input
+  if (is.list(func)) {            
+      if (!is.null(jacfunc) & "jacfunc" %in% names(func))
+         stop("If 'func' is a list that contains jacfunc, argument 'jacfunc' should be NULL")
+      if (!is.null(initfunc) & "initfunc" %in% names(func))
+         stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
+      if (!is.null(dllname) & "dllname" %in% names(func))
+         stop("If 'func' is a list that contains dllname, argument 'dllname' should be NULL")
+      if (!is.null(initforc) & "initforc" %in% names(func))
+         stop("If 'func' is a list that contains initforc, argument 'initforc' should be NULL")
+     if (! is.null(func$jacfunc))  jacfunc <- func$jacfunc
+     if (! is.null(func$initfunc)) initfunc <- func$initfunc
+     if (! is.null(func$dllname))  dllname <- func$dllname
+     if (! is.null(func$initforc)) initforc <- func$initforc
+     func <- func$func
+  }
+  
+
+
   if (!is.numeric(y))
     stop("`y' must be numeric")
   n <- length(y)
@@ -22,8 +41,8 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     stop("`times' must be numeric")
   if (length(times) != 2)
     stop("times must be a 2-valued vector")
-  if (!is.function(func) && !is.character(func))
-    stop("`func' must be a function or character vector")
+  if (!CheckFunc(func))
+    stop("`func' must be a function or character vector or a compiled function")
   if (is.character(func) && (is.null(dllname) || !is.character(dllname)))
     stop("You need to specify the name of the dll or shared library where func can be found (without extension)")
   if (!is.numeric(stol))
@@ -34,7 +53,7 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     stop("`atol' must be numeric")
   if (!is.null(tcrit) & !is.numeric(tcrit))
     stop("`tcrit' must be numeric")
-  if (!is.null(jacfunc) && !(is.function(jacfunc) || is.character(jacfunc)))
+  if (!is.null(jacfunc) && !CheckFunc(jacfunc))
     stop("`jacfunc' must be a function or character vector")
   if (length(atol) > 1 && length(atol) != n)
     stop("`atol' must either be a scaler, or as long as `y'")
@@ -102,9 +121,10 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   ModelForc <- NULL
   Forc <- NULL
 
-  if ( ! is.null(dllname)) {
-
-    if (is.loaded(initfunc, PACKAGE = dllname,type = "") ||
+  if ( is.compiled(func)  & ! is.null(initfunc)) {
+    if (class(initfunc) == "CFunc")
+        ModelInit <- body(initfunc)[[2]]
+    else if (is.loaded(initfunc, PACKAGE = dllname,type = "") ||
         is.loaded(initfunc, PACKAGE = dllname,
         type = "Fortran")) {
       ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
@@ -115,15 +135,21 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
 
 ## If func is a character vector, then copy its value to funcname
 ## check to make sure it describes a function in a loaded dll
-  if (is.character(func)) {
+  if (is.compiled(func)) {
     funcname <- func
     ## get the pointer and put it in func
-    if ( is.loaded(funcname, PACKAGE = dllname)) {
+    if (class(func) == "CFunc")
+      Func <- body(func)[[2]]
+    
+    else if ( is.loaded(funcname, PACKAGE = dllname)) {
       Func <- getNativeSymbolInfo(funcname, PACKAGE = dllname)$address
     } else stop(paste("cannot integrate: dyn function not loaded",funcname))
 
      if (! is.null(initforc))  {
-       if (is.loaded(initforc, PACKAGE = dllname,
+       if (class(initforc) == "CFunc")
+          ModelForc <- body(initforc)[[2]]
+     
+       else if (is.loaded(initforc, PACKAGE = dllname,
                 type = "") || is.loaded(initforc, PACKAGE = dllname,
                 type = "Fortran"))
        ModelForc <- getNativeSymbolInfo(initforc, PACKAGE = dllname)$address
@@ -136,10 +162,12 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
 
     ## Finally, is there a jacobian?
     if (!is.null(jacfunc)) {
-      if (!is.character(jacfunc))
+      if (!is.compiled(jacfunc))
         stop("If 'func' is dynloaded, so must 'jacfunc' be")
       jacfuncname <- jacfunc
-      if ( is.loaded(jacfuncname, PACKAGE = dllname)) {
+      if (class(jacfunc) == "CFunc")
+        JacFunc <- body(jacfunc)[[2]]
+      else if ( is.loaded(jacfuncname, PACKAGE = dllname)) {
         JacFunc <- getNativeSymbolInfo(jacfuncname, PACKAGE = dllname)$address
       } else stop(paste("cannot integrate: jac function not loaded ",jacfunc))
     }

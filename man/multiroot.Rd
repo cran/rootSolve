@@ -18,11 +18,14 @@ multiroot(f, start, maxiter = 100,
           rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
           useFortran = TRUE, positive = FALSE,
           jacfunc = NULL, jactype = "fullint",
-          verbose = FALSE, bandup = 1, banddown = 1, ...)
+          verbose = FALSE, bandup = 1, banddown = 1, 
+          parms = NULL, ...)
 }
 \arguments{
   \item{f }{function for which the root is sought; it must return a vector
     with as many values as the length of \code{start}.
+    It is called either as \code{f(x, ...)} if \code{parms = NULL} or as
+    \code{f(x, parms, ...)} if \code{parms} is not \code{NULL}.
   }
   \item{start }{vector containing initial guesses for the unknown x;
     if \code{start} has a name attribute, the names will be used to label
@@ -50,7 +53,7 @@ multiroot(f, start, maxiter = 100,
     estimates the Jacobian of the system of differential equations
     dydot(i)/dy(j). In some circumstances, supplying \code{jacfunc}
     can speed up the computations.  The \R calling sequence for
-    \code{jacfunc} is identical to that of \code{func}.
+    \code{jacfunc} is identical to that of \code{f}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a matrix
     dydot/dy, where the ith row contains the derivative of \eqn{dy_i/dt}
@@ -78,6 +81,9 @@ multiroot(f, start, maxiter = 100,
   }
   \item{banddown }{number of non-zero bands below the diagonal, in case the
     jacobian is banded.
+  }
+  \item{parms }{vector or list of parameters used in \code{f} or
+    \code{jacfunc}.
   }
   \item{... }{additional arguments passed to function \code{f}.
   }
@@ -126,6 +132,21 @@ model <- function(x) c(F1 = x[1] + x[2] + x[3]^2 - 12,
 # second solution; use different start values
 (ss <- multiroot(model, c(0, 0, 0)))
 model(ss$root)
+
+## =======================================================================
+## example 2b: same, but with parameters
+## 3 equations, two solutions
+## =======================================================================
+
+model2 <- function(x, parms) 
+      c(F1 = x[1] + x[2] + x[3]^2 - parms[1],
+        F2 = x[1]^2 - x[2] + x[3] - parms[2],
+        F3 = 2 * x[1] - x[2]^2 + x[3] - parms[3])
+
+# first solution
+parms <- c(12, 2, 1)
+multiroot(model2, c(1, 1, 1), parms = parms)
+multiroot(model2, c(0, 0, 0), parms = parms*2)
 
 ## =======================================================================
 ## example 3: find a matrix

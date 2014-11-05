@@ -1,8 +1,12 @@
 Package: rootSolve
-Version: 1.6.5
+Version: 1.6.5.1
 Title: Nonlinear root finding, equilibrium and steady-state analysis of
         ordinary differential equations
-Author: Karline Soetaert <karline.soetaert@nioz.nl>
+Author: Karline Soetaert [aut, cre],  
+        yale sparse matrix package authors [cph]
+Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"), 
+                     email = "karline.soetaert@nioz.nl"),
+             person("yale sparse matrix package authors", role = "cph"))
 Maintainer: Karline Soetaert <karline.soetaert@nioz.nl>
 Depends: R (>= 2.01)
 Description: Routines to find the root of nonlinear functions, and to perform steady-state and equilibrium analysis of ordinary differential equations (ODE). 
@@ -14,10 +18,10 @@ Description: Routines to find the root of nonlinear functions, and to perform st
   Includes fortran code.
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2014-01-07 11:16:20 UTC; rforge
+Packaged: 2014-11-05 09:46:43 UTC; rforge
 Repository: CRAN
 Repository/R-Forge/Project: rootsolve
-Repository/R-Forge/Revision: 78
-Repository/R-Forge/DateTimeStamp: 2014-01-07 07:43:45
-Date/Publication: 2014-01-08 12:16:02
+Repository/R-Forge/Revision: 85
+Repository/R-Forge/DateTimeStamp: 2014-11-05 09:30:05
+Date/Publication: 2014-11-06 15:20:47
 NeedsCompilation: yes

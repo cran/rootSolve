@@ -15,12 +15,14 @@
 \usage{
 multiroot.1D(f, start, maxiter = 100,
              rtol = 1e-6, atol = 1e-8, ctol = 1e-8, 
-             nspec = NULL, dimens = NULL,
-             verbose = FALSE, positive = FALSE, names = NULL, ...)
+             nspec = NULL, dimens = NULL, verbose = FALSE, 
+             positive = FALSE, names = NULL, parms = NULL, ...)
 }
 \arguments{
   \item{f }{function for which the root is sought; it must return a vector
     with as many values as the length of \code{start}.
+    It is called either as \code{f(x, ...)} if \code{parms = NULL} or as
+    \code{f(x, parms, ...)} if \code{parms} is not \code{NULL}.
   }
   \item{start }{vector containing initial guesses for the unknown x;
     if \code{start} has a name attribute, the names will be used to label
@@ -52,6 +54,8 @@ multiroot.1D(f, start, maxiter = 100,
   }
   \item{names }{the names of the components; used to label the output, which
     will be written as a matrix.
+  }
+  \item{parms }{vector or list of parameters used in \code{f}.
   }
   \item{... }{additional arguments passed to function \code{f}.
   }

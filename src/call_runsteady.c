@@ -3,6 +3,7 @@
 #include "steady.h"
 
 /* definition of the call  to the fortran functions - in file lsode.f*/
+/* bug fix as suggested by Alejandro Morales 4/04/2014*/
 
 void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, int *),
 		     int *, double *, double *, double *,
@@ -268,7 +269,8 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 	    REAL(yout)[j] = xytmp[j];
     if (isOut == 1) 
       {
-      for (j = 0; j < nout; j++)  REAL(yout)[j + neq + 1] = out[j]; 
+      for (j = 0; j < nout; j++)  REAL(yout)[j + neq] = out[j];   
+        /* above = bug fix as suggested by Alejandro Morales; was yout[j+neq+1]*/
 	    }
 /*                    ####  an error occurred   ####                          */    
   if (istate < 0 ) warning("Returning early.  Results are accurate, as far as they go\n");
