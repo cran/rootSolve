@@ -1,7 +1,7 @@
 Package: rootSolve
-Version: 1.6.5.1
-Title: Nonlinear root finding, equilibrium and steady-state analysis of
-        ordinary differential equations
+Version: 1.6.6
+Title: Nonlinear Root Finding, Equilibrium and Steady-State Analysis of
+        Ordinary Differential Equations
 Author: Karline Soetaert [aut, cre],  
         yale sparse matrix package authors [cph]
 Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"), 
@@ -9,6 +9,7 @@ Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"),
              person("yale sparse matrix package authors", role = "cph"))
 Maintainer: Karline Soetaert <karline.soetaert@nioz.nl>
 Depends: R (>= 2.01)
+Imports: stats, graphics, grDevices
 Description: Routines to find the root of nonlinear functions, and to perform steady-state and equilibrium analysis of ordinary differential equations (ODE). 
   Includes routines that: (1) generate gradient and Jacobian matrices (full and banded),
   (2) find roots of non-linear equations by the Newton-Raphson method, 
@@ -18,10 +19,10 @@ Description: Routines to find the root of nonlinear functions, and to perform st
   Includes fortran code.
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2014-11-05 09:46:43 UTC; rforge
+Packaged: 2015-09-19 03:55:22 UTC; rforge
 Repository: CRAN
 Repository/R-Forge/Project: rootsolve
-Repository/R-Forge/Revision: 85
-Repository/R-Forge/DateTimeStamp: 2014-11-05 09:30:05
-Date/Publication: 2014-11-06 15:20:47
+Repository/R-Forge/Revision: 88
+Repository/R-Forge/DateTimeStamp: 2015-09-11 15:37:17
+Date/Publication: 2015-10-05 17:07:44
 NeedsCompilation: yes

@@ -220,7 +220,10 @@ stodes <- function(y, time = 0, func, parms = NULL,
        if (is.list(forcings) ) {
          Forc <- NULL
          for (i in 1: length(forcings))
+          if (! is.null(fcontrol))
            Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = time, fcontrol))$y)
+          else
+           Forc <- c(Forc, do.call(approx,list(forcings[[i]], xout = time))$y)
        } else Forc <- forcings   
      }
     # If we go this route, the number of "global" results is in nout
