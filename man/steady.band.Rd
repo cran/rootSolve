@@ -13,14 +13,16 @@
 }
 \usage{
 steady.band(y, time = 0, func, parms = NULL, 
-            nspec = NULL, bandup = nspec, banddown = nspec, ...)}
+            nspec = NULL, bandup = nspec, banddown = nspec, 
+            times = time, ...)}
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
     If \code{y} has a name attribute, the names will be used to label the
     output matrix.
   }
-  \item{time }{time for which steady-state is wanted; the default is
-    \code{time}=0.
+  \item{time, times }{time for which steady-state is wanted; the default is
+    \code{times}=0.
+    (note- since version 1.7, 'times' has been added as an alias to 'time').
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},

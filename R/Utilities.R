@@ -674,7 +674,11 @@ image.steady2D <- function (x, which = NULL,
         
         do.call(method, c(List, dots)) 
         if (Addcontour[i]) do.call("contour", c(List, add=TRUE))
-        box(lwd = 2)  # Karline: added that          
+      drawbox <- ! method %in% c("persp", "filled.contour")
+      if (! is.null(dots$frame.plot))
+        if (! dots$frame.plot) drawbox <- FALSE
+      if (drawbox) 
+         box(lwd = 2)  # Karline: added that          
       if (legend) {
         if (method == "persp") 
            if (is.null(dotscol))

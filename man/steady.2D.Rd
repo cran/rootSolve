@@ -11,14 +11,17 @@
   It is assumed that exchange occurs only between adjacent layers.
 }
 \usage{
-steady.2D(y, time = 0, func, parms = NULL, 
-          nspec = NULL, dimens,
-          names = NULL, cyclicBnd = NULL, ...)
+steady.2D(y, time = 0, func, parms = NULL, nspec = NULL, 
+          dimens, names = NULL, method = "stodes", 
+          jactype = NULL, cyclicBnd = NULL, times = time, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
   }
-  \item{time }{time for which steady-state is wanted; the default is time=0.
+  \item{time, times }{time for which steady-state is wanted; 
+    the default is \code{times=0} (for \code{method = "stodes"}, 
+    and \code{times = c(0,Inf)} for \code{method = "runsteady"}).
+    (note- since version 1.7, 'times' has been added as an alias to 'time').
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},
@@ -46,6 +49,14 @@ steady.2D(y, time = 0, func, parms = NULL,
   }
   \item{dimens }{a 2-valued vector with the dimensionality of the model,
     i.e. the number of *boxes* in x- and y-direction.
+  }
+  \item{method }{the solution method, one of "stodes", or "runsteady".
+    When \code{method} = 'runsteady', then solver \code{lsodes}, the sparse solver is used by default, 
+    unless argument \code{jactype} is set to \code{"2D"}, in which case \code{lsode} will be used (likely less efficient).
+    in which case \code{lsodes} is used and the structure of the jacobian is determined by the solver.
+  }
+  \item{jactype }{the jacobian type - default is a regular 2-D structure where layers only interact with adjacent layers in both directions. 
+    If the structure does not comply with this, the jacobian can be set equal to \code{'sparse'}.
   }
   \item{cyclicBnd }{if not \code{NULL} then a number or a 2-valued vector
     with the dimensions where a cyclic boundary is used - \code{1}: x-dimension,
@@ -123,9 +134,19 @@ y  <- matrix(nrow = n, ncol = n, 10.)
 # stodes is used, so we should specify the size of the work array (lrw)
 # We take a rather large value
 
+system.time(
 ST2 <- steady.2D(y, func = diffusion2D, parms = NULL, pos = TRUE,
                  dimens = c(n, n), lrw = 1000000, 
                  atol = 1e-10, rtol = 1e-10, ctol = 1e-10)
+)
+
+\dontrun{  # this takes a long time...
+system.time(
+ST3 <- steady.2D(y, func = diffusion2D, parms = NULL, 
+                 dimens = c(n, n), lrw = 1000000, method = "runsteady", 
+                 time = c(0, 1e6), atol = 1e-10, rtol = 1e-10)
+)
+}
 
 # the actual size of lrw is in the attributes()$dims vector.     
 # it is best to set lrw as small as possible 

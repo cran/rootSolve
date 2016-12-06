@@ -11,14 +11,15 @@
   It is assumed that exchange occurs only between adjacent layers.
 }
 \usage{
-steady.3D(y, time = 0, func, parms = NULL, 
-          nspec = NULL, dimens, 
-          names = NULL, cyclicBnd = NULL, ...)
+steady.3D(y, time = 0, func, parms = NULL, nspec = NULL, 
+          dimens, names = NULL, method = "stodes", 
+          jactype = NULL, cyclicBnd = NULL, times = time, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
   }
-  \item{time }{time for which steady-state is wanted; the default is time=0.
+  \item{time, times }{time for which steady-state is wanted; the default is \code{times=0}.
+    (note- since version 1.7, 'times' has been added as an alias to 'time').
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},
@@ -46,6 +47,14 @@ steady.3D(y, time = 0, func, parms = NULL,
   }
   \item{dimens }{a 3-valued vector with the dimensionality of the model,
     i.e. the number of *boxes* in x-, y- and z- direction.
+  }
+  \item{method }{the solution method, one of "stodes", or "runsteady".
+    When \code{method} = 'runsteady', then solver \code{lsodes}, the sparse solver is used by default, 
+    unless argument \code{jactype} is set to \code{"2D"}, in which case \code{lsode} will be used (likely less efficient).
+    in which case \code{lsodes} is used and the structure of the jacobian is determined by the solver.
+  }
+  \item{jactype }{the jacobian type - default is a regular 2-D structure where layers only interact with adjacent layers in both directions. 
+    If the structure does not comply with this, the jacobian can be set equal to \code{'sparse'}.
   }
   \item{cyclicBnd }{if not \code{NULL} then a number or a 3-valued vector
     with the dimensions where a cyclic boundary is used - \code{1}: x-dimension,

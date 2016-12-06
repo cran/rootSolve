@@ -6,8 +6,8 @@
 ## =============================================================================
 
 steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
-                       dimens = NULL, names = NULL, method="stode",
-                       cyclicBnd = NULL, bandwidth = 1, ...) {
+                       dimens = NULL, names = NULL, method = "stode", 
+                       jactype = NULL, cyclicBnd = NULL, bandwidth = 1, times = time, ...) {
   if (any(!is.na(pmatch(names(list(...)), "jacfunc")))) 
     stop ("cannot run steady.1D with jacfunc specified - remove jacfunc from call list")
   if (is.null(dimens) && is.null(nspec)) 
@@ -25,17 +25,16 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
   if (!method %in% c("stode", "stodes","runsteady"))
     stop (" 'method' should be one of 'stode', 'stodes', 'runsteady'")   
 
-  if (is.null(time)) {
-    if (method %in% c("stode", "stodes")) 
-      time <- 0
-    else
-      time <- c(0,Inf)  
-  }  
+  if (is.null(times))
+    times <- 0
+  if (method == "runsteady" & length(times) == 1)
+      times <- c(times, Inf)  
         
   if (nspec == 1 & method == "stode") {
-    out <- steady.band(y, time, func, parms, nspec, 
+    out <- steady.band(y, times, func, parms, nspec, 
       bandup = nspec*bandwidth, banddown = nspec*bandwidth,...)
   } else if (method=="stodes") {
+    if (is.null(jactype)) jactype <- "1D"
     dimens <- N/nspec
     Bnd <- 0
     if (! is.null(cyclicBnd)) {
@@ -44,19 +43,20 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
     Bnd <-1
     }
 
-    out <- stodes(y=y,time=time,func=func,parms=parms,
-                  nnz=c(nspec,dimens,Bnd),sparsetype="1D",...)
+    out <- stodes(y=y,time=times,func=func,parms=parms,
+                  nnz=c(nspec,dimens,Bnd),sparsetype=jactype,...)
              
   } else if (is.character(func)) {
+    if (is.null(jactype)) jactype <- "1Dint"
     ii    <- as.vector(t(matrix(ncol=nspec,1:N)))   # from ordering per slice -> per spec
     if (bandwidth != 1)
       stop ("cannot combine DLL with 'bandwidth' not = 1") 
     if (method == "stode")
-      out <- stode(y=y[ii],time=time,func=func,parms=parms,
-                jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
+      out <- stode(y=y[ii],time=times,func=func,parms=parms,
+                jactype=jactype,bandup=nspec,banddown=N/nspec,...)                    
     else if (method == "runsteady")
-      out <- runsteady (y=y[ii],times = time,func=func,parms=parms,
-                jactype="1Dint",bandup=nspec,banddown=N/nspec,...)                    
+      out <- runsteady (y=y[ii],times = times,func=func,parms=parms,
+                jactype=jactype,bandup=nspec,banddown=N/nspec,...)                    
    
     else
       stop ("cannot run steady.1D: method should be 'stode' or 'runsteady' if func is a DLL")
@@ -65,6 +65,7 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
   } else {
 
   # internal function #
+    if (is.null(jactype)) jactype <- "bandint"
 
     bmodel <- function (time,state,pars,model,...) {
       Modconc <-  model(time,state[ij],pars,...)   # ij: reorder state variables
@@ -79,12 +80,12 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
     }
 
     if (method=="stode")
-      out <- stode(y[ii],time,func=bmod,parms=parms,
+      out <- stode(y[ii],times,func=bmod,parms=parms,
                 bandup=nspec*bandwidth,banddown=nspec*bandwidth,
-                jactype="bandint",...)    else
-      out <- runsteady(y[ii],times=time,func=bmod,parms=parms,
+                jactype=jactype,...)    else
+      out <- runsteady(y[ii],times=times,func=bmod,parms=parms,
                 bandup=nspec*bandwidth,banddown=nspec*bandwidth,
-                jactype="bandint",...)
+                jactype=jactype,...)
 
     out[[1]][ii] <- out[[1]]
   }

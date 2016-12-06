@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include "steady.h"   
+#include "externalptr.h"
 
 void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, int*),
 		     int *, int *, double *, double *, double *, double *,
@@ -189,12 +190,12 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
     { 
     if (rearrange == 0)
       {
-      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);
       } else {
        nspec=INTEGER(nSpec)[0];
        ndim =INTEGER(nDim)[0];
        derivs = (C_deriv_func_type *) C_steady_derivs2; 
-       derivb = (C_deriv_func_type *) R_ExternalPtrAddr(func);
+       derivb = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);
 
        y2 = (double *) R_alloc(neq, sizeof(double));
        dy2 = (double *) R_alloc(neq, sizeof(double));   
@@ -209,7 +210,7 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
     {
       if (inherits(jacfunc,"NativeSymbol"))
      	{
-	    jac = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
+	    jac = (C_jac_func_type *) R_ExternalPtrAddrFn_(jacfunc);
 	    } else {
 	    Rst_jac_func = jacfunc;
 	    jac = C_steady_jac;

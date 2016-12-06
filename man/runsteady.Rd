@@ -22,7 +22,7 @@
 }
 
 \usage{
-runsteady(y, times = c(0, Inf), func, parms, 
+runsteady(y, time = c(0, Inf), func, parms, 
           stol = 1e-8, rtol = 1e-6, atol = 1e-6,  
           jacfunc = NULL, jactype = "fullint", mf = NULL, 
           verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, 
@@ -30,19 +30,21 @@ runsteady(y, times = c(0, Inf), func, parms,
           banddown = NULL, maxsteps = 100000, dllname = NULL, 
           initfunc = dllname, initpar = parms, rpar = NULL, 
           ipar = NULL, nout = 0, outnames = NULL, 
-          forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
+          forcings = NULL, initforc = NULL, fcontrol = NULL, 
+          lrw = NULL, liw = NULL, times = time, ...)
 }
 
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y} has a
     name attribute, the names will be used to label the output matrix.
   }
-  \item{times }{The simulation time. This should be a 2-valued vector,
+  \item{time, times }{The simulation time. This should be a 2-valued vector,
     consisting of the initial time and the end time.
     The last time value should be large enough to make sure that steady-state
     is effectively reached in this period.
     The simulation will stop either when \code{times[2]} has been reached or
     when \code{maxsteps} have been performed.
+    (note: since version 1.7, argument time has been added, for consistency with other solvers.)
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ODE system (the \emph{model definition}) at time
@@ -97,9 +99,9 @@ runsteady(y, times = c(0, Inf), func, parms,
     of \code{lsode}.
   }
   \item{jactype }{the structure of the jacobian, 
-    one of "fullint", "fullusr", "bandusr" or "bandint" - either full or
-    banded and estimated internally or by user; overruled if \code{mf}
-    is not NULL.
+    one of "fullint", "fullusr", "bandusr", "bandint", "sparse" - either full,
+    banded or sparse and estimated internally or by user; overruled if \code{mf}
+    is not NULL.   If "sparse" then method lsodes is used, else lsode.
   }
   \item{mf }{the "method flag" passed to function lsode - overrules
     \code{jactype} - provides more options than \code{jactype} - see details.
@@ -131,7 +133,7 @@ runsteady(y, times = c(0, Inf), func, parms,
   }
   \item{maxord }{the maximum order to be allowed. \code{NULL} uses the default,
     i.e. order 12 if implicit Adams method (meth=1), order 5 if BDF method
-    (meth=2). Reduce maxord to save storage space.
+    (meth=2) or if \code{jacType} == 'sparse'. Reduce maxord to save storage space.
   }
   \item{bandup }{number of non-zero bands above the diagonal, in case the
     jacobian is banded.
@@ -193,6 +195,29 @@ runsteady(y, times = c(0, Inf), func, parms,
   }
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See deSolve's package vignette \code{"compiledCode"}.
+  }
+  \item{lrw }{Only if jactype = 'sparse', the length of the real work array rwork; due to the
+    sparsicity, this cannot be readily predicted. If \code{NULL}, a
+    guess will be made, and if not sufficient, \code{lsodes} will return
+    with a message indicating the size of rwork actually required.
+    Therefore, some experimentation may be necessary to estimate the
+    value of \code{lrw}.
+    
+    For instance, if you get the error:
+\preformatted{ 
+DLSODES- RWORK length is insufficient to proceed.                               
+  Length needed is .ge. LENRW (=I1), exceeds LRW (=I2)                    
+  In above message,  I1 =     27627   I2 =     25932 
+}    
+  set \code{lrw} equal to 27627 or a higher value
+
+  }
+  \item{liw }{Only if jactype = 'sparse', the length of the integer work array iwork; due to the
+    sparsicity, this cannot be readily predicted. If \code{NULL}, a guess will
+    be made, and if not sufficient, \code{lsodes} will return with a
+    message indicating the size of iwork actually required.  Therefore,
+    some experimentation may be necessary to estimate the value of
+    \code{liw}.
   }
   \item{... }{additional arguments passed to \code{func} and \code{jacfunc}
     allowing this to be a generic function.
@@ -263,14 +288,28 @@ print( system.time(
   ST2 <- runsteady(y = y, func = model, parms = pars, times = c(0, 1000))
 ))
 
-rbind("Newton Raphson" = ST$y, "Runsteady" = ST2$y)
+print( system.time(
+  ST3 <- runsteady(y = y, func = model, parms = pars, times = c(0, 1000), 
+    jactype = "sparse")
+))
+
+rbind("Newton Raphson" = ST$y, "Runsteady" = ST2$y, "Run sparse" = ST3$y)
 }
 \references{ Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
    Solvers," in Scientific Computing, R. S. Stepleman, et al., Eds.
-   (North-Holland, Amsterdam, 1983), pp. 55-64.}
-\details{The work is done by the Fortran subroutine \code{dlsode},
+   (North-Holland, Amsterdam, 1983), pp. 55-64.
+
+  S. C. Eisenstat, M. C. Gursky, M. H. Schultz, and A. H. Sherman, Yale
+  Sparse Matrix Package: I. The Symmetric Codes,
+  Int. J. Num. Meth. Eng., 18 (1982), pp. 1145-1151.
+  
+  S. C. Eisenstat, M. C. Gursky, M. H. Schultz, and A. H. Sherman, Yale
+  Sparse Matrix Package: II. The Nonsymmetric Codes, Research Report
+  No. 114, Dept. of Computer Sciences, Yale University, 1977.
+   }
+\details{The work is done by the Fortran subroutine \code{dlsode} or \code{dlsodes} (if sparse),
     whose documentation should be consulted for details (it is included as
-    comments in the source file \file{src/lsode.f}).  The implementation is
+    comments in the source file \file{src/lsodes.f}).  The implementation is
     based on the November, 2003 version of lsode, from Netlib.
     
   Before using \code{runsteady}, the user has to decide whether or not the
@@ -294,6 +333,8 @@ rbind("Newton Raphson" = ST$y, "Runsteady" = ST2$y)
     \item jactype = "bandint" : a banded jacobian, calculated by \code{lsode};
       the size of the bands specified by \code{bandup} and \code{banddown},
       corresponds to \code{mf}=25.
+    \item jactype = "sparse" : the soler \code{lsodes} is used, and the sparse jacobian is 
+      calculated by \code{lsodes} - not possible to specify \code{jacfunc}.
   }
   More options are available when specifying \bold{mf} directly. 
 

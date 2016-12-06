@@ -27,7 +27,7 @@ stode         <- function(y, time=0, func, parms=NULL,
        verbose=FALSE, bandup=1, banddown=1, positive = FALSE, maxiter=100,
        ynames=TRUE, dllname=NULL, initfunc=dllname, initpar=parms,
        rpar=NULL, ipar=NULL, nout=0, outnames = NULL, forcings = NULL, 
-        initforc = NULL, fcontrol = NULL, ...)  {
+        initforc = NULL, fcontrol = NULL, times = time, ...)  {
 
 ## check input
   if (is.list(func)) {            
@@ -48,9 +48,12 @@ stode         <- function(y, time=0, func, parms=NULL,
 
   if (!is.numeric(y))
     stop("`y' must be numeric")
-  n <- length(y)
-  if (! is.null(time)&&!is.numeric(time))
-    stop("`time' must be NULL or numeric")
+  n <- length(y)  
+  if (! is.null(times)&&!is.numeric(times))
+    stop("`times' must be NULL or numeric")
+  if (length(times)>1)
+    warning("`times' should be one number - taking first value")
+  time <- times[1]    
   if (!CheckFunc(func))
     stop("`func' must be a function or character vector or a compiled function")
   if (is.character(func) && (is.null(dllname) || !is.character(dllname)))
@@ -83,7 +86,7 @@ stode         <- function(y, time=0, func, parms=NULL,
   else if (jactype == "fullusr" ) imp <- 21 # full jacobian, specified by user function
   else if (jactype == "bandusr" ) imp <- 24 # banded jacobian, specified by user function
   else if (jactype == "bandint" ) imp <- 25 # banded jacobian, specified internally
-  else if (jactype == "1Dint"   ) imp <- 0  # banded jacobian, specified+rearranged internally  
+  else if (jactype %in% c("1D", "1Dint")) imp <- 0  # banded jacobian, specified+rearranged internally  
   else stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr', or 'bandint'")
 
   if (imp == 0) {
@@ -142,9 +145,9 @@ stode         <- function(y, time=0, func, parms=NULL,
          Forc <- NULL
          for (i in 1: length(forcings))
            if (! is.null(fcontrol))
-             Forc <- c(Forc, do.call(approx,list(x = forcings[[i]], y = NULL, xout = time, fcontrol))$y)
+             Forc <- c(Forc, do.call(approx,list(x = forcings[[i]], y = NULL, xout = times, fcontrol))$y)
            else
-             Forc <- c(Forc, do.call(approx,list(x = forcings[[i]], y = NULL, xout = time))$y)
+             Forc <- c(Forc, do.call(approx,list(x = forcings[[i]], y = NULL, xout = times))$y)
        } else Forc <- forcings   
      }
   }

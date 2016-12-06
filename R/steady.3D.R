@@ -6,7 +6,8 @@
 ## =============================================================================
 
 steady.3D    <- function (y, time = 0, func, parms = NULL, nspec = NULL, 
-                dimens, names = NULL, cyclicBnd = NULL, ...)
+                dimens, names = NULL, method = "stodes", 
+                       jactype = NULL, cyclicBnd = NULL, times = time, ...)
 {
   if (any(!is.na(pmatch(names(list(...)), "jacfunc")))) 
     stop ("cannot run steady.2D with jacfunc specified - remove jacfunc from call list")
@@ -24,6 +25,14 @@ steady.3D    <- function (y, time = 0, func, parms = NULL, nspec = NULL,
   if (! is.null(names) && length(names) != nspec)
     stop("length of 'names' should equal 'nspec'")
 
+  if (!method %in% c("stodes","runsteady"))
+    stop (" 'method' should be one of 'stodes', 'runsteady'")   
+
+  if (is.null(times))
+    times <- 0
+  if (method == "runsteady" & length(times) == 1)
+      times <- c(times, Inf)  
+
   Bnd <- c(0,0,0)
   if (! is.null(cyclicBnd)) {
     if (max(cyclicBnd) > 3 )
@@ -32,8 +41,18 @@ steady.3D    <- function (y, time = 0, func, parms = NULL, nspec = NULL,
   }
 
   # Note: stodes expects rev(dimens)..
-  out <- stodes(y = y, time = time, func = func, parms = parms,
-                nnz = c(nspec, rev(dimens), rev(Bnd)), sparsetype = "3D", ...)
+  if (method == "stodes") {
+    if (is.null(jactype))
+      jactype <- "3D"
+    # Note: stodes expects rev(dimens)..
+  out <- stodes(y = y, times = times, func = func, parms = parms,
+                nnz = c(nspec, rev(dimens), rev(Bnd)), sparsetype = jactype, ...)
+  } else {
+    if (is.null(jactype))
+      jactype <- "sparse"
+    out <- runsteady (y=y,times = times,func=func,parms=parms,
+                jactype=jactype, ...)        # will use lsodes             
+  } 
   class(out) <- c("steady3D","rootSolve","list")    # a steady-state 
   attr(out,"dimens") <- dimens
   attr(out, "nspec") <- nspec

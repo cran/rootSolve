@@ -6,14 +6,14 @@
 ## =============================================================================
 
 steady.band  <- function (y, time=0, func, parms=NULL, nspec=NULL, bandup=nspec,
-                          banddown=nspec, ...)  {
+                          banddown=nspec, times = time, ...)  {
 
   if (is.null(bandup)  )
     stop ("cannot run steady.band: bandup is not specified")
   if (is.null(banddown))
     stop ("cannot run steady.band: banddown is not specified")
 
-  out <- stode(y,time,func,parms=parms,
+  out <- stode(y,times,func,parms=parms,
         bandup=bandup,banddown=banddown,jactype="bandint",...) 
   class(out) <- c("steady","rootSolve","list")    # a steady-state 
   return(out)

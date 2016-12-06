@@ -14,7 +14,7 @@ c aplsca :   Computes     A:= A + s I    (s = scalar)                  c
 c----------------------------------------------------------------------c 
       subroutine aplb (nrow,ncol,job,a,ja,ia,b,jb,ib,
      *     c,jc,ic,nzmax,iw,ierr)
-      real*8 a(*), b(*), c(*) 
+      real(kind = 8) a(*), b(*), c(*) 
       integer ja(*),jb(*),jc(*),ia(nrow+1),ib(nrow+1),ic(nrow+1),
      *     iw(ncol)
 c-----------------------------------------------------------------------
@@ -22,7 +22,7 @@ c performs the matrix sum  C = A+B.
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A and B
+c nrow  = integer. The row dimension of A and B
 c ncol  = integer. The column dimension of A and B.
 c job   = integer. Job indicator. When job = 0, only the structure
 c                  (i.e. the arrays jc, ic) is computed and the
@@ -34,9 +34,9 @@ c ia   = Matrix A in compressed sparse row format.
 c 
 c b, 
 c jb, 
-c ib	=  Matrix B in compressed sparse row format.
+c ib    =  Matrix B in compressed sparse row format.
 c
-c nzmax	= integer. The  length of the arrays c and jc.
+c nzmax = integer. The  length of the arrays c and jc.
 c         amub will stop if the result matrix C  has a number 
 c         of elements that exceeds exceeds nzmax. See ierr.
 c 
@@ -44,9 +44,9 @@ c on return:
 c----------
 c c, 
 c jc, 
-c ic	= resulting matrix C in compressed sparse row sparse format.
-c	    
-c ierr	= integer. serving as error message. 
+c ic    = resulting matrix C in compressed sparse row sparse format.
+c       
+c ierr  = integer. serving as error message. 
 c         ierr = 0 means normal return,
 c         ierr .gt. 0 means that amub stopped while computing the
 c         i-th row  of C with i=ierr, because the number 
@@ -54,7 +54,7 @@ c         of elements in C exceeds nzmax.
 c
 c work arrays:
 c------------
-c iw	= integer work array of length equal to the number of
+c iw    = integer work array of length equal to the number of
 c         columns in A.
 c
 c-----------------------------------------------------------------------
@@ -92,7 +92,7 @@ c
             endif
  300     continue
          do 301 k=ic(ii), len
-	    iw(jc(k)) = 0
+          iw(jc(k)) = 0
  301     continue
          ic(ii+1) = len+1
  500  continue
@@ -103,7 +103,7 @@ c------------end of aplb -----------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine aplb1(nrow,ncol,job,a,ja,ia,b,jb,ib,c,jc,ic,nzmax,ierr)
-      real*8 a(*), b(*), c(*) 
+      real(kind = 8) a(*), b(*), c(*) 
       integer ja(*),jb(*),jc(*),ia(nrow+1),ib(nrow+1),ic(nrow+1)
 c-----------------------------------------------------------------------
 c performs the matrix sum  C = A+B for matrices in sorted CSR format.
@@ -113,7 +113,7 @@ c each row, provided the original matrices are sorted in the same way.
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A and B
+c nrow  = integer. The row dimension of A and B
 c ncol  = integer. The column dimension of A and B.
 c job   = integer. Job indicator. When job = 0, only the structure
 c                  (i.e. the arrays jc, ic) is computed and the
@@ -125,10 +125,10 @@ c ia   = Matrix A in compressed sparse row format with entries sorted
 c 
 c b, 
 c jb, 
-c ib	=  Matrix B in compressed sparse row format with entries sorted
+c ib    =  Matrix B in compressed sparse row format with entries sorted
 c        ascendly in each row   
 c
-c nzmax	= integer. The  length of the arrays c and jc.
+c nzmax = integer. The  length of the arrays c and jc.
 c         amub will stop if the result matrix C  has a number 
 c         of elements that exceeds exceeds nzmax. See ierr.
 c 
@@ -136,10 +136,10 @@ c on return:
 c----------
 c c, 
 c jc, 
-c ic	= resulting matrix C in compressed sparse row sparse format
+c ic    = resulting matrix C in compressed sparse row sparse format
 c         with entries sorted ascendly in each row. 
-c	    
-c ierr	= integer. serving as error message. 
+c       
+c ierr  = integer. serving as error message. 
 c         ierr = 0 means normal return,
 c         ierr .gt. 0 means that amub stopped while computing the
 c         i-th row  of C with i=ierr, because the number 
@@ -203,7 +203,7 @@ c-----------------------------------------------------------------------
       end
       subroutine aplsb (nrow,ncol,a,ja,ia,s,b,jb,ib,c,jc,ic,
      *     nzmax,ierr)
-      real*8 a(*), b(*), c(*), s
+      real(kind = 8) a(*), b(*), c(*), s
       integer ja(*),jb(*),jc(*),ia(nrow+1),ib(nrow+1),ic(nrow+1)
 c-----------------------------------------------------------------------
 c performs the operation C = A+s B for matrices in sorted CSR format.
@@ -213,21 +213,21 @@ c each row, provided the original matrices are sorted in the same way.
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A and B
+c nrow  = integer. The row dimension of A and B
 c ncol  = integer. The column dimension of A and B.
 c
 c a,
 c ja,
 c ia   = Matrix A in compressed sparse row format with entries sorted
 c
-c s	= real. scalar factor for B.
+c s = real. scalar factor for B.
 c 
 c b, 
 c jb, 
-c ib	=  Matrix B in compressed sparse row format with entries sorted
+c ib    =  Matrix B in compressed sparse row format with entries sorted
 c        ascendly in each row   
 c
-c nzmax	= integer. The  length of the arrays c and jc.
+c nzmax = integer. The  length of the arrays c and jc.
 c         amub will stop if the result matrix C  has a number 
 c         of elements that exceeds exceeds nzmax. See ierr.
 c 
@@ -235,10 +235,10 @@ c on return:
 c----------
 c c, 
 c jc, 
-c ic	= resulting matrix C in compressed sparse row sparse format
+c ic    = resulting matrix C in compressed sparse row sparse format
 c         with entries sorted ascendly in each row. 
-c	    
-c ierr	= integer. serving as error message. 
+c       
+c ierr  = integer. serving as error message. 
 c         ierr = 0 means normal return,
 c         ierr .gt. 0 means that amub stopped while computing the
 c         i-th row  of C with i=ierr, because the number 
@@ -312,14 +312,14 @@ c------------end-of-aplsb ---------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine diamua (nrow,job, a, ja, ia, diag, b, jb, ib)
-      real*8 a(*), b(*), diag(nrow), scal
+      real(kind = 8) a(*), b(*), diag(nrow), scal
       integer ja(*),jb(*), ia(nrow+1),ib(nrow+1) 
 c-----------------------------------------------------------------------
 c performs the matrix by matrix product B = Diag * A  (in place) 
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A
+c nrow  = integer. The row dimension of A
 c
 c job   = integer. job indicator. Job=0 means get array b only
 c         job = 1 means get b, and the integer arrays ib, jb.
@@ -335,8 +335,8 @@ c----------
 c
 c b, 
 c jb, 
-c ib	= resulting matrix B in compressed sparse row sparse format.
-c	    
+c ib    = resulting matrix B in compressed sparse row sparse format.
+c       
 c Notes:
 c-------
 c 1)        The column dimension of A is not needed. 
@@ -368,14 +368,14 @@ c----------end-of-diamua------------------------------------------------
 c-----------------------------------------------------------------------
       end 
       subroutine amudia (nrow,job, a, ja, ia, diag, b, jb, ib)
-      real*8 a(*), b(*), diag(nrow) 
+      real(kind = 8) a(*), b(*), diag(nrow) 
       integer ja(*),jb(*), ia(nrow+1),ib(nrow+1) 
 c-----------------------------------------------------------------------
 c performs the matrix by matrix product B = A * Diag  (in place) 
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A
+c nrow  = integer. The row dimension of A
 c
 c job   = integer. job indicator. Job=0 means get array b only
 c         job = 1 means get b, and the integer arrays ib, jb.
@@ -391,8 +391,8 @@ c----------
 c
 c b, 
 c jb, 
-c ib	= resulting matrix B in compressed sparse row sparse format.
-c	    
+c ib    = resulting matrix B in compressed sparse row sparse format.
+c       
 c Notes:
 c-------
 c 1)        The column dimension of A is not needed. 
@@ -422,14 +422,14 @@ c-----------------------------------------------------------------------
 c-----------end-of-amudiag----------------------------------------------
       end 
       subroutine aplsca (nrow, a, ja, ia, scal,iw) 
-      real*8 a(*), scal
+      real(kind = 8) a(*), scal
       integer ja(*), ia(nrow+1),iw(*)
 c-----------------------------------------------------------------------
 c Adds a scalar to the diagonal entries of a sparse matrix A :=A + s I 
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A
+c nrow  = integer. The row dimension of A
 c
 c a,
 c ja,
@@ -442,8 +442,8 @@ c----------
 c
 c a, 
 c ja, 
-c ia	= matrix A with diagonal elements shifted (or created).
-c	    
+c ia    = matrix A with diagonal elements shifted (or created).
+c       
 c iw    = integer work array of length n. On return iw will
 c         contain  the positions of the diagonal entries in the 
 c         output matrix. (i.e., a(iw(k)), ja(iw(k)), k=1,...n,
@@ -525,7 +525,7 @@ c----------------------------------------------------------------------c
 c amux  : A times a vector. Compressed Sparse Row (CSR) format.        c
 c----------------------------------------------------------------------c
       subroutine amux (n, x, y, a,ja,ia) 
-      real*8  x(*), y(*), a(*) 
+      real(kind = 8)  x(*), y(*), a(*) 
       integer n, ja(*), ia(*)
 c-----------------------------------------------------------------------
 c         A times a vector
@@ -548,7 +548,7 @@ c
 c-----------------------------------------------------------------------
 c local variables
 c
-      real*8 t
+      real(kind = 8) t
       integer i, k
 c-----------------------------------------------------------------------
       do 100 i = 1,n
@@ -588,7 +588,7 @@ c csrbnd  : converts a compressed sparse row format into a banded      c
 c           format (linpack style).                                    c
 c----------------------------------------------------------------------c
       subroutine csrdns(nrow,ncol,a,ja,ia,dns,ndns,ierr) 
-      real*8 dns(ndns,*),a(*)
+      real(kind = 8) dns(ndns,*),a(*)
       integer ja(*),ia(*)
 c-----------------------------------------------------------------------
 c Compressed Sparse Row    to    Dense 
@@ -599,14 +599,14 @@ c
 c On entry:
 c---------- 
 c
-c nrow	= row-dimension of a
-c ncol	= column dimension of a
+c nrow  = row-dimension of a
+c ncol  = column dimension of a
 c a, 
 c ja, 
 c ia    = input matrix in compressed sparse row format. 
 c         (a=value array, ja=column array, ia=pointer array)
 c dns   = array where to store dense matrix
-c ndns	= first dimension of array dns 
+c ndns  = first dimension of array dns 
 c
 c on return: 
 c----------- 
@@ -621,19 +621,19 @@ c-----------------------------------------------------------------------
       ierr = 0
       do 1 i=1, nrow
          do 2 j=1,ncol
-	    dns(i,j) = 0.0d0
+          dns(i,j) = 0.0d0
  2       continue
  1    continue
 c     
       do 4 i=1,nrow
          do 3 k=ia(i),ia(i+1)-1
             j = ja(k) 
-	    if (j .gt. ncol) then
+            if (j .gt. ncol) then
                ierr = i
                return
-	    endif
-	    dns(i,j) = a(k)
- 3       continue	   
+            endif
+            dns(i,j) = a(k)
+ 3       continue      
  4    continue
       return
 c---- end of csrdns ----------------------------------------------------
@@ -641,7 +641,7 @@ c-----------------------------------------------------------------------
       end
       subroutine coocsr(nrow,nnz,a,ir,jc,ao,jao,iao)
 c----------------------------------------------------------------------- 
-      real*8 a(*),ao(*),x
+      real(kind = 8) a(*),ao(*),x
       integer ir(*),jc(*),jao(*),iao(*)
 c-----------------------------------------------------------------------
 c  Coordinate     to   Compressed Sparse Row 
@@ -651,23 +651,23 @@ c  a, ir, jc into a row general sparse ao, jao, iao format.
 c
 c on entry:
 c--------- 
-c nrow	= dimension of the matrix 
-c nnz	= number of nonzero elements in matrix
+c nrow  = dimension of the matrix 
+c nnz   = number of nonzero elements in matrix
 c a,
 c ir, 
 c jc    = matrix in coordinate format. a(k), ir(k), jc(k) store the nnz
 c         nonzero elements of the matrix with a(k) = actual real value of
-c 	  the elements, ir(k) = its row number and jc(k) = its column 
-c	  number. The order of the elements is arbitrary. 
+c     the elements, ir(k) = its row number and jc(k) = its column 
+c     number. The order of the elements is arbitrary. 
 c
 c on return:
 c----------- 
-c ir 	is destroyed
+c ir    is destroyed
 c
 c ao, jao, iao = matrix in general sparse matrix format with ao 
-c 	continung the real values, jao containing the column indices, 
-c	and iao being the pointer to the beginning of the row, 
-c	in arrays ao, jao.
+c   continung the real values, jao containing the column indices, 
+c   and iao being the pointer to the beginning of the row, 
+c   in arrays ao, jao.
 c
 c Notes:
 c------ This routine is NOT in place.  See coicsr
@@ -708,7 +708,7 @@ c-----------------------------------------------------------------------
       end
       subroutine coicsr (n,nnz,job,a,ja,ia,iwk)
       integer ia(nnz),ja(nnz),iwk(n+1) 
-      real*8 a(*)
+      real(kind = 8) a(*)
 c------------------------------------------------------------------------
 c IN-PLACE coo-csr conversion routine.
 c------------------------------------------------------------------------
@@ -718,23 +718,23 @@ c a,ja,ia of the result are overwritten onto the original arrays.
 c------------------------------------------------------------------------
 c on entry:
 c--------- 
-c n	= integer. row dimension of A.
-c nnz	= integer. number of nonzero elements in A.
+c n = integer. row dimension of A.
+c nnz   = integer. number of nonzero elements in A.
 c job   = integer. Job indicator. when job=1, the real values in a are
 c         filled. Otherwise a is not touched and the structure of the
 c         array only (i.e. ja, ia)  is obtained.
-c a	= real array of size nnz (number of nonzero elements in A)
+c a = real array of size nnz (number of nonzero elements in A)
 c         containing the nonzero elements 
-c ja	= integer array of length nnz containing the column positions
-c 	  of the corresponding elements in a.
-c ia	= integer array of length nnz containing the row positions
-c 	  of the corresponding elements in a.
-c iwk	= integer work array of length n+1 
+c ja    = integer array of length nnz containing the column positions
+c     of the corresponding elements in a.
+c ia    = integer array of length nnz containing the row positions
+c     of the corresponding elements in a.
+c iwk   = integer work array of length n+1 
 c on return:
 c----------
 c a
 c ja 
-c ia	= contains the compressed sparse row data structure for the 
+c ia    = contains the compressed sparse row data structure for the 
 c         resulting matrix.
 c Note: 
 c-------
@@ -744,9 +744,10 @@ c         if you want them sorted.
 c----------------------------------------------------------------------c
 c  Coded by Y. Saad, Sep. 26 1989                                      c
 c----------------------------------------------------------------------c
-      real*8 t,tnext
+      real(kind = 8) t,tnext
       logical values
 c----------------------------------------------------------------------- 
+      tnext = 0.d0
       values = (job .eq. 1) 
 c find pointer array for resulting matrix. 
       do 35 i=1,n+1
@@ -771,7 +772,7 @@ c
       j = ja(init)
       ia(init) = -1
 c------------------------------------------------------------------------
- 6    k = k+1 		
+ 6    k = k+1       
 c     current row number is i.  determine  where to go. 
       ipos = iwk(i)
 c     save the chased element. 
@@ -794,7 +795,7 @@ c     determine  next element to be chased,
  65   init = init+1
       if (init .gt. nnz) goto 70
       if (ia(init) .lt. 0) goto 65
-c     restart chasing --	
+c     restart chasing --    
       goto 5
  70   do 80 i=1,n 
          ia(i+1) = iwk(i)
@@ -806,7 +807,7 @@ c------------------------------------------------------------------------
       end
       subroutine csrcoo (nrow,job,nzmax,a,ja,ia,nnz,ao,ir,jc,ierr)
 c-----------------------------------------------------------------------
-      real*8 a(*),ao(*) 
+      real(kind = 8) a(*),ao(*) 
       integer ir(*),jc(*),ja(*),ia(nrow+1) 
 c----------------------------------------------------------------------- 
 c  Compressed Sparse Row      to      Coordinate 
@@ -816,7 +817,7 @@ c  a, ir, jc into a row general sparse ao, jao, iao format.
 c
 c on entry: 
 c---------
-c nrow	= dimension of the matrix.
+c nrow  = dimension of the matrix.
 c job   = integer serving as a job indicator. 
 c         if job = 1 fill in only the array ir, ignore jc, and ao.
 c         if job = 2 fill in ir, and jc but not ao 
@@ -826,7 +827,7 @@ c         ao and jc are the same as a, ja. So when job = 3, a and ja are
 c         simply copied into ao, jc.  When job=2, only jc and ir are
 c         returned. With job=1 only the array ir is returned. Moreover,
 c         the algorithm is in place:
-c	     call csrcoo (nrow,1,nzmax,a,ja,ia,nnz,a,ia,ja,ierr) 
+c        call csrcoo (nrow,1,nzmax,a,ja,ia,nnz,a,ia,ja,ierr) 
 c         will write the output matrix in coordinate format on a, ja,ia.
 c
 c a,
@@ -859,7 +860,14 @@ c------------------------------------------------------------------------
          return
       endif
 c------------------------------------------------------------------------
-      goto (3,2,1) job
+      if (job .EQ. 1) then
+        goto 3
+      else if (job .EQ. 2) then
+        goto 2
+      else if (job .EQ. 3) then
+        goto 1
+      endif   
+C      goto (3,2,1) job
  1    do 10 k=1,nnz
          ao(k) = a(k)
  10   continue
@@ -882,7 +890,7 @@ c-----------------------------------------------------------------------
       end
       subroutine csrcsc (n,job,ipos,a,ja,ia,ao,jao,iao)
       integer ia(n+1),iao(n+1),ja(*),jao(*)
-      real*8  a(*),ao(*)
+      real(kind = 8)  a(*),ao(*)
 c-----------------------------------------------------------------------
 c Compressed Sparse Row     to      Compressed Sparse Column
 c
@@ -893,8 +901,8 @@ c this subroutine transposes a matrix stored in a, ja, ia format.
 c ---------------
 c on entry:
 c----------
-c n	= dimension of A.
-c job	= integer to indicate whether to fill the values (job.eq.1) of the
+c n = dimension of A.
+c job   = integer to indicate whether to fill the values (job.eq.1) of the
 c         matrix ao or only the pattern., i.e.,ia, and ja (job .ne.1)
 c
 c ipos  = starting position in ao, jao of the transposed matrix.
@@ -902,28 +910,28 @@ c         the iao array takes this into account (thus iao(1) is set to ipos.)
 c         Note: this may be useful if one needs to append the data structure
 c         of the transpose to that of A. In this case use for example
 c                call csrcsc (n,1,ia(n+1),a,ja,ia,a,ja,ia(n+2)) 
-c	  for any other normal usage, enter ipos=1.
-c a	= real array of length nnz (nnz=number of nonzero elements in input 
+c     for any other normal usage, enter ipos=1.
+c a = real array of length nnz (nnz=number of nonzero elements in input 
 c         matrix) containing the nonzero elements.
-c ja	= integer array of length nnz containing the column positions
-c 	  of the corresponding elements in a.
-c ia	= integer of size n+1. ia(k) contains the position in a, ja of
-c	  the beginning of the k-th row.
+c ja    = integer array of length nnz containing the column positions
+c     of the corresponding elements in a.
+c ia    = integer of size n+1. ia(k) contains the position in a, ja of
+c     the beginning of the k-th row.
 c
 c on return:
 c ---------- 
 c output arguments:
-c ao	= real array of size nzz containing the "a" part of the transpose
-c jao	= integer array of size nnz containing the column indices.
-c iao	= integer array of size n+1 containing the "ia" index array of
-c	  the transpose. 
+c ao    = real array of size nzz containing the "a" part of the transpose
+c jao   = integer array of size nnz containing the column indices.
+c iao   = integer array of size n+1 containing the "ia" index array of
+c     the transpose. 
 c
 c----------------------------------------------------------------------- 
       call csrcsc2 (n,n,job,ipos,a,ja,ia,ao,jao,iao)
       end
       subroutine csrcsc2 (n,n2,job,ipos,a,ja,ia,ao,jao,iao)
       integer ia(n+1),iao(n2+1),ja(*),jao(*)
-      real*8  a(*),ao(*)
+      real(kind = 8)  a(*),ao(*)
 c-----------------------------------------------------------------------
 c Compressed Sparse Row     to      Compressed Sparse Column
 c
@@ -937,9 +945,9 @@ c this subroutine transposes a matrix stored in a, ja, ia format.
 c ---------------
 c on entry:
 c----------
-c n	= number of rows of CSR matrix.
+c n = number of rows of CSR matrix.
 c n2    = number of columns of CSC matrix.
-c job	= integer to indicate whether to fill the values (job.eq.1) of the
+c job   = integer to indicate whether to fill the values (job.eq.1) of the
 c         matrix ao or only the pattern., i.e.,ia, and ja (job .ne.1)
 c
 c ipos  = starting position in ao, jao of the transposed matrix.
@@ -947,21 +955,21 @@ c         the iao array takes this into account (thus iao(1) is set to ipos.)
 c         Note: this may be useful if one needs to append the data structure
 c         of the transpose to that of A. In this case use for example
 c                call csrcsc2 (n,n,1,ia(n+1),a,ja,ia,a,ja,ia(n+2)) 
-c	  for any other normal usage, enter ipos=1.
-c a	= real array of length nnz (nnz=number of nonzero elements in input 
+c     for any other normal usage, enter ipos=1.
+c a = real array of length nnz (nnz=number of nonzero elements in input 
 c         matrix) containing the nonzero elements.
-c ja	= integer array of length nnz containing the column positions
-c 	  of the corresponding elements in a.
-c ia	= integer of size n+1. ia(k) contains the position in a, ja of
-c	  the beginning of the k-th row.
+c ja    = integer array of length nnz containing the column positions
+c     of the corresponding elements in a.
+c ia    = integer of size n+1. ia(k) contains the position in a, ja of
+c     the beginning of the k-th row.
 c
 c on return:
 c ---------- 
 c output arguments:
-c ao	= real array of size nzz containing the "a" part of the transpose
-c jao	= integer array of size nnz containing the column indices.
-c iao	= integer array of size n+1 containing the "ia" index array of
-c	  the transpose. 
+c ao    = real array of size nzz containing the "a" part of the transpose
+c jao   = integer array of size nnz containing the column indices.
+c iao   = integer array of size n+1 containing the "ia" index array of
+c     the transpose. 
 c
 c----------------------------------------------------------------------- 
 c----------------- compute lengths of rows of transp(A) ----------------
@@ -999,7 +1007,7 @@ c-----------------------------------------------------------------------
       end
       subroutine csrdia (n,idiag,job,a,ja,ia,ndiag,
      *                   diag,ioff,ao,jao,iao,ind)
-      real*8 diag(ndiag,idiag), a(*), ao(*)
+      real(kind = 8) diag(ndiag,idiag), a(*), ao(*)
       integer ia(*), ind(*), ja(*), jao(*), iao(*), ioff(*)
 c----------------------------------------------------------------------- 
 c Compressed sparse row     to    diagonal format
@@ -1016,12 +1024,12 @@ c extracts them.
 c----------------------------------------------------------------------- 
 c on entry:
 c---------- 
-c n	= dimension of the matrix a.
+c n = dimension of the matrix a.
 c idiag = integer equal to the number of diagonals to be extracted. 
 c         Note: on return idiag may be modified.
-c a, ja, 			
+c a, ja,            
 c    ia = matrix stored in a, ja, ia, format
-c job	= integer. serves as a job indicator.  Job is better thought 
+c job   = integer. serves as a job indicator.  Job is better thought 
 c         of as a two-digit number job=xy. If the first (x) digit
 c         is one on entry then the diagonals to be extracted are 
 c         internally determined. In this case csrdia exctracts the
@@ -1057,7 +1065,7 @@ c diag  = real array of size (ndiag x idiag) containing the diagonals
 c         of A on return
 c          
 c ioff  = integer array of length idiag, containing the offsets of the
-c   	  diagonals to be extracted.
+c         diagonals to be extracted.
 c ao, jao
 c  iao  = remainder of the matrix in a, ja, ia format.
 c work arrays:
@@ -1138,7 +1146,7 @@ c----------- end of csrdia ---------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine csrbnd (n,a,ja,ia,job,abd,nabd,lowd,ml,mu,ierr)
-      real*8 a(*),abd(nabd,n)
+      real(kind = 8) a(*),abd(nabd,n)
       integer ia(n+1),ja(*)
 c----------------------------------------------------------------------- 
 c   Compressed Sparse Row  to  Banded (Linpack ) format.
@@ -1149,13 +1157,13 @@ c banded format,the Linpack conventions are assumed (see below).
 c----------------------------------------------------------------------- 
 c on entry:
 c----------
-c n	= integer,the actual row dimension of the matrix.
+c n = integer,the actual row dimension of the matrix.
 c
 c a,
 c ja,
 c ia    = input matrix stored in compressed sparse row format.
 c
-c job	= integer. if job=1 then the values of the lower bandwith ml 
+c job   = integer. if job=1 then the values of the lower bandwith ml 
 c         and the upper bandwidth mu are determined internally. 
 c         otherwise it is assumed that the values of ml and mu 
 c         are the correct bandwidths on input. See ml and mu below.
@@ -1171,13 +1179,13 @@ c         will be chosen. Alternative: call routine getbwd from unary
 c         first to detrermione ml and mu then define lowd accordingly.
 c         (Note: the banded solvers in linpack use lowd=2*ml+mu+1. )
 c
-c ml	= integer. equal to the bandwidth of the strict lower part of A
-c mu	= integer. equal to the bandwidth of the strict upper part of A
+c ml    = integer. equal to the bandwidth of the strict lower part of A
+c mu    = integer. equal to the bandwidth of the strict upper part of A
 c         thus the total bandwidth of A is ml+mu+1.
 c         if ml+mu+1 is found to be larger than lowd then an error 
 c         flag is raised (unless lowd = 0). see ierr.
 c
-c note:   ml and mu are assumed to have	 the correct bandwidth values
+c note:   ml and mu are assumed to have  the correct bandwidth values
 c         as defined above if job is set to zero on entry.
 c
 c on return:
@@ -1190,8 +1198,8 @@ c         of the j-th column of  the original matrix comprised in the
 c         band ( i in (j-ml,j+mu) ) with the lowest diagonal at
 c         the bottom row (row lowd). See details below for this format.
 c
-c ml	= integer. equal to the bandwidth of the strict lower part of A
-c mu	= integer. equal to the bandwidth of the strict upper part of A
+c ml    = integer. equal to the bandwidth of the strict lower part of A
+c mu    = integer. equal to the bandwidth of the strict upper part of A
 c         if job=1 on entry then these two values are internally computed.
 c
 c lowd  = integer. row number in abd where the lowest diagonal 
@@ -1261,10 +1269,10 @@ c------------
       do 15  i=1,m
          ii = lowd -i+1
          do 10 j=1,n
-	    abd(ii,j) = 0.0d0
+          abd(ii,j) = 0.0d0
  10      continue
  15   continue
-c---------------------------------------------------------------------	   
+c---------------------------------------------------------------------     
       mdiag = lowd-ml
       do 30 i=1,n
          do 20 k=ia(i),ia(i+1)-1
@@ -1294,7 +1302,7 @@ c roscal : scales the rows of a matrix by their norms.                 c
 c----------------------------------------------------------------------c
       subroutine rperm (nrow,a,ja,ia,ao,jao,iao,perm,job)
       integer nrow,ja(*),ia(nrow+1),jao(*),iao(nrow+1),perm(nrow),job
-      real*8 a(*),ao(*) 
+      real(kind = 8) a(*),ao(*) 
 c-----------------------------------------------------------------------
 c this subroutine permutes the rows of a matrix in CSR format. 
 c rperm  computes B = P A  where P is a permutation matrix.  
@@ -1304,19 +1312,19 @@ c Youcef Saad -- recoded Jan 28, 1991.
 c-----------------------------------------------------------------------
 c on entry:
 c----------
-c n 	= dimension of the matrix
+c n     = dimension of the matrix
 c a, ja, ia = input matrix in csr format
-c perm 	= integer array of length nrow containing the permutation arrays
-c	  for the rows: perm(i) is the destination of row i in the
+c perm  = integer array of length nrow containing the permutation arrays
+c     for the rows: perm(i) is the destination of row i in the
 c         permuted matrix. 
 c         ---> a(i,j) in the original matrix becomes a(perm(i),j) 
 c         in the output  matrix.
 c
-c job	= integer indicating the work to be done:
-c 		job = 1	permute a, ja, ia into ao, jao, iao 
+c job   = integer indicating the work to be done:
+c       job = 1 permute a, ja, ia into ao, jao, iao 
 c                       (including the copying of real values ao and
 c                       the array iao).
-c 		job .ne. 1 :  ignore real values.
+c       job .ne. 1 :  ignore real values.
 c                     (in which case arrays a and ao are not needed nor
 c                      used).
 c
@@ -1366,7 +1374,7 @@ c-----------------------------------------------------------------------
       end
       subroutine cperm (nrow,a,ja,ia,ao,jao,iao,perm,job) 
       integer nrow,ja(*),ia(nrow+1),jao(*),iao(nrow+1),perm(*), job
-      real*8 a(*), ao(*) 
+      real(kind = 8) a(*), ao(*) 
 c-----------------------------------------------------------------------
 c this subroutine permutes the columns of a matrix a, ja, ia.
 c the result is written in the output matrix  ao, jao, iao.
@@ -1377,20 +1385,20 @@ c Y. Saad, May 2, 1990 / modified Jan. 28, 1991.
 c-----------------------------------------------------------------------
 c on entry:
 c----------
-c nrow 	= row dimension of the matrix
+c nrow  = row dimension of the matrix
 c
 c a, ja, ia = input matrix in csr format. 
 c
-c perm	= integer array of length ncol (number of columns of A
+c perm  = integer array of length ncol (number of columns of A
 c         containing the permutation array  the columns: 
 c         a(i,j) in the original matrix becomes a(i,perm(j))
 c         in the output matrix.
 c
-c job	= integer indicating the work to be done:
-c 		job = 1	permute a, ja, ia into ao, jao, iao 
+c job   = integer indicating the work to be done:
+c       job = 1 permute a, ja, ia into ao, jao, iao 
 c                       (including the copying of real values ao and
 c                       the array iao).
-c 		job .ne. 1 :  ignore real values ao and ignore iao.
+c       job .ne. 1 :  ignore real values ao and ignore iao.
 c
 c------------
 c on return: 
@@ -1434,7 +1442,7 @@ c-----------------------------------------------------------------------
       subroutine dperm (nrow,a,ja,ia,ao,jao,iao,perm,qperm,job)
       integer nrow,ja(*),ia(nrow+1),jao(*),iao(nrow+1),perm(nrow),
      +        qperm(*),job
-      real*8 a(*),ao(*) 
+      real(kind = 8) a(*),ao(*) 
 c-----------------------------------------------------------------------
 c This routine permutes the rows and columns of a matrix stored in CSR
 c format. i.e., it computes P A Q, where P, Q are permutation matrices. 
@@ -1449,26 +1457,26 @@ c Y. Saad, Sep. 21 1989 / recoded Jan. 28 1991.
 c-----------------------------------------------------------------------
 c on entry: 
 c---------- 
-c n 	= dimension of the matrix
+c n     = dimension of the matrix
 c a, ja, 
 c    ia = input matrix in a, ja, ia format
-c perm 	= integer array of length n containing the permutation arrays
-c	  for the rows: perm(i) is the destination of row i in the
+c perm  = integer array of length n containing the permutation arrays
+c     for the rows: perm(i) is the destination of row i in the
 c         permuted matrix -- also the destination of column i in case
 c         permutation is symmetric (job .le. 2) 
 c
-c qperm	= same thing for the columns. This should be provided only
+c qperm = same thing for the columns. This should be provided only
 c         if job=3 or job=4, i.e., only in the case of a nonsymmetric
-c	  permutation of rows and columns. Otherwise qperm is a dummy
+c     permutation of rows and columns. Otherwise qperm is a dummy
 c
-c job	= integer indicating the work to be done:
+c job   = integer indicating the work to be done:
 c * job = 1,2 permutation is symmetric  Ao :== P * A * transp(P)
-c 		job = 1	permute a, ja, ia into ao, jao, iao 
-c 		job = 2 permute matrix ignoring real values.
+c       job = 1 permute a, ja, ia into ao, jao, iao 
+c       job = 2 permute matrix ignoring real values.
 c * job = 3,4 permutation is non-symmetric  Ao :== P * A * Q 
-c 		job = 3	permute a, ja, ia into ao, jao, iao 
-c 		job = 4 permute matrix ignoring real values.
-c		
+c       job = 3 permute a, ja, ia into ao, jao, iao 
+c       job = 4 permute matrix ignoring real values.
+c       
 c on return: 
 c-----------
 c ao, jao, iao = input matrix in a, ja, ia format
@@ -1508,33 +1516,33 @@ c-----------------------------------------------------------------------
       end
       subroutine dvperm (n, x, perm) 
       integer n, perm(n) 
-      real*8 x(n)
+      real(kind = 8) x(n)
 c-----------------------------------------------------------------------
 c this subroutine performs an in-place permutation of a real vector x 
 c according to the permutation array perm(*), i.e., on return, 
 c the vector x satisfies,
 c
-c	x(perm(j)) :== x(j), j=1,2,.., n
+c   x(perm(j)) :== x(j), j=1,2,.., n
 c
 c-----------------------------------------------------------------------
 c on entry:
 c---------
-c n 	= length of vector x.
-c perm 	= integer array of length n containing the permutation  array.
-c x	= input vector
+c n     = length of vector x.
+c perm  = integer array of length n containing the permutation  array.
+c x = input vector
 c
 c on return:
 c---------- 
-c x	= vector x permuted according to x(perm(*)) :=  x(*)
+c x = vector x permuted according to x(perm(*)) :=  x(*)
 c
 c----------------------------------------------------------------------c
 c           Y. Saad, Sep. 21 1989                                      c
 c----------------------------------------------------------------------c
 c local variables 
-      real*8 tmp, tmp1
+      real(kind = 8) tmp, tmp1
 c
       init      = 1
-      tmp	= x(init)	
+      tmp   = x(init)   
       ii        = perm(init)
       perm(init)= -perm(init)
       k         = 0
@@ -1545,9 +1553,9 @@ c
 c
 c save the chased element --
 c 
-      tmp1	  = x(ii) 
+      tmp1    = x(ii) 
       x(ii)     = tmp
-      next	  = perm(ii) 
+      next    = perm(ii) 
       if (next .lt. 0 ) goto 65
 c     
 c test for end 
@@ -1566,8 +1574,8 @@ c
  65   init      = init+1
       if (init .gt. n) goto 101
       if (perm(init) .lt. 0) goto 65
-      tmp	= x(init)
-      ii	= perm(init)
+      tmp   = x(init)
+      ii    = perm(init)
       perm(init)=-perm(init)
       goto 6
 c     
@@ -1587,18 +1595,18 @@ c this subroutine performs an in-place permutation of an integer vector
 c ix according to the permutation array perm(*), i.e., on return, 
 c the vector x satisfies,
 c
-c	ix(perm(j)) :== ix(j), j=1,2,.., n
+c   ix(perm(j)) :== ix(j), j=1,2,.., n
 c
 c-----------------------------------------------------------------------
 c on entry:
 c---------
-c n 	= length of vector x.
-c perm 	= integer array of length n containing the permutation  array.
-c ix	= input vector
+c n     = length of vector x.
+c perm  = integer array of length n containing the permutation  array.
+c ix    = input vector
 c
 c on return:
 c---------- 
-c ix	= vector x permuted according to ix(perm(*)) :=  ix(*)
+c ix    = vector x permuted according to ix(perm(*)) :=  ix(*)
 c
 c----------------------------------------------------------------------c
 c           Y. Saad, Sep. 21 1989                                      c
@@ -1607,7 +1615,7 @@ c local variables
       integer tmp, tmp1
 c
       init      = 1
-      tmp	= ix(init)	
+      tmp   = ix(init)  
       ii        = perm(init)
       perm(init)= -perm(init)
       k         = 0
@@ -1618,9 +1626,9 @@ c
 c
 c save the chased element --
 c 
-      tmp1	  = ix(ii) 
+      tmp1    = ix(ii) 
       ix(ii)     = tmp
-      next	  = perm(ii) 
+      next    = perm(ii) 
       if (next .lt. 0 ) goto 65
 c     
 c test for end 
@@ -1639,8 +1647,8 @@ c
  65   init      = init+1
       if (init .gt. n) goto 101
       if (perm(init) .lt. 0) goto 65
-      tmp	= ix(init)
-      ii	= perm(init)
+      tmp   = ix(init)
+      ii    = perm(init)
       perm(init)=-perm(init)
       goto 6
 c     
@@ -1662,7 +1670,7 @@ c-----------------------------------------------------------------------
 c on entry:
 c---------- 
 c
-c n	= integer. row dimension of the matrix a.
+c n = integer. row dimension of the matrix a.
 c a,ja,
 c    ia = matrix stored compressed sparse row format. a array skipped.
 c
@@ -1697,14 +1705,14 @@ c does not assume that A is sorted.
 c-----------------------------------------------------------------------
 c on entry:
 c----------
-c n	= integer = the row dimension of the matrix
+c n = integer = the row dimension of the matrix
 c a, ja,
 c    ia = matrix in compressed sparse row format.
 c 
 c on return:
 c----------- 
-c ml	= integer. The bandwidth of the strict lower part of A
-c mu	= integer. The bandwidth of the strict upper part of A 
+c ml    = integer. The bandwidth of the strict lower part of A
+c mu    = integer. The bandwidth of the strict upper part of A 
 c
 c Notes:
 c ===== ml and mu are allowed to be negative or return. This may be 
@@ -1717,7 +1725,7 @@ c       mu = max ( (j-i)  s.t. a(i,j) .ne. 0  )
 c----------------------------------------------------------------------c
 c Y. Saad, Sep. 21 1989                                                c
 c----------------------------------------------------------------------c
-      real*8 a(*) 
+      real(kind = 8) a(*) 
       integer ja(*),ia(n+1),ml,mu,ldist,i,k 
       ml = - n
       mu = - n
@@ -1742,10 +1750,10 @@ c it also outputs the number of nonzero diagonals found.
 c----------------------------------------------------------------------- 
 c on entry:
 c---------- 
-c n	= dimension of the matrix a.
+c n = dimension of the matrix a.
 c
 c a,    ..... not needed here.
-c ja, 			
+c ja,           
 c ia    = matrix stored in csr format
 c
 c on return:
@@ -1782,14 +1790,14 @@ c------end-of-infdia ---------------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine rnrms   (nrow, nrm, a, ja, ia, diag) 
-      real*8 a(*), diag(nrow), scal 
+      real(kind = 8) a(*), diag(nrow), scal 
       integer ja(*), ia(nrow+1) 
 c-----------------------------------------------------------------------
 c gets the norms of each row of A. (choice of three norms)
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A
+c nrow  = integer. The row dimension of A
 c
 c nrm   = integer. norm indicator. nrm = 1, means 1-norm, nrm =2
 c                  means the 2-nrm, nrm = 0 means max norm
@@ -1832,7 +1840,7 @@ c-----------------------------------------------------------------------
 c-------------end-of-rnrms----------------------------------------------
       end 
       subroutine roscal(nrow,job,nrm,a,ja,ia,diag,b,jb,ib,ierr) 
-      real*8 a(*), b(*), diag(nrow) 
+      real(kind = 8) a(*), b(*), diag(nrow) 
       integer nrow,job,nrm,ja(*),jb(*),ia(nrow+1),ib(nrow+1),ierr 
 c-----------------------------------------------------------------------
 c scales the rows of A such that their norms are one on return
@@ -1840,7 +1848,7 @@ c 3 choices of norms: 1-norm, 2-norm, max-norm.
 c-----------------------------------------------------------------------
 c on entry:
 c ---------
-c nrow	= integer. The row dimension of A
+c nrow  = integer. The row dimension of A
 c
 c job   = integer. job indicator. Job=0 means get array b only
 c         job = 1 means get b, and the integer arrays ib, jb.
@@ -1861,8 +1869,8 @@ c        we have B = Diag*A.
 c
 c b, 
 c jb, 
-c ib	= resulting matrix B in compressed sparse row sparse format.
-c	    
+c ib    = resulting matrix B in compressed sparse row sparse format.
+c       
 c ierr  = error message. ierr=0     : Normal return 
 c                        ierr=i > 0 : Row number i is a zero row.
 c Notes:
@@ -1900,10 +1908,10 @@ c----------------------------------------------------------------------c
 c-----------------------------------------------------------------------
       implicit none 
       integer n 
-C      real*8 a(*),alu(*),w(n),droptol
+C      real(kind = 8) a(*),alu(*),w(n),droptol
 C KARLINE: CHANGE  THIS TO w(*)
 C loop from ii = 1, n ... addresses w(ii+1) 
-      real*8 a(*),alu(*),w(*),droptol
+      real(kind = 8) a(*),alu(*),w(*),droptol
       integer ja(*),ia(n+1),jlu(*),ju(n),jw(2*n),lfil,iwk,ierr
 c----------------------------------------------------------------------*
 c                      *** ILUT preconditioner ***                     *
@@ -1926,7 +1934,7 @@ c           diagonal element). lfil must be .ge. 0.
 c           ** WARNING: THE MEANING OF LFIL HAS CHANGED WITH RESPECT TO
 c           EARLIER VERSIONS. 
 c
-c droptol = real*8. Sets the threshold for dropping small terms in the
+c droptol = real(kind = 8). Sets the threshold for dropping small terms in the
 c           factorization. See below for details on dropping strategy.
 c
 c  
@@ -1989,7 +1997,7 @@ c (however, fill-in is then mpredictible).                             *
 c----------------------------------------------------------------------*
 c     locals
       integer ju0,k,j1,j2,j,ii,i,lenl,lenu,jj,jrow,jpos,len 
-      real*8 tnorm, t, abs, s, fact 
+      real(kind = 8) tnorm, t, abs, s, fact 
       if (lfil .lt. 0) goto 998
 c-----------------------------------------------------------------------
 c     initialize ju0 (points to next element to be added to alu,jlu)
@@ -2251,10 +2259,10 @@ c-----------------------------------------------------------------------
 c     implicit none
       integer n,ja(*),ia(n+1),lfil,jlu(*),ju(n),jw(2*n),iwk,
      *     iperm(2*n),ierr
-C      real*8 a(*), alu(*), w(n), droptol
+C      real(kind = 8) a(*), alu(*), w(n), droptol
 C KARLINE: CHANGE  THIS TO w(*)  !!
 C loop from ii = 1, n ... addresses w(ii+1) 
-      real*8 a(*), alu(*), w(*), droptol
+      real(kind = 8) a(*), alu(*), w(*), droptol
 
 c----------------------------------------------------------------------*
 c       *** ILUTP preconditioner -- ILUT with pivoting  ***            *
@@ -2276,7 +2284,7 @@ c           diagonal element). lfil must be .ge. 0.
 c           ** WARNING: THE MEANING OF LFIL HAS CHANGED WITH RESPECT TO
 c           EARLIER VERSIONS. 
 c
-c droptol = real*8. Sets the threshold for dropping small terms in the
+c droptol = real(kind = 8). Sets the threshold for dropping small terms in the
 c           factorization. See below for details on dropping strategy.
 c
 c lfil    = integer. The fill-in parameter. Each row of L and
@@ -2349,7 +2357,7 @@ c     local variables
 c
       integer k,i,j,jrow,ju0,ii,j1,j2,jpos,len,imax,lenu,lenl,jj,mbloc,
      *     icut
-      real*8 s, tmp, tnorm,xmax,xmax0, fact, abs, t, permtol
+      real(kind = 8) s, tmp, tnorm,xmax,xmax0, fact, abs, t, permtol
 c     
       if (lfil .lt. 0) goto 998
 c----------------------------------------------------------------------- 
@@ -2499,7 +2507,7 @@ c
                  w(jpos) = w(jpos) - s
               endif
            endif
- 203	continue
+ 203     continue
 c     
 c     store this pivot element -- (from left to right -- no danger of
 c     overlap with the working elements in L (pivots). 
@@ -2507,14 +2515,14 @@ c
         len = len+1 
         w(len) = fact
         jw(len)  = jrow
-	goto 150
+        goto 150
  160    continue
 c
 c     reset double-pointer to zero (U-part)
 c     
         do 308 k=1, lenu
            jw(n+jw(ii+k-1)) = 0
- 308	continue
+ 308    continue
 c
 c     update L-matrix
 c
@@ -2598,7 +2606,7 @@ c
            jlu(ju0) = iperm(jw(k))
            alu(ju0) = w(k)
            ju0 = ju0+1
- 302	continue
+ 302    continue
 c
 c     store inverse of diagonal element of u
 c
@@ -2607,7 +2615,7 @@ c
 c
 c     update pointer to beginning of next row of U.
 c
-	jlu(ii+1) = ju0
+        jlu(ii+1) = ju0
 c-----------------------------------------------------------------------
 c     end main loop
 c-----------------------------------------------------------------------
@@ -2656,7 +2664,7 @@ c----------------end-of-ilutp-------------------------------------------
 c-----------------------------------------------------------------------
       end
         subroutine qsplit(a,ind,n,ncut)
-        real*8 a(n)
+        real(kind = 8) a(n)
         integer ind(n), n, ncut
 c-----------------------------------------------------------------------
 c     does a quick-sort split of a real array.
@@ -2668,7 +2676,7 @@ c     abs(a(i)) .le. abs(a(ncut)) for i .gt. ncut
 c
 c     ind(1:n) is an integer array which permuted in the same way as a(*).
 c-----------------------------------------------------------------------
-        real*8 tmp, abskey
+        real(kind = 8) tmp, abskey
         integer itmp, first, last
 c-----
         first = 1
@@ -2715,8 +2723,8 @@ c----------------end-of-qsplit------------------------------------------
 c-----------------------------------------------------------------------
         end
         subroutine lusol(n, y, x, alu, jlu, ju)
-        real*8 x(n), y(n), alu(*)
-	integer n, jlu(*), ju(*)
+        real(kind = 8) x(n), y(n), alu(*)
+        integer n, jlu(*), ju(*)
 c-----------------------------------------------------------------------
 c
 c This routine solves the system (LU) x = y, 
@@ -2753,17 +2761,17 @@ c
 c
 c     backward solve.
 c
-	do 90 i = n, 1, -1
-	   do 91 k=ju(i),jlu(i+1)-1
+        do 90 i = n, 1, -1
+           do 91 k=ju(i),jlu(i+1)-1
               x(i) = x(i) - alu(k)*x(jlu(k))
- 91	   continue
+ 91        continue
            x(i) = alu(i)*x(i)
  90     continue
 c
-  	return
+        return
 c----------------end of lusol ------------------------------------------
 c-----------------------------------------------------------------------
-	end
+        end
 c----------------------------------------------------------------------c
 c                          S P A R S K I T                             c
 c----------------------------------------------------------------------c
@@ -2956,7 +2964,7 @@ c
          mask(riord(j)) = 0 
  12   continue
 c-----------------------------------------------------------------------
- 13   continue 
+      continue 
 c     
  1    nlev = nlev+1
       levels(nlev) = istart + 1
@@ -2980,7 +2988,7 @@ c
          endif
       endif
 c----------------------------------------------------------------------- 
- 3    levels(nlev+1) = iend+1 
+      levels(nlev+1) = iend+1 
       do j=1, iend
          mask(riord(j)) = maskval 
       enddo
@@ -2995,7 +3003,7 @@ c     span all nodes of previous mask
 c-------------------------------------------------------------
       nod = iend
       do 25 ir = istart+1,iend 
-         i = riord(ir)		
+         i = riord(ir)      
          do 24 k=ia(i),ia(i+1)-1
             j = ja(k)
             if (mask(j) .eq. maskval) then
@@ -3153,12 +3161,12 @@ c     compressed sparse row format.
 
 c ... Input arguments:
       integer n
-      real*8 a(*)
+      real(kind = 8) a(*)
       integer ja(*)
       integer ia(n+1)
 
 c ... Output arguments:
-      real*8 b(*)
+      real(kind = 8) b(*)
       integer jb(*)
       integer ib(n+1)
 

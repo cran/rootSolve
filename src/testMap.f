@@ -9,7 +9,7 @@ c If ii is present, updates the array jan                            *
 c--------------------------------------------------------------------*
        INTEGER ii, ij, nnz, jan(*), pres(*)
 c
-       INTEGER I
+
           
        IF (pres(II) > 0) THEN
            jan(ij) = pres(II)
@@ -165,11 +165,11 @@ c interactions with current, upstream and downstream boxes (ival = M, M+1, M-1)
                    CALL updatejan(ij, M+1, nnz, jan, pres) 
 
                  ELSE IF (cyclic(3) == 1 .AND. dimens(3) > 2) THEN
-	           im = isp + (j-1)*dimens(2)*dimens(3)+(k-1)*dimens(3)+1   
+               im = isp + (j-1)*dimens(2)*dimens(3)+(k-1)*dimens(3)+1   
                    CALL updatejan(ij, im, nnz, jan, pres) 
                  ENDIF
               
-			           IF (ll > 1) THEN
+                 IF (ll > 1) THEN
                    CALL updatejan(ij, M-1, nnz, jan, pres) 
                  ELSE IF (cyclic(3) == 1 .AND. dimens(3) > 2) THEN
                    im = isp + (j-1)*dimens(2)*dimens(3)+k*dimens(3) 
@@ -202,8 +202,8 @@ c interactions with current, upstream and downstream boxes (ival = M, M+1, M-1)
                    im = M-dimens(2)*dimens(3)
                    CALL updatejan(ij, im, nnz, jan, pres) 
                  ELSE IF (cyclic(1) == 1 .AND. dimens(1) > 2) THEN
-	           im = isp +(dimens(1)-1)*dimens(2)*dimens(3)+                      &
-     &		            (k-1)*dimens(3)+ll
+                im = isp +(dimens(1)-1)*dimens(2)*dimens(3)+                    &
+     &                  (k-1)*dimens(3)+ll
                    CALL updatejan(ij, im, nnz, jan, pres) 
                  ENDIF
 
@@ -218,7 +218,7 @@ c interactions with other species in the same box
                  ian(MNew+1) = ij
                ENDIF
              ENDDO
-	         ENDDO
+           ENDDO
          ENDDO
       ENDDO
       nnz = ij -1

@@ -1,6 +1,7 @@
 #include <time.h>
 #include <string.h>
 #include "steady.h"
+#include "externalptr.h"
 
 /* definition of the call  to the fortran functions - in file lsode.f*/
 /* bug fix as suggested by Alejandro Morales 4/04/2014*/
@@ -13,6 +14,14 @@ void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, in
 			      int *, double *, int *, double *, int *),
 		     int *, double *, int *);
 C_deriv_func_type *derivb;
+
+void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *, int *, int *, int *, double *,  /* extra 'double'; is integer in fortran */
+             void (*)(int *, double *, double *, int *,
+                      int *, int *, double *, double *, int *),     /* jacvec */
+             int *, double *, int *);
 
 /* interface between fortran function call and R function 
    Fortran code calls C_ode_derivs(N, t, y, ydot, yout, iout) 
@@ -83,6 +92,8 @@ static void C_ode_jac (int *neq, double *t, double *y, int *ml,
 /* give name to data types */
 typedef void C_jac_func_type  (int *, double *, double *, int *,
 		                    int *, double *, int *, double *, int *);
+typedef void C_jac_vec_type   (int *, double *, double *, int *,
+                            int *, int *, double *, double *, int *);
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
 
@@ -90,7 +101,8 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
     SEXP stol, SEXP rtol, SEXP atol, SEXP rho, SEXP tcrit, 
     SEXP jacfunc, SEXP initfunc, SEXP initforc,
 		SEXP verbose, SEXP iTask, SEXP rWork, SEXP iWork, SEXP jT, 
-    SEXP nOut, SEXP lRw, SEXP lIw, SEXP nSpec, SEXP nDim, SEXP Rpar, SEXP Ipar )
+    SEXP nOut, SEXP lRw, SEXP lIw, SEXP nSpec, SEXP nDim, 
+    SEXP Rpar, SEXP Ipar, SEXP Solver )
 
 {
 /******************************************************************************/
@@ -103,10 +115,11 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
   int  i, j, k, latol, lrtol, lrw, liw, maxit, rearrange;
   double *xytmp, *rwork, tin, tout, *Atol, *Rtol, Stol, *dy, ss, sumder=0.;
   int neq, itol, itask, istate, iopt, *iwork, jt, mflag, is;
-  int isDll, Steady;
+  int isDll, Steady, solver;
   
   C_deriv_func_type *derivs;
   C_jac_func_type   *jac=NULL;
+  C_jac_vec_type    *jac_vec=NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
@@ -115,6 +128,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 /*                      #### initialisation ####                              */    
   init_N_Protect();
 
+  solver   = INTEGER(Solver)[0];
 
   jt  = INTEGER(jT)[0];         /* method flag */
   rearrange = 0;
@@ -177,13 +191,13 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
     { /* DLL address passed to fortran */
     if (rearrange == 0)
       {
-      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);  
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);  
       /* no need to communicate with R - but output variables set here */
       } else {
        nspec=INTEGER(nSpec)[0];
        ndim =INTEGER(nDim)[0];
        derivs = (C_deriv_func_type *) C_ode_derivs2; 
-       derivb = (C_deriv_func_type *) R_ExternalPtrAddr(func);
+       derivb = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);
        y2 = (double *) R_alloc(neq, sizeof(double));
        dy2 = (double *) R_alloc(neq, sizeof(double));   
       }	  
@@ -192,15 +206,15 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
       derivs = (C_deriv_func_type *) C_ode_derivs; 
       /* needed to communicate with R */
       lsode_deriv_func = func;
-      lsode_envir = rho;
 
     }
+      lsode_envir = rho;
 
   if (!isNull(jacfunc)) 
     {
       if (isDll ==1)
 	    {
-	     jac = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
+	     jac = (C_jac_func_type *) R_ExternalPtrAddrFn_(jacfunc);
 	    } else  {
 	     lsode_jac_func = jacfunc;
 	     jac = C_ode_jac;
@@ -230,9 +244,14 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 /*                     ####   main time loop   ####                           */    
   for (i = 0; i < maxit; i++)
 	{  /* one step */
-    F77_CALL(dlsode) (derivs, &neq, xytmp, &tin, &tout,
+    if (solver == 0)
+     F77_CALL(dlsode) (derivs, &neq, xytmp, &tin, &tout,
 			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
 			   &lrw, iwork, &liw, jac, &jt, out, ipar); 
+    else
+     F77_CALL(dlsodes) (derivs, &neq, xytmp, &tin, &tout,
+         &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+         &lrw, iwork, &liw, rwork, jac_vec, &jt, out, ipar);    
      /* check steady-state */
     sumder = 0. ;
     derivs (&neq, &tin, xytmp, dy, out, ipar) ;

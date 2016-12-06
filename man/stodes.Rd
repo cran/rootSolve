@@ -25,7 +25,7 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
        dllname = NULL, initfunc = dllname, initpar = parms,
        rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
        forcings = NULL, initforc = NULL, fcontrol = NULL,
-       spmethod = "yale", control = NULL,...)
+       spmethod = "yale", control = NULL, times = time, ...)
 }
 
 \arguments{
@@ -33,8 +33,9 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
     If \code{y} has a name attribute, the names will be used to label the
     output matrix.
   }
-  \item{time }{time for which steady-state is wanted; the default is
-    \code{time}=0.
+  \item{time, times }{time for which steady-state is wanted; the default is
+    \code{times}=0.
+    (note- since version 1.7, 'times' has been added as an alias to 'time').
   }
   \item{func }{either a user-supplied function that computes the values of the
     derivatives in the ode system (the \emph{model definition}) at time

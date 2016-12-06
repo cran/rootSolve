@@ -183,13 +183,13 @@ c
 c check if not yet present for current state
       DO I = ian(M), ij-1
        IF (jan(I) .EQ. ival) THEN
-	       isave = 0
-	       exit
+          isave = 0
+          exit
        ENDIF
-	    ENDDO
+      ENDDO
 
 c save 
-	    IF (isave .EQ. 1) THEN
+      IF (isave .EQ. 1) THEN
         IF (ij .GT. nnz) THEN
           CALL rexit
      &("cannot generate sparse jacobian - not enough room for nonzeros")        
@@ -197,7 +197,7 @@ c save
         jan(ij) = ival
         ij = ij +1      
       ENDIF
-	 
+     
       END SUBROUTINE interact
        
 c--------------------------------------------------------------------*
@@ -250,11 +250,11 @@ c interactions with current, upstream and downstream boxes (ival = M, M+1, M-1)
                  CALL interact(ij, nnz, ian, jan, M, M+1) 
 
                ELSE IF (cyclic(3) == 1 .AND. dimens(3) > 2) THEN
-	           im = isp + (j-1)*dimens(2)*dimens(3)+(k-1)*dimens(3)+1   
+                 im = isp + (j-1)*dimens(2)*dimens(3)+(k-1)*dimens(3)+1   
                  CALL interact(ij, nnz, ian, jan, M, im) 
                ENDIF
               
-			 IF (ll >1) THEN
+               IF (ll >1) THEN
                  CALL interact(ij, nnz, ian, jan, M, M-1) 
                ELSE IF (cyclic(3) == 1 .AND. dimens(3) > 2) THEN
                  im = isp + (j-1)*dimens(2)*dimens(3)+k*dimens(3) 
@@ -287,8 +287,8 @@ c interactions with current, upstream and downstream boxes (ival = M, M+1, M-1)
                  im = M-dimens(2)*dimens(3)
                  CALL interact(ij, nnz, ian, jan, M, im) 
                ELSE IF (cyclic(1) == 1 .AND. dimens(1) > 2) THEN
-	           im = isp +(dimens(1)-1)*dimens(2)*dimens(3)+                    &
-     &		            (k-1)*dimens(3)+ll
+                 im = isp +(dimens(1)-1)*dimens(2)*dimens(3)+                    &
+     &                  (k-1)*dimens(3)+ll
                  CALL interact(ij, nnz, ian, jan, M, im) 
                ENDIF
 
@@ -303,7 +303,7 @@ c interactions with other species in the same box
 
                ian(M+1) = ij
              ENDDO
-	     ENDDO
+           ENDDO
          ENDDO
       ENDDO
       nnz = ij -1

@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include "steady.h"   
+#include "externalptr.h"
                            
 void F77_NAME(dsparse)(void (*)(int *, double *, double *, double *, double*, int*),
              int *, int *, int *, double *, double *, double *, double *, double *,
@@ -232,7 +233,7 @@ SEXP call_stsparse(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
 
   if (isDll)
     {
-      derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
+      derivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);
 
     } else {  derivs = (C_deriv_func_type *) C_stsparse_derivs;  
       PROTECT(stsparse_deriv_func = func); incr_N_Protect();

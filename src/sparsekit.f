@@ -84,7 +84,7 @@ c model and jacobian function
       INTEGER          nout(*) 
       DOUBLE PRECISION time
 c
-      INTEGER i, j, k, esp, ierr
+      INTEGER i, j, k, ierr
 c-------------------------------------------------------------------------------
       SteadyStateReached = .FALSE.
 

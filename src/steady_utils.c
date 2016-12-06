@@ -4,6 +4,7 @@ Similar to deSolve_utils.c from package deSolve*/
 #include <R.h>
 #include <Rdefines.h>
 #include "steady.h"
+#include "externalptr.h"
 
 /*==================================================
 some functions for keeping track of how many SEXPs
@@ -51,7 +52,7 @@ void initParms(SEXP Initfunc, SEXP Parms) {
     C_init_func_type *initializer;
 
     PROTECT(st_gparms = Parms);     incr_N_Protect();
-    initializer = (C_init_func_type *) R_ExternalPtrAddr(Initfunc);
+    initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(Initfunc);
     initializer(Initstparms);
   }
 
@@ -83,7 +84,7 @@ void initForcs(SEXP Initforc, SEXP Forcs) {
     C_init_func_type *initializer;
 
     PROTECT(st_gforcs = Forcs);     incr_N_Protect();
-    initializer = (C_init_func_type *) R_ExternalPtrAddr(Initforc);
+    initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(Initforc);
     initializer(Initstforcs);
   }
 

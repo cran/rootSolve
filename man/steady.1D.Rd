@@ -12,16 +12,17 @@
 \usage{
 steady.1D(y, time = NULL, func, parms = NULL, 
           nspec = NULL, dimens = NULL, 
-          names = NULL, method = "stode", 
-          cyclicBnd = NULL, bandwidth = 1, ...)
+          names = NULL, method = "stode", jactype = NULL, 
+          cyclicBnd = NULL, bandwidth = 1, times = time, ...)
 }
 \arguments{
   \item{y }{the initial guess of (state) values for the ODE system, a vector.
   }
-  \item{time }{time for which steady-state is wanted; 
-    the default is \code{time=0} (for \code{method = "stode"} or 
-    \code{method = "stodes"}, and \code{time = c(0,Inf)} for 
-    \code{method = "runsteady"}.
+  \item{time, times }{time for which steady-state is wanted; 
+    the default is \code{times=0} (for \code{method = "stode"} or 
+    \code{method = "stodes"}, and \code{times = c(0,Inf)} for 
+    \code{method = "runsteady"} ).
+    (note- since version 1.7, 'times' has been added as an alias to 'time').
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ode system (the model defininition) at time \code{time},
@@ -55,7 +56,14 @@ steady.1D(y, time = NULL, func, parms = NULL,
   \item{names }{the names of the components; used to label the output, which
     will be written as a matrix.
   }
-  \item{method }{the solution method, one of "stode", "stodes" or "runsteady".
+  \item{method }{the solution method, one of "stode", "stodes", or "runsteady".
+    When \code{method} = 'runsteady', then solver \code{lsode} is used by default, 
+    unless argument \code{jactype} is set to \code{"sparse"}, 
+    in which case \code{lsodes} is used and the structure of the jacobian is determined by the solver.
+  }
+  \item{jactype }{the jacobian type - default is a regular 1-D structure where layers only interact with adjacent layers. 
+    If the structure does not comply with this, the jacobian can be set equal to \code{'sparse'} if \code{method = stodes}.
+    If \code{jactype = 'sparse'} and \code{method = runsteady} then \code{lsodes}, the sparse integrator, will be used.
   }
   \item{cyclicBnd }{if a cyclic boundary exists, a value of \code{1} else
     \code{NULL}; see details.

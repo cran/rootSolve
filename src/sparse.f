@@ -78,7 +78,7 @@ c model and jacobian function
       INTEGER          nout(*) 
       DOUBLE PRECISION time
 c
-      INTEGER i, j, k, esp, im, jm
+      INTEGER i, j, k, esp
 c-------------------------------------------------------------------------------
       SteadyStateReached = .FALSE.
 
@@ -191,24 +191,24 @@ c**********************************************************************
 c       WRITE ERROR/WARNINGS OF SPARSE SOLVER                         *
 c**********************************************************************
 
-	 SUBROUTINE warnflag(flag,N)
-	 INTEGER flag, iflag,N
-	 
-	 iflag = INT(flag/N)
-	 IF (iflag .EQ. 1) THEN
-	       call intpr ("sparse solver: null row in a", -1, 0, 0)
+      SUBROUTINE warnflag(flag,N)
+      INTEGER flag, iflag,N
+     
+      iflag = INT(flag/N)
+      IF (iflag .EQ. 1) THEN
+         call intpr ("sparse solver: null row in a", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 2) THEN
-    	   call intpr("sparse solver: duplicate entry in a", -1, 0, 0)
+         call intpr("sparse solver: duplicate entry in a", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 3) THEN
-	       call intpr ("insufficient storage in nsfc", -1, 0, 0)
+         call intpr ("insufficient storage in nsfc", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 4) THEN
-	       call rwarn("insufficient storage in nnfc - increase lrw")
+         call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 5) THEN
          call rwarn("sparse solver: null pivot")
          call intpr ("  row nr: ", 10, flag-iflag, 1)
@@ -218,20 +218,20 @@ c**********************************************************************
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 7) THEN
-	       call rwarn("insufficient storage in nnfc - increase lrw")
+         call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 8) THEN
          call intpr ("sparse solver: zero pivot", -1, 0, 0)
          call intpr ("  row nr: ", 10, flag-iflag, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 9) THEN
-	       call rexit("insufficient storage in md - increase lrw")
+         call rexit("insufficient storage in md - increase lrw")
        ELSE if (iflag .EQ. 10) THEN
-	     call rexit("insufficient storage in cdrv/odrv-increase lrw")
+         call rexit("insufficient storage in cdrv/odrv-increase lrw")
        ELSE if (iflag .EQ. 11) THEN
-	       call rexit("illegal path specifications")
+         call rexit("illegal path specifications")
        ENDIF
        RETURN
-	     END SUBROUTINE warnflag
+       END SUBROUTINE warnflag
 
 c****************************************************************
 c error weights 
@@ -308,7 +308,7 @@ c-------------------------------------------------------------------*
        INTEGER           I, J, ij, Nspec, dimens(3), cyclic(3)
        DOUBLE PRECISION  CopyVar,beta(N),dSvar(N)
        DOUBLE PRECISION  DivDelt
-       LOGICAL           enough, Full
+       LOGICAL           enough
        INTEGER           igp(*),jgp(N),NGP,incl(N),jdone(N)
        INTEGER           maxg,ier
        DOUBLE PRECISION  perturb
@@ -532,7 +532,8 @@ C
       IER = 0
       Toomuch = .FALSE.
       DO 10 J = 1,N
- 10     JDONE(J) = 0
+        JDONE(J) = 0
+ 10   CONTINUE
       NCOL = 1
       DO 60 NG = 1,N  ! Changed from 
         IF (NG .LE. MAXG ) THEN
@@ -541,7 +542,8 @@ C
           Toomuch = .TRUE.
         ENDIF
         DO 20 I = 1,N
- 20       INCL(I) = 0
+          INCL(I) = 0
+ 20     CONTINUE
         DO 50 J = 1,N
 C Reject column J if it is already in a group.--------------------------
         IF (JDONE(J) .EQ. 1) GO TO 50
@@ -559,7 +561,8 @@ c
         JDONE(J) = 1
         DO 40 K = KMIN,KMAX
           I = JA(K)
- 40     INCL(I) = 1
+          INCL(I) = 1
+ 40     CONTINUE
  50     CONTINUE
 C Stop if this group is empty (grouping is complete).-------------------
         IF (NCOL .EQ. IGP(NG)) GO TO 70
@@ -604,7 +607,14 @@ C
         JMAX = IA(II+1) - 1
         IF (JMIN .GT. JMAX) GO TO 50
         DO 40 J = JMIN,JMAX
-          IF (JA(J) - II) 10, 40, 30
+          IF (JA(J) - II .LT. 0) THEN
+            GOTO 10
+          ELSE IF (JA(J) - II .EQ. 0) THEN
+            GOTO 40
+          ELSE 
+            GOTO 30
+          ENDIF  
+C          IF (JA(J) - II) 10, 40, 30
  10       JJ =JA(J)
           KMIN = IA(JJ)
           KMAX = IA(JJ+1) - 1
@@ -757,7 +767,8 @@ c
 c----generate inverse permutation from permutation
    4  do 5 k=1,n
         next(k) = -next(k)
-   5    last(next(k)) = k
+        last(next(k)) = k
+   5  continue
 c
       return
       end
@@ -778,7 +789,8 @@ c----initialize degrees, element lists, and degree lists
       do 1 vi=1,n
         mark(vi) = 1
         l(vi) = 0
-   1    head(vi) = 0
+        head(vi) = 0
+   1  continue
       sfs = n+1
 c
 c----create nonzero structure
@@ -789,7 +801,14 @@ c----for each nonzero entry a(vi,vj)
         if (jmin.gt.jmax)  go to 6
         do 5 j=jmin,jmax
           vj = ja(j)
-          if (vj-vi) 2, 5, 4
+          if (vj-vi .LT. 0) then
+            goto 2
+          else if (vj-vi .EQ. 0) then
+            goto 5
+          else
+            goto 4
+          endif  
+c          if (vj-vi) 2, 5, 4
 c
 c------if a(vi,vj) is in strict lower triangle
 c------check for previous occurrence of a(vj,vi)
@@ -827,7 +846,8 @@ c----create degree lists and initialize mark vector
         last(vi) = -dvi
         nextvi = next(vi)
         if (nextvi.gt.0)  last(nextvi) = vi
-   7    mark(vi) = tag
+        mark(vi) = tag
+   7  continue
 c
       return
 c
@@ -1007,7 +1027,14 @@ c----for each vertex vi in ek
       do 10 ilp=1,ilpmax
         i = l(i)
         vi = v(i)
-        if (last(vi))  1, 10, 8
+        if (last(vi) .LT. 0) then
+          goto 1
+        else if (last(vi) .EQ. 0) then
+          goto 10
+        else
+          goto 8
+        endif  
+C        if (last(vi))  1, 10, 8
 c
 c------if vi neither prototype nor duplicate vertex, then merge elements
 c------to compute degree
@@ -1113,7 +1140,8 @@ c
 c--phase 1 -- find row in which to store each nonzero
 c----initialize count of nonzeroes to be stored in each row
       do 1 i=1,n
-  1     q(i) = 0
+        q(i) = 0
+  1   continue
 c
 c----for each nonzero element a(j)
       do 3 i=1,n
@@ -1129,7 +1157,8 @@ c--------find row (=r(j)) and column (=ja(j)) in which to store a(j) ...
           r(j) = k
 c
 c--------... and increment count of nonzeroes (=q(r(j)) in that row
-  2       q(k) = q(k) + 1
+         q(k) = q(k) + 1
+  2     continue
   3     continue
 c
 c
@@ -1137,7 +1166,8 @@ c--phase 2 -- find new ia and permutation to apply to (ja,a)
 c----determine pointers to delimit rows in permuted (ja,a)
       do 4 i=1,n
         ia(i+1) = ia(i) + q(i)
-  4     q(i) = ia(i+1)
+        q(i) = ia(i+1)
+  4   continue
 c
 c----determine where each (ja(j),a(j)) is stored in permuted (ja,a)
 c----for each nonzero element (in reverse order)
@@ -1158,7 +1188,8 @@ c------put (off-diagonal) nonzero in last unused location in row
   5       q(i) = q(i) - 1
           r(j) = q(i)
 c
-  6     j = j-1
+          j = j-1
+  6   continue
 c
 c
 c--phase 3 -- permute (ja,a) to upper triangular form (wrt new ordering)
@@ -1585,7 +1616,8 @@ c  ******  move ju next to jl  *****************************************
         jumax = isp(iju+n-1)
         if (jumax.le.0)  go to 5
         do 4 j=1,jumax
-   4      isp(ju+j-1) = isp(jutmp+j-1)
+          isp(ju+j-1) = isp(jutmp+j-1)
+   4    continue
 c
 c  ******  call remaining subroutines  *********************************
    5  jlmax = isp(ijl+n-1)
@@ -1860,7 +1892,8 @@ c  ******  replace old row in ja and a  *************************
         do 4 j=jmin,jmax
           i = p(i)
           ja(j) = jar(i)
-   4      a(j) = ar(i)
+          a(j) = ar(i)
+   4    continue
    5    continue
       flag = 0
       return
@@ -1944,7 +1977,8 @@ c  ******  initialize pointers  ****************************************
         irac(k) = 0
         jra(k) = 0
         jrl(k) = 0
-   1    jru(k) = 0
+        jru(k) = 0
+   1  continue
 c  ******  initialize column pointers for a  ***************************
       do 2 k=1,n
         rk = r(k)
@@ -1954,7 +1988,8 @@ c  ******  initialize column pointers for a  ***************************
         if (jaiak .gt. k)  go to 105
         jra(k) = irac(jaiak)
         irac(jaiak) = k
-   2    ira(k) = iak
+        ira(k) = iak
+   2  continue
 c
 c  ******  for each column of l and row of u  **************************
       do 41 k=1,n
@@ -2021,7 +2056,14 @@ c  ******  if not, see if kth column can overlap the previous one  *****
   11    if (jlmin .gt. jlptr)  go to 15
         qm = q(qm)
         do 12 j=jlmin,jlptr
-          if (jl(j) - qm)  12, 13, 15
+          if (jl(j) - qm .LT. 0) then
+            goto 12
+          else if (jl(j) - qm .EQ. 0) then 
+            goto 13
+          else
+            goto 15
+          endif
+c          if (jl(j) - qm)  12, 13, 15
   12      continue
         go to 15
   13    ijl(k) = j
@@ -2040,7 +2082,8 @@ c  ******  move column indices from q to jl, update vectors  ***********
           qm = q(np1)
           do 16 j=jlmin,jlptr
             qm = q(qm)
-  16        jl(j) = qm
+            jl(j) = qm
+  16      continue
   17    irl(k) = ijl(k)
         il(k+1) = il(k) + luk
 c
@@ -2123,7 +2166,14 @@ c  ******  if not, see if kth row can overlap the previous one  ********
   28    if (jumin .gt. juptr)  go to 32
         qm = q(qm)
         do 29 j=jumin,juptr
-          if (ju(j) - qm)  29, 30, 32
+          if (ju(j) - qm .LT. 0) then
+            goto 29
+          else if (ju(j) - qm . EQ. 0) then
+            goto 30
+          else
+            goto 32
+          endif
+C          if (ju(j) - qm)  29, 30, 32
   29      continue
         go to 32
   30    iju(k) = j
@@ -2142,7 +2192,8 @@ c  ******  move row indices from q to ju, update vectors  **************
           qm = q(np1)
           do 33 j=jumin,juptr
             qm = q(qm)
-  33        ju(j) = qm
+            ju(j) = qm
+  33      continue
   34    iru(k) = iju(k)
         iu(k+1) = iu(k) + luk
 c
@@ -2270,7 +2321,8 @@ c  ******  set row to zero where u will fill in  ***********************
         jmax = jmin + iu(k+1) - iu(k) - 1
         if (jmin .gt. jmax) go to 5
         do 4 j=jmin,jmax
-   4      row(ju(j)) = 0
+          row(ju(j)) = 0
+   4    continue
 c  ******  place kth row of a in row  **********************************
    5    rk = r(k)
         jmin = ia(rk)
@@ -2292,7 +2344,8 @@ c  ******  if l is not required, then comment out the following line  **
           if (jmin .gt. jmax) go to 9
           mu = iju(i) - jmin
           do 8 j=jmin,jmax
-   8        row(ju(mu+j)) = row(ju(mu+j)) + lki * u(j)
+            row(ju(mu+j)) = row(ju(mu+j)) + lki * u(j)
+   8      continue
    9      i = jrl(i)
           if (i .ne. 0) go to 7
 c
@@ -2307,7 +2360,8 @@ c  ******  assign kth row of u and diagonal d, set tmp(k)  *************
         if (jmin .gt. jmax)  go to 12
         mu = iju(k) - jmin
         do 11 j=jmin,jmax
-  11      u(j) = row(ju(mu+j)) * dk
+          u(j) = row(ju(mu+j)) * dk
+  11    continue
   12    continue
 c
 c  ******  update irl and jrl, keeping jrl in decreasing order  ********
@@ -2340,10 +2394,12 @@ c  ******  solve  ux = tmp  by back substitution  **********************
         if (jmin .gt. jmax)  go to 21
         mu = iju(k) - jmin
         do 20 j=jmin,jmax
-  20      sum = sum - u(j) * tmp(ju(mu+j))
+          sum = sum - u(j) * tmp(ju(mu+j))
+  20    continue
   21    tmp(k) =  sum
         z(c(k)) =  sum
-  22    k = k-1
+        k = k-1
+  22  continue
       flag = 0
       return
 c
@@ -2385,7 +2441,8 @@ c     real l(*), d(*), u(*), b(*), z(*), tmp(*), tmpk, sum
 c
 c  ******  set tmp to reordered b  *************************************
       do 1 k=1,n
-   1    tmp(k) = b(r(k))
+        tmp(k) = b(r(k))
+   1  continue
 c  ******  solve  ly = b  by forward substitution  *********************
       do 3 k=1,n
         jmin = il(k)
@@ -2395,7 +2452,8 @@ c  ******  solve  ly = b  by forward substitution  *********************
         if (jmin .gt. jmax) go to 3
         ml = ijl(k) - jmin
         do 2 j=jmin,jmax
-   2      tmp(jl(ml+j)) = tmp(jl(ml+j)) + tmpk * l(j)
+          tmp(jl(ml+j)) = tmp(jl(ml+j)) + tmpk * l(j)
+   2    continue
    3    continue
 c  ******  solve  ux = y  by back substitution  ************************
       k = n
@@ -2406,7 +2464,8 @@ c  ******  solve  ux = y  by back substitution  ************************
         if (jmin .gt. jmax) go to 5
         mu = iju(k) - jmin
         do 4 j=jmin,jmax
-   4      sum = sum + u(j) * tmp(ju(mu+j))
+          sum = sum + u(j) * tmp(ju(mu+j))
+   4    continue
    5    tmp(k) = -sum
         z(c(k)) = -sum
         k = k - 1
@@ -2440,7 +2499,8 @@ c     real l(*), d(*), u(*), b(*), z(*), tmp(*), tmpk,sum
 c
 c  ******  set tmp to reordered b  *************************************
       do 1 k=1,n
-   1    tmp(k) = b(c(k))
+        tmp(k) = b(c(k))
+   1  continue
 c  ******  solve  ut y = b  by forward substitution  *******************
       do 3 k=1,n
         jmin = iu(k)
@@ -2449,7 +2509,8 @@ c  ******  solve  ut y = b  by forward substitution  *******************
         if (jmin .gt. jmax) go to 3
         mu = iju(k) - jmin
         do 2 j=jmin,jmax
-   2      tmp(ju(mu+j)) = tmp(ju(mu+j)) + tmpk * u(j)
+          tmp(ju(mu+j)) = tmp(ju(mu+j)) + tmpk * u(j)
+   2    continue
    3    continue
 c  ******  solve  lt x = y  by back substitution  **********************
       k = n
@@ -2460,7 +2521,8 @@ c  ******  solve  lt x = y  by back substitution  **********************
         if (jmin .gt. jmax) go to 5
         ml = ijl(k) - jmin
         do 4 j=jmin,jmax
-   4      sum = sum + l(j) * tmp(jl(ml+j))
+          sum = sum + l(j) * tmp(jl(ml+j))
+   4    continue
    5    tmp(k) = -sum * d(k)
         z(r(k)) = tmp(k)
         k = k - 1

@@ -10,7 +10,8 @@ stodes <- function(y, time = 0, func, parms = NULL,
         lrw = NULL, ngp = NULL, positive = FALSE, maxiter = 100, ynames = TRUE,
         dllname = NULL, initfunc = dllname, initpar = parms, rpar = NULL,
         ipar = NULL, nout = 0, outnames = NULL, forcings = NULL, 
-        initforc = NULL, fcontrol = NULL, spmethod = "yale", control = NULL, ...)  {
+        initforc = NULL, fcontrol = NULL, spmethod = "yale", control = NULL, 
+        times = time, ...)  {
 ## check input
   if (is.list(func)) {            
       if (!is.null(initfunc) & "initfunc" %in% names(func))
@@ -24,12 +25,14 @@ stodes <- function(y, time = 0, func, parms = NULL,
      if (! is.null(func$initforc)) initforc <- func$initforc
      func <- func$func
   }
-
   if (!is.numeric(y))
     stop("`y' must be numeric")
   n <- length(y)
-  if (! is.null(time)&&!is.numeric(time))
-    stop("`time' must be NULL or numeric")
+  if (! is.null(times)&&!is.numeric(times))
+    stop("`times' must be NULL or numeric")
+  if (length(times)>1)
+    warning("`times' should be one number - taking first value")
+  time <- times[1]    
   if (!CheckFunc(func))
     stop("`func' must be a function or character vector or a compiled function")
   if (is.character(func) && (is.null(dllname) || !is.character(dllname)))
@@ -62,11 +65,15 @@ stodes <- function(y, time = 0, func, parms = NULL,
 
   Type <- 1            # sparsity to be determined numerically
   ian <- 0
-  jan <- 0
+  jan <- 0                                                                                                  
   if (is.null(ngp))
     ngp = n+1
   if(sparsetype=="sparseint") { 
-   if (is.null(nnz)) nnz <- n*n
+   if (is.null(nnz)) 
+     nnz <- n*n
+  } else if(sparsetype=="sparse") { 
+    sparsetype <- "sparseint"
+    nnz <- n*n  
   } else if (sparsetype =="sparseusr")  {  # sparsity is imposed; create ian, jan
       Type <- 0
       nnz <- nrow(inz)
@@ -304,7 +311,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
      initpar <- NULL # parameter init not needed if function is not a DLL
   if (spmethod == "yale")
     imethod <- 1
-  else {
+  else { 
    if (spmethod == "ilut")
      imethod <- 2
    else if (spmethod == "ilutp")  

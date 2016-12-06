@@ -3,17 +3,18 @@
 ## runsteady -- runs to steadystate by integrating ordinary differential equation systems
 ## based on ODEPACK method lsode. The user has to specify whether or not
 ## the problem is stiff and choose the appropriate method.
+## Starting from version 1.7 also includes stodes - sparse solver
 ## =============================================================================
 
 
-runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
+runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
   rtol=1e-6, atol=1e-6, 
   jacfunc=NULL, jactype = "fullint", mf = NULL, verbose=FALSE, 
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, 
   maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=100000,
   dllname=NULL,initfunc=dllname, initpar=parms, 
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings = NULL, 
-  initforc = NULL, fcontrol = NULL, ...)  
+  initforc = NULL, fcontrol = NULL, lrw = NULL, liw = NULL, times = time, ...)  
 {
 ## check input
   if (is.list(func)) {            
@@ -77,6 +78,8 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     if(maxord < 1) stop("`maxord' must be >1")
 
 ## Jacobian, method flag
+  if (jactype == "1D")
+    jactype <- "1Dint"  
   if (is.null(mf)) {
          if (jactype == "fullint" ) imp <- 22 # full jacobian, calculated internally
     else if (jactype == "fullusr" ) imp <- 21 # full jacobian, specified by user function
@@ -84,35 +87,54 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     else if (jactype == "bandint" ) imp <- 25 # banded jacobian, specified internally
     else if (jactype == "1Dint"   ) imp <- 25  # banded jacobian, specified+rearranged internally  
 
+    else if (jactype == "sparse"  ) imp <- 222 # sparse jacobian, specified+rearranged internally  
+
     else
-      stop("jactype must be one of fullint, fullusr, bandusr or bandint if mf not specified")
+      stop("jactype must be one of fullint, fullusr, bandusr, bandint or sparse if mf not specified")
   } else imp <- mf
 
-
-  if (! imp %in% c(10:15, 20:25)) 
+  if (imp == 222) {
+    method <- "lsodes"
+    miter <- 0
+    meth <- 0
+    Type <- 1
+    nnz <- n*n
+    if (! is.null(jacfunc))
+      stop ("cannot combine sparse method with 'jacfunc'" )
+    if (is.null (maxord))
+      maxord <- 5
+    if (maxord > 5 )
+      stop ("'maxord' too large: should be <= 5")
+    if (maxord < 1 )
+      stop ("`maxord' must be >1")
+      
+  } else {
+    method <- "lsode"
+    Type <- 0
+    if (! imp %in% c(10:15, 20:25)) 
     stop ("lsode: cannot perform integration: method flag mf not allowed")
   
   # check other specifications depending on jacobian
-  miter <- imp%%10 
-  if (miter %in% c(1,4) & is.null(jacfunc)) 
-    stop ("lsode: cannot perform integration: *jacfunc* NOT specified; either specify *jacfunc* or change *jactype* or *mf*")
-  meth <- abs(imp)%/%10   # basic linear multistep method
+    miter <- imp%%10 
+    if (miter %in% c(1,4) & is.null(jacfunc)) 
+      stop ("lsode: cannot perform integration: *jacfunc* NOT specified; either specify *jacfunc* or change *jactype* or *mf*")
+    meth <- abs(imp)%/%10   # basic linear multistep method
 
-  if (is.null (maxord))
-    maxord <- ifelse(meth==1,12,5)
-  if (meth==1 && maxord > 12)
-    stop ("lsode: maxord too large: should be <= 12")
-  if (meth==2 && maxord > 5 )
-    stop ("lsode: maxord too large: should be <= 5")
-  if (miter %in% c(4,5) && is.null(bandup))   
-    stop("lsode: bandup must be specified if banded jacobian")
-  if (miter %in% c(4,5) && is.null(banddown)) 
-    stop("lsode: banddown must be specified if banded jacobian")
-  if (is.null(banddown))
-    banddown <-1
-  if (is.null(bandup  ))
-    bandup   <-1
-
+    if (is.null (maxord))
+      maxord <- ifelse(meth==1,12,5)
+    if (meth==1 && maxord > 12)
+      stop ("lsode: maxord too large: should be <= 12")
+    if (meth==2 && maxord > 5 )
+      stop ("lsode: maxord too large: should be <= 5")
+    if (miter %in% c(4,5) && is.null(bandup))   
+      stop("lsode: bandup must be specified if banded jacobian")
+    if (miter %in% c(4,5) && is.null(banddown)) 
+      stop("lsode: banddown must be specified if banded jacobian")
+    if (is.null(banddown))
+      banddown <-1
+    if (is.null(bandup  ))
+      bandup   <-1
+  }
 ### model and jacobian function  
   JacFunc <- NULL
   Ynames <- attr(y,"names")
@@ -260,9 +282,52 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
     ndim <- 0
   }
 
+# the task to be performed: always take one step and return after which 
+# c-cde will check steady-state.
+  itask <- 2
 ### work arrays iwork, rwork
 # length of rwork and iwork 
+  if (jactype == "sparse") {
+  ### work arrays iwork, rwork
+  # 1. Estimate length of rwork and iwork if not provided via arguments lrw, liw
+    moss  <- imp%/%100         # method to be used to obtain sparsity
+    meth  <- imp%%100%/%10     # basic linear multistep method
+    miter <- imp%%10           # corrector iteration method
+    lenr = 2     # real to integer wordlength ratio (2 due to double precision)
 
+    if (is.null(lrw)) {         # make a guess of real work space needed
+      lrw = 20+n*(maxord+1)+3*n +20  #extra 20 to make sure
+
+    if(miter == 1) lrw = lrw + 2*nnz + 2*n + (nnz+9*n)/lenr
+    if(miter == 2) lrw = lrw + 2*nnz + 2*n + (nnz+10*n)/lenr
+    if(miter == 3) lrw = lrw + n + 2
+
+  }
+
+    if (moss == 0 && miter %in% c(1,2)) liw <- max(liw, 31+n+nnz +30) else  # extra 30
+                                        liw <- max(liw, 30)
+#  }
+  
+  lrw <- max(20, lrw) 
+  # 2. Allocate and set values
+  # only first 20 elements of rwork passed to solver;
+  # other elements will be allocated in C-code
+  # for iwork: only first 30 elements, except when sparsity imposed
+
+  rwork <- vector("double",20)
+  rwork[] <- 0.
+    iwork <- vector("integer",30)
+    iwork[] <- 0
+  # other elements of iwork, rwork
+  iwork[5] <- maxord
+  iwork[6] <- maxsteps
+
+  if(! is.null(tcrit)) rwork[1] <- tcrit
+  rwork[5] <- hini
+  rwork[6] <- hmax
+  rwork[7] <- hmin
+
+  } else {
   lrw = 20+n*(maxord+1)+3*n
   if(miter %in% c(1,2) ) lrw = lrw + 2*n*n+2
   if(miter ==3)          lrw = lrw + n+2
@@ -286,10 +351,6 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
   rwork[6] <- hmax
   rwork[7] <- hmin
 
-# the task to be performed: always take one step and return after which 
-# c-cde will check steady-state.
-  itask = 2
-  
 # print to screen...
   if (verbose) {
     print("--------------------")
@@ -319,7 +380,7 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
                                                                                                                                          
     print(data.frame(parameter=df, value=vals,message=txt))
   } 
-
+  }
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
     
@@ -328,8 +389,9 @@ runsteady <- function(y, times=c(0,Inf), func, parms, stol=1e-8,
                ModelForc, as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(nspec), as.integer(ndim),
-               as.double (rpar), as.integer(ipar),
+               as.double (rpar), as.integer(ipar),as.integer(Type),
                PACKAGE="rootSolve")
+
 
 ### saving results    
   istate <- attr(out, "istate")
