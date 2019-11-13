@@ -18,8 +18,8 @@ c**********************************************************************
        SUBROUTINE dSteady(xmodel,N,numabd,time,Svar,beta,alpha,                &
      &                    ImplicitMethod,Bandup,BandDown,                      &
      &                    MaxIter,TolChange,atol,rtol,                         &
-     &                    itol,jac,Positivity,Pos, ipos,                       &
-     &                    SteadyStateReached,delt,copyvar,ewt,                 &
+     &                    itol,jac,PositivityInt,Pos, ipos,                    &
+     &                    SteadyStateReachedInt,delt,copyvar,ewt,              &
      &                    xindx,precis,niter,out,nout)
 c------------------------------------------------------------------------------*
 c Solves a system of nonlinear equations using the Newton-Raphson method       * 
@@ -48,6 +48,7 @@ c tolerances, precision
 c false if failed - true if variables must be positive
 c positivity either enforced at once (positivity=TRUE) or as a vector of elements
        LOGICAL SteadyStateReached, positivity
+       INTEGER SteadyStateReachedInt, positivityInt
        INTEGER  Ipos, Pos(Ipos)
 
 c model and jacobian function
@@ -77,6 +78,9 @@ c Internal acronyms for type of jacobian
 c-------------------------------------------------------------------------------
 
        SteadyStateReached = .FALSE.     ! Steady state not yet reached
+       SteadyStateReachedInt = 0
+       Positivity = .FALSE.
+       IF (positivityInt > 0.1) Positivity = .TRUE.
 
        DO K=1,MaxIter
           niter = K
@@ -116,6 +120,7 @@ c Check convergence
           precis(K) = precis(K)/N
           IF(maxewt .LE. 1) THEN
               SteadyStateReached = .TRUE.
+              SteadyStateReachedInt = 1
               EXIT 
           ENDIF
 
@@ -165,6 +170,7 @@ c Test convergence + new value of state variables
 
           IF(RelativeChange<=TolChange)THEN
             SteadyStateReached = .TRUE.
+            SteadyStateReachedInt = 1
 c last precision reached
             IF (K .LT. maxiter) THEN
              precis(K+1) = 0.d0

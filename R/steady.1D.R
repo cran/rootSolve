@@ -38,14 +38,18 @@ steady.1D    <- function (y, time=NULL, func, parms=NULL, nspec = NULL,
     dimens <- N/nspec
     Bnd <- 0
     if (! is.null(cyclicBnd)) {
-    if (max(cyclicBnd) > 1 )
-      stop ("cannot run steady.1D: cyclicBnd should be NULL or a value not exceeding 1")
-    Bnd <-1
+      if (max(cyclicBnd) > 1 )
+        stop ("cannot run steady.1D: cyclicBnd should be NULL or a value not exceeding 1")
+      Bnd <-1   
     }
 
-    out <- stodes(y=y,time=times,func=func,parms=parms,
+    if (jactype == "1D")
+      out <- stodes(y=y,time=times,func=func,parms=parms,
                   nnz=c(nspec,dimens,Bnd),sparsetype=jactype,...)
-             
+    else
+      out <- stodes(y=y,time=times,func=func,parms=parms,
+                    sparsetype=jactype, ...)
+         
   } else if (is.character(func)) {
     if (is.null(jactype)) jactype <- "1Dint"
     ii    <- as.vector(t(matrix(ncol=nspec,1:N)))   # from ordering per slice -> per spec

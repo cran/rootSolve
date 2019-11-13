@@ -68,7 +68,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
   jan <- 0                                                                                                  
   if (is.null(ngp))
     ngp = n+1
-  if(sparsetype=="sparseint") { 
+  if (sparsetype %in% c("sparseint", "sparsereturn")) { 
    if (is.null(nnz)) 
      nnz <- n*n
   } else if(sparsetype=="sparse") { 
@@ -95,7 +95,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
       }
   } else if (sparsetype =="sparsejan") {
       Type <- 0
-      nnz <- length(inz) - n
+      nnz <- length(inz) - n - 1 # note: length(ian) = n+1
       ian <- inz[1:(n+1)] 
       jan <- inz[(n+2):length(inz)] 
   } else if (sparsetype == "1D")   {
@@ -168,6 +168,8 @@ stodes <- function(y, time = 0, func, parms = NULL,
         the Jacobian will be estimated internally, by differences" else
     if (sparsetype=="sparseint")
         txt<-"sparse jacobian, calculated internally" else
+    if (sparsetype=="sparsereturn")
+        txt<-"sparse jacobian, calculated internally and returned" else
     if (sparsetype=="1D")    
         txt<-"sparse 1-D jacobian, calculated internally" else
     if (sparsetype %in% c("2D","2Dmap"))    
@@ -309,9 +311,13 @@ stodes <- function(y, time = 0, func, parms = NULL,
 
   if(is.null(initfunc))
      initpar <- NULL # parameter init not needed if function is not a DLL
-  if (spmethod == "yale")
+  if (spmethod == "yale") {
     imethod <- 1
-  else { 
+    if (sparsetype == "sparsereturn") {
+      imethod <- 10
+      Type <- -Type
+    }
+  } else { 
    if (spmethod == "ilut")
      imethod <- 2
    else if (spmethod == "ilutp")  
@@ -334,6 +340,10 @@ stodes <- function(y, time = 0, func, parms = NULL,
 ### saving results
   precis <- attr(out, "precis")
   steady <- attr(out, "steady")
+  if (sparsetype == "sparsereturn")  {
+    ian <- attr(out, "ian")
+    jan <- attr(out, "jan")
+  }
 
   attributes(out)<-NULL
   if (Nglobal > 0) {
@@ -359,11 +369,16 @@ stodes <- function(y, time = 0, func, parms = NULL,
   }
   attr(out, "precis") <- precis
   attr(out, "steady") <- (steady[1]==1   )
+
   if (!steady[1])
     warning("steady-state not reached")
   if (steady[4] < 0)  steady[4] <- NA
   attr(out, "dims"  ) <- c(nnz = steady[2], ngp = steady[3],
                            lrw = steady[4])
+  if (sparsetype == "sparsereturn")  {
+    attr(out, "ian") <- ian
+    attr(out, "jan") <- jan
+  }
 
   if (verbose) {
     print("precision at each steady state step")

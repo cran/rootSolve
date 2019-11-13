@@ -26,11 +26,11 @@ static void C_steady_derivs (int *neq, double *t, double *y, double *ydot,
   REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(Rst_deriv_func,Time,Y)) ;incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, Rst_envir))         ;incr_N_Protect();
+  PROTECT(R_fcall = lang3(Rst_deriv_func,Time,Y)) ;
+  PROTECT(ans = eval(R_fcall, Rst_envir))         ;
 
   for (i = 0; i < *neq; i++)	ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
-  my_unprotect(2);      
+  UNPROTECT(2);      
 
 }
 
@@ -67,15 +67,15 @@ static void C_steady_jac (int *neq, double *t, double *y, int *ml,
   REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(Rst_jac_func,Time,Y));  incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, Rst_envir));        incr_N_Protect();
+  PROTECT(R_fcall = lang3(Rst_jac_func,Time,Y));  
+  PROTECT(ans = eval(R_fcall, Rst_envir));        
 
   for (i = 0; i < *neq; i++)
     for (j = 0; j < *nrowpd; j++)
     {
       pd[i * (*nrowpd) + j] = REAL(ans)[i * (*neq) + j];
     }
-  my_unprotect(2);
+  UNPROTECT(2);
 }
 
 typedef void C_jac_func_type(int *, double *, double *, int *,
@@ -97,7 +97,7 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   C_deriv_func_type *derivs;
   C_jac_func_type   *jac=NULL;
 
-  init_N_Protect();
+  int nprot = 0;
   jt = INTEGER(mf)[0];        
 
   bu = INTEGER(BU)[0];        
@@ -132,8 +132,8 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
 
   /* initialise global variables... */
 
-  PROTECT(Time = NEW_NUMERIC(1))                   ;incr_N_Protect(); 
-  PROTECT(Y = allocVector(REALSXP, neq))           ;incr_N_Protect();        
+  PROTECT(Time = NEW_NUMERIC(1))                   ;    nprot++;
+  PROTECT(Y = allocVector(REALSXP, neq))           ;    nprot++;
 
   /* copies of all variables that will be changed in the FORTRAN subroutine */
 
@@ -177,13 +177,33 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
   precis =(double *) R_alloc(maxit, sizeof(double));
     for (j = 0; j < maxit; j++) precis[j] = 0;
   
-  PROTECT(yout = allocVector(REALSXP,ntot))    ; incr_N_Protect();
+  PROTECT(yout = allocVector(REALSXP,ntot))    ;     nprot++;
 
 
  /* The initialisation routine */
-  initParms(initfunc, parms);
-  initForcs(initforc, forcs);
- 
+  //initParms(initfunc, parms);
+  if (initfunc != NA_STRING) {
+    
+    if (inherits(initfunc, "NativeSymbol"))  {
+      C_init_func_type *initializer;
+      
+      PROTECT(st_gparms = parms);     nprot++;
+      initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(initfunc);
+      initializer(Initstparms);
+    }
+  }
+  
+//  initForcs(initforc, forcs);
+  if (initforc != NA_STRING) {
+    if (inherits(initforc, "NativeSymbol"))  {
+      C_init_func_type *initializer;
+    
+      PROTECT(st_gforcs = forcs);     nprot++;
+      initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(initforc);
+      initializer(Initstforcs);
+    }
+  }
+
  /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 
   if (isDll==1) 
@@ -202,8 +222,8 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
       }
     } else /* not a DLL */
     {  derivs = (C_deriv_func_type *) C_steady_derivs;  
-      PROTECT(Rst_deriv_func = func); incr_N_Protect();
-      PROTECT(Rst_envir = rho);incr_N_Protect();
+      PROTECT(Rst_deriv_func = func);     nprot++;
+      PROTECT(Rst_envir = rho);    nprot++;
     } 
     
    if (!isNull(jacfunc))
@@ -235,18 +255,18 @@ SEXP call_dsteady(SEXP y, SEXP time, SEXP func, SEXP parms, SEXP forcs,
     }
  
 
-  PROTECT(RWORK = allocVector(REALSXP, niter));incr_N_Protect();
+  PROTECT(RWORK = allocVector(REALSXP, niter));    nprot++;
   for (k = 0;k<niter;k++) REAL(RWORK)[k] = precis[k];
 
   if (mflag == 1) Rprintf("mean residual derivative %g\n",precis[niter-1]);
 
   setAttrib(yout, install("precis"), RWORK);    
 
-  PROTECT(IWORK = allocVector(INTSXP, 1));incr_N_Protect();
+  PROTECT(IWORK = allocVector(INTSXP, 1));    nprot++;
                           INTEGER(IWORK)[0] = isSteady;
   
   setAttrib(yout, install("steady"), IWORK);    
        
-  unprotect_all();
+  UNPROTECT(nprot);
   return(yout);
 }

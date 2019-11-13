@@ -6,24 +6,16 @@ Similar to deSolve_utils.c from package deSolve*/
 #include "steady.h"
 #include "externalptr.h"
 
+                     
 /*==================================================
-some functions for keeping track of how many SEXPs
-are PROTECTed, and UNPROTECTing them in the
-case of a fortran stop.
-==================================================*/
+functions for protection have been removed
+
 long int N_Protected;
-
 void init_N_Protect(void) { N_Protected = 0; }
-
 void incr_N_Protect(void) { N_Protected++; }
-
 void unprotect_all(void) { UNPROTECT((int) N_Protected); }
-
-void my_unprotect(int n)
-{
-    UNPROTECT(n);
-    N_Protected -= n;
-}
+void my_unprotect(int n){ UNPROTECT(n);N_Protected -= n;}
+*/
 
 /* Globals :*/ 
 
@@ -43,20 +35,10 @@ SEXP lsode_jac_func;
 SEXP lsode_envir;
 
 /*==================================================
-Parameter initialisation functions
+Parameter initialisation functions - 
+ initParms has been deleted
 ===================================================*/
 
-void initParms(SEXP Initfunc, SEXP Parms) {
-
-  if (inherits(Initfunc, "NativeSymbol"))  {
-    C_init_func_type *initializer;
-
-    PROTECT(st_gparms = Parms);     incr_N_Protect();
-    initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(Initfunc);
-    initializer(Initstparms);
-  }
-
-}
 
 void Initstparms(int *N, double *parms)
 {
@@ -77,18 +59,6 @@ void Initstparms(int *N, double *parms)
 }
   
 /* same for forcing functions */
-
-void initForcs(SEXP Initforc, SEXP Forcs) {
-
-  if (inherits(Initforc, "NativeSymbol"))  {
-    C_init_func_type *initializer;
-
-    PROTECT(st_gforcs = Forcs);     incr_N_Protect();
-    initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(Initforc);
-    initializer(Initstforcs);
-  }
-
-}
 
 void Initstforcs(int *N, double *forcs)
 {
@@ -156,5 +126,3 @@ void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
    }
 
 }
-
-

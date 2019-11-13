@@ -18,7 +18,7 @@ C_deriv_func_type *derivb;
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
              int *, double *, double *, double *,
              int *, double *, double *, int *, int *,
-             int *, double *, int *, int *, int *, double *,  /* extra 'double'; is integer in fortran */
+             int *, double *, int *, int *, int *,  int *,  /* extra 'double'; is integer in fortran, thpe: now u_work.iwk */
              void (*)(int *, double *, double *, int *,
                       int *, int *, double *, double *, int *),     /* jacvec */
              int *, double *, int *);
@@ -37,12 +37,12 @@ static void C_ode_derivs (int *neq, double *t, double *y,
                               REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(lsode_deriv_func,Time,Y));   incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, lsode_envir));           incr_N_Protect();
+  PROTECT(R_fcall = lang3(lsode_deriv_func,Time,Y));   
+  PROTECT(ans = eval(R_fcall, lsode_envir));           
 
   for (i = 0; i < *neq; i++)   ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
 
-  my_unprotect(2);
+  UNPROTECT(2);
 }
 
 /* interface between fortran call to jacobian and R function */
@@ -80,12 +80,12 @@ static void C_ode_jac (int *neq, double *t, double *y, int *ml,
                              REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++) REAL(Y)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(lsode_jac_func,Time,Y));    incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, lsode_envir));          incr_N_Protect();
+  PROTECT(R_fcall = lang3(lsode_jac_func,Time,Y));    
+  PROTECT(ans = eval(R_fcall, lsode_envir));          
 
   for (i = 0; i < *neq * *nrowpd; i++)  pd[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  UNPROTECT(2);
 }
 
 
@@ -121,12 +121,18 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
   C_jac_func_type   *jac=NULL;
   C_jac_vec_type    *jac_vec=NULL;
 
+  /* memory overlay, KS, TP 2019-07-03 */
+  union t_work {
+	double * rwk;
+    int * iwk;	
+  } u_work;
+
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
 
 /*                      #### initialisation ####                              */    
-  init_N_Protect();
+  int nprot = 0;
 
   solver   = INTEGER(Solver)[0];
 
@@ -170,18 +176,43 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
   maxit = iwork[5];
   
   lrw = INTEGER(lRw)[0];
-  rwork = (double *) R_alloc(lrw, sizeof(double));
-     for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
+
+  // ks, tp 2019-07-03
+  //rwork = (double *) R_alloc(lrw, sizeof(double));
+  //for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
+  u_work.rwk = (double *) R_alloc(lrw, sizeof(double));
+  for (j=0; j<length(rWork); j++) u_work.rwk [j] = REAL(rWork)[j];
+  rwork = u_work.rwk;
 
 /* initialise global R-variables... */
 
-  PROTECT(Time = NEW_NUMERIC(1));                  incr_N_Protect();
-  PROTECT(Y = allocVector(REALSXP,(neq)));         incr_N_Protect();
-  PROTECT(yout = allocVector(REALSXP,ntot));       incr_N_Protect();
+  PROTECT(Time = NEW_NUMERIC(1));                  nprot++;
+  PROTECT(Y = allocVector(REALSXP,(neq)));         nprot++;
+  PROTECT(yout = allocVector(REALSXP,ntot));       nprot++;
 
  /* The initialisation routine */
-  initParms(initfunc, parms);
-  initForcs(initforc, forcs);
+  // initParms(initfunc, parms);
+  if (initfunc != NA_STRING) {
+    
+    if (inherits(initfunc, "NativeSymbol"))  {
+      C_init_func_type *initializer;
+      
+      PROTECT(st_gparms = parms);     nprot++;
+      initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(initfunc);
+      initializer(Initstparms);
+    }
+   }
+  
+  // initForcs(initforc, forcs);
+  if (initforc != NA_STRING) {
+    if (inherits(initforc, "NativeSymbol"))  {
+      C_init_func_type *initializer;
+    
+      PROTECT(st_gforcs = forcs);     nprot++;
+      initializer = (C_init_func_type *) R_ExternalPtrAddrFn_(initforc);
+      initializer(Initstforcs);
+    }
+  }
 
 /* pointers to functions derivs, jac, passed to FORTRAN */
   dy = (double *) R_alloc(neq, sizeof(double));
@@ -250,8 +281,8 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 			   &lrw, iwork, &liw, jac, &jt, out, ipar); 
     else
      F77_CALL(dlsodes) (derivs, &neq, xytmp, &tin, &tout,
-         &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-         &lrw, iwork, &liw, rwork, jac_vec, &jt, out, ipar);    
+         &itol, Rtol, Atol, &itask, &istate, &iopt, u_work.rwk,
+         &lrw, iwork, &liw, u_work.iwk, jac_vec, &jt, out, ipar);    
      /* check steady-state */
     sumder = 0. ;
     derivs (&neq, &tin, xytmp, dy, out, ipar) ;
@@ -277,7 +308,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
      }
     if (istate == -3)
 	   {
-	    unprotect_all();
+	    UNPROTECT(nprot);
 	    error("Illegal input to lsode\n");
 	   }
 	} 
@@ -294,12 +325,12 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
 /*                    ####  an error occurred   ####                          */    
   if (istate < 0 ) warning("Returning early.  Results are accurate, as far as they go\n");
 
-  PROTECT(ISTATE = allocVector(INTSXP, 24));incr_N_Protect();
+  PROTECT(ISTATE = allocVector(INTSXP, 24));    nprot++;
   for (k = 0;k<22;k++) INTEGER(ISTATE)[k+1] = iwork[k];
   INTEGER(ISTATE)[0] = istate;
   INTEGER(ISTATE)[23] = Steady;
        
-  PROTECT(RWORK = allocVector(REALSXP, 7));incr_N_Protect();
+  PROTECT(RWORK = allocVector(REALSXP, 7));    nprot++;
   for (k = 0;k<5;k++) REAL(RWORK)[k] = rwork[k+10];
 
   REAL(RWORK)[5] = sumder/neq;
@@ -309,7 +340,7 @@ SEXP call_lsode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP forcs,
   setAttrib(yout, install("istate"), ISTATE);    
 
 /*                       ####   termination   ####                            */    
-  unprotect_all();
+  UNPROTECT(nprot);
   return(yout);
 }
 

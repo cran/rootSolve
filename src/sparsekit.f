@@ -20,8 +20,8 @@ c**********************************************************************
      
        SUBROUTINE dsparsekit(xmodel,N,nnz,nsp,time,Svar,dSvar,beta,x,          &
      &                   a,ewt,ian,jan,igp,jgp,maxg,jlu,ju,iwork,iperm,        &
-     &                   maxiter,TolChange,atol,rtol,itol,Positivity,          &
-     &                   Pos,ipos,SteadyStateReached,Precis,niter,             &
+     &                   maxiter,TolChange,atol,rtol,itol,PositivityInt,       &
+     &                   Pos,ipos,SteadyStateReachedInt,Precis,niter,          &
      &                   dims,out,nout,Type,droptol,permtol,imethod,           &
      &                   lfill,lenplumx,plu,rwork,pres)
 
@@ -56,6 +56,7 @@ c transpose of jacobian  KS: check if transpose or Jacobian
 c false if failed - true if variables must be positive 
 c positivity either enforced at once (positivity=TRUE) or as a vector of elements
       LOGICAL SteadyStateReached, positivity
+      INTEGER SteadyStateReachedInt, PositivityInt
       INTEGER  Ipos, Pos(Ipos)
 
 c tolerances, precision
@@ -87,6 +88,9 @@ c
       INTEGER i, j, k, ierr
 c-------------------------------------------------------------------------------
       SteadyStateReached = .FALSE.
+      SteadyStateReachedInt = 0
+      Positivity = .FALSE.
+      IF (positivityInt > 0.1) Positivity = .TRUE.
 
       CALL errSET (N, ITOL, RTOL, ATOL, SVAR, EWT)
 
@@ -130,6 +134,7 @@ c Check convergence
         precis(i) = precis(i)/N
         IF (maxewt .LE. 1) THEN
           SteadyStateReached = .TRUE.
+          SteadyStateReachedInt = 1
           EXIT
         ENDIF
 
@@ -190,6 +195,7 @@ c last precision reached
             niter = I+1
           ENDIF
           SteadyStateReached = .TRUE.
+          STeadyStateReachedInt = 1
           EXIT
         ENDIF
 
@@ -197,6 +203,10 @@ c last precision reached
 
 
       ENDDO
+
+      SteadyStateReachedInt = 0
+      IF (SteadyStateReached) SteadyStateReachedInt = 1
+      
 c put some values in dims - 
 c       dims(3) = nsp - esp
 

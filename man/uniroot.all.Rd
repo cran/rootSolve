@@ -10,7 +10,8 @@
 }
 \usage{
 uniroot.all(f, interval, lower = min(interval), upper = max(interval), 
-            tol = .Machine$double.eps^0.2, maxiter = 1000, n = 100, ...)}
+            tol = .Machine$double.eps^0.2, maxiter = 1000, 
+            trace = 0, n = 100, ...)}
 \arguments{
   \item{f }{the function for which the root is sought.
   }
@@ -21,10 +22,12 @@ uniroot.all(f, interval, lower = min(interval), upper = max(interval),
   }
   \item{upper }{the upper end point of the interval to be searched.
   }
-  \item{tol }{the desired accuracy (convergence tolerance).
+  \item{tol }{the desired accuracy (convergence tolerance).  Passed to function \link{uniroot}
   }
-  \item{maxiter }{the maximum number of iterations.
+  \item{maxiter }{the maximum number of iterations.  Passed to function \link{uniroot}
   }
+  \item{trace }{integer number; if positive, tracing information is produced. 
+    Higher values giving more details. Passed to function \link{uniroot}}
   \item{n }{number of subintervals in which the root is sought.
   }
   \item{... }{additional named or unnamed arguments to be passed to \code{f}

@@ -5,7 +5,7 @@
 
 uniroot.all <- function (f, interval, lower= min(interval),
         upper= max(interval), tol= .Machine$double.eps^0.2,
-        maxiter= 1000, n = 100, ... ) {
+        maxiter= 1000, trace = 0, n = 100, ... ) {
 
 ## error checking as in uniroot...
   if (!missing(interval) && length(interval) != 2)
@@ -25,7 +25,8 @@ uniroot.all <- function (f, interval, lower= min(interval),
   ii   <- which(ss<0)
 
   for (i in ii)
-    Equi <- c(Equi,uniroot(f,lower=xseq[i],upper=xseq[i+1],...)$root)
+    Equi <- c(Equi, uniroot(f,lower=xseq[i],upper=xseq[i+1], maxiter = maxiter, tol = tol, 
+               trace = trace, ...)$root)
 
   return(Equi)
 }

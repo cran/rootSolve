@@ -45,8 +45,12 @@ steady.3D    <- function (y, time = 0, func, parms = NULL, nspec = NULL,
     if (is.null(jactype))
       jactype <- "3D"
     # Note: stodes expects rev(dimens)..
-  out <- stodes(y = y, times = times, func = func, parms = parms,
+    if (jactype == "3D")
+      out <- stodes(y = y, times = times, func = func, parms = parms,
                 nnz = c(nspec, rev(dimens), rev(Bnd)), sparsetype = jactype, ...)
+    else
+      out <- stodes(y=y,time=times,func=func,parms=parms,
+                    sparsetype=jactype, ...)
   } else {
     if (is.null(jactype))
       jactype <- "sparse"

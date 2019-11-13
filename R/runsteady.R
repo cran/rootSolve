@@ -267,8 +267,8 @@ runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
       if (!is.matrix(tmp))
         stop("Jacobian function must return a matrix\n")
       dd <- dim(tmp)
-      if((miter ==4 && dd != c(bandup+banddown+1,n)) ||
-         (miter ==1 && dd != c(n,n))) stop("Jacobian dimension not ok")
+      if((miter ==4 && any(dd != c(bandup+banddown+1,n))) ||
+         (miter ==1 && any(dd != c(n,n)))) stop("Jacobian dimension not ok")
     }
   } # character func
 

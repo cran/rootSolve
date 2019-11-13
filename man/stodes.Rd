@@ -74,9 +74,11 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
     than this amount, steady-state is assumed to be reached.
   }
   \item{sparsetype }{the sparsity structure of the Jacobian, one of
-    "sparseint" or "sparseusr", "sparsejan", ..., 
-    The sparsity can be estimated internally by stodes (first option)
-    or given by the user (last two). See details.
+    "sparseint", "sparseusr", "sparsejan", "sparsereturn", ..., 
+    The sparsity can be estimated internally by stodes (first and last option)
+    or given by the user (other two). See details.
+    Note: setting \code{sparsetype} equal to "sparsereturn" will not solve for 
+    steady-state but solely return the \code{ian} and \code{jan} vectors.
   }
   \item{verbose }{if TRUE: full output to the screen, e.g. will output the
     steady-state settings.
@@ -91,8 +93,8 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   }
   \item{inz }{if \code{sparsetype} equal to "sparseusr", a two-columned matrix
     with the (row, column) indices to the nonzero elements in the sparse
-    Jacobian. If \code{sparsetype} = "sparsejan", a vecotr with the elements 
-    ian followed by he elements jan as used in the stodes code. See details.
+    Jacobian. If \code{sparsetype} = "sparsejan", a vector with the elements 
+    ian followed by the elements jan as used in the stodes code. See details.
     In all other cases, ignored. 
     If \code{inz} is NULL, the sparsity will be determined by \code{stodes}.
   }
@@ -206,6 +208,10 @@ stodes(y, time = 0, func, parms = NULL, rtol = 1e-6, atol = 1e-8,
   if steady-state has been reached and the attribute \code{precis} with an
   estimate of the precision attained during each iteration, the mean absolute
   rate of change (sum(abs(dy))/n).
+  
+  In case the argument \code{sparsetype} is set to "sparsereturn", 
+  then two extra attributes will be returned, i.e. \code{ian} and \code{jan}.
+  These can then be used to speed up subsequent calculations - see last example.
 }
 \author{
   Karline Soetaert <karline.soetaert@nioz.nl>
@@ -240,15 +246,47 @@ dx   <- 0.01
 N    <- 1000
 dist <- seq(dx/2, by = dx, len = N)
 Kz   <- 1  #bioturbation (diffusion), cm2/yr
-ss   <- stodes(runif(N), func = model, parms = NULL,
+print(system.time(
+  ss   <- stodes(runif(N), func = model, parms = NULL,
                positive = TRUE, decay = 5, ing = 20, verbose = TRUE)
-
+))
 plot(ss$y[1:N], dist, ylim = rev(range(dist)), type = "l", lwd = 2,
      xlab = "Nonlocal exchange", ylab = "sediment depth",
      main = "stodes, sparse jacobian")
 
 # the size of lrw is in the attributes()$dims vector.     
 attributes(ss)     
+
+## =======================================================================
+## deriving sparsity structure and speeding up calculations
+## =======================================================================
+
+sparse <- stodes(runif(N), func = model, parms = NULL,
+                 sparsetype = "sparsereturn", decay = 5, ing = 20)
+
+ian <- attributes(sparse)$ian
+jan <- attributes(sparse)$jan
+nnz <- length(jan)
+inz <- c(ian, jan)
+
+print(system.time(
+s2   <- stodes(runif(N), func = model, parms = NULL, positive = TRUE,
+               sparsetype = "sparsejan", inz = inz, decay = 5, ing = 20)
+))
+
+# Can also be used with steady.1D, by setting jactype = "sparsejan".
+# The advantage is this allows easy plotting...
+
+print(system.time(
+s2b   <- steady.1D(runif(N), func = model, parms = NULL, method = "stodes", 
+                   nspec = 1, jactype = "sparsejan", inz = inz, 
+               decay = 5, ing = 20, verbose = FALSE)
+))
+
+plot(s2b, grid = dist, xyswap = TRUE, type = "l", lwd = 2,
+     xlab = "Nonlocal exchange", ylab = "sediment depth",
+     main = "steady 1-D, sparse jacobian imposed")
+
 }
 
 \references{

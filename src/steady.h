@@ -22,15 +22,15 @@ extern SEXP lsode_deriv_func;
 extern SEXP lsode_jac_func;
 extern SEXP lsode_envir;
 
-/* steady_utils.c functions */
+/* steady_utils.c functions 
 void init_N_Protect(void);
 void incr_N_Protect(void);
 void unprotect_all(void);
 void my_unprotect(int);
-
 void initParms(SEXP Initfunc, SEXP Parms);
-void Initstparms(int *, double *);
 void initForcs(SEXP Initforc, SEXP Forcs);
+*/
+void Initstparms(int *, double *);
 void Initstforcs(int *, double *);
 void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
 

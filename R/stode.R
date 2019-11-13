@@ -243,8 +243,8 @@ stode         <- function(y, time=0, func, parms=NULL,
       tmp <- eval(JacFunc(time, y), rho)
       if (!is.matrix(tmp)) stop("Jacobian function must return a matrix\n")
       dd <- dim(tmp)
-      if((imp ==24 && dd != c(bandup+banddown+1,n)) ||
-        (imp ==21 && dd != c(n,n)))
+      if((imp ==24 && any(dd != c(bandup+banddown+1,n))) ||
+        (imp ==21 && any(dd != c(n,n))))
           stop("Jacobian dimension not ok")
     }
   }
