@@ -13,7 +13,7 @@ void F77_NAME(dsteady)(void (*)(int *, double *, double *, double *, double*, in
 		     int *, int *, int *, int *, double *, double *, double *, int *,
          double *, int *, double *, int *);
 
-C_deriv_func_type *derivb;
+static C_deriv_func_type *derivb;
 
                                         
 static void C_steady_derivs (int *neq, double *t, double *y, double *ydot,

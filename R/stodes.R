@@ -198,7 +198,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
   ModelForc <- NULL
   Forc <- NULL
   if(is.compiled(func) & ! is.null(initfunc)) {
-     if (class(initfunc) == "CFunc")
+     if (inherits(initfunc, "CFunc"))
         ModelInit <- body(initfunc)[[2]]
   
      else if (is.loaded(initfunc, PACKAGE = dllname,
@@ -212,7 +212,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
   if (is.compiled(func)) {
     funcname <- func
       # get the pointer and put it in func
-     if (class(func) == "CFunc")
+     if (inherits(func, "CFunc"))
       Func <- body(func)[[2]]
      else if(is.loaded(funcname, PACKAGE = dllname)) {
        Func <- getNativeSymbolInfo(funcname, PACKAGE = dllname)$address
@@ -220,7 +220,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
       stop(paste("cannot calculate steady-state: dyn function not loaded: ",funcname))
 
      if (! is.null(initforc))  {
-       if (class(initforc) == "CFunc")
+       if (inherits(initforc, "CFunc"))
           ModelForc <- body(initforc)[[2]]
        else if (is.loaded(initforc, PACKAGE = dllname,
                 type = "") || is.loaded(initforc, PACKAGE = dllname,
@@ -347,7 +347,7 @@ stodes <- function(y, time = 0, func, parms = NULL,
 
   attributes(out)<-NULL
   if (Nglobal > 0) {
-    if (!is.character(func) & ! class(func) == "CFunc") {      # if a DLL: already done...
+    if (!is.character(func) & ! inherits(func, "CFunc")) {      # if a DLL: already done...
       y <- out                      # state variables of this time step
       if(ynames)  attr(y,"names")  <-  Ynames
       out2 <- Func2(time, y)[-1]

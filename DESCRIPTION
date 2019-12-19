@@ -1,5 +1,5 @@
 Package: rootSolve
-Version: 1.8.1
+Version: 1.8.2
 Title: Nonlinear Root Finding, Equilibrium and Steady-State Analysis of
         Ordinary Differential Equations
 Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"), 
@@ -15,6 +15,12 @@ Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"),
              person("Youcef", "Saad", role = "ctb", 
                      comment = "file dsparsk.f"))
 Maintainer: Karline Soetaert <karline.soetaert@nioz.nl>
+Author: Karline Soetaert [aut, cre],
+  Alan C. Hindmarsh [ctb] (files lsodes.f, sparse.f),
+  S.C. Eisenstat [ctb] (file sparse.f),
+  Cleve Moler [ctb] (file dlinpk.f),
+  Jack Dongarra [ctb] (file dlinpk.f),
+  Youcef Saad [ctb] (file dsparsk.f)
 Depends: R (>= 2.01)
 Imports: stats, graphics, grDevices
 Description: Routines to find the root of nonlinear functions, and to perform steady-state and equilibrium analysis of ordinary differential equations (ODE). 
@@ -26,16 +32,10 @@ Description: Routines to find the root of nonlinear functions, and to perform st
   Includes fortran code.
 License: GPL (>= 2)
 LazyData: yes
-Author: Karline Soetaert [aut, cre],
-  Alan C. Hindmarsh [ctb] (files lsodes.f, sparse.f),
-  S.C. Eisenstat [ctb] (file sparse.f),
-  Cleve Moler [ctb] (file dlinpk.f),
-  Jack Dongarra [ctb] (file dlinpk.f),
-  Youcef Saad [ctb] (file dsparsk.f)
 Repository: CRAN
 Repository/R-Forge/Project: rootsolve
-Repository/R-Forge/Revision: 99
-Repository/R-Forge/DateTimeStamp: 2019-11-12 13:26:37
-Date/Publication: 2019-11-13 17:50:03 UTC
+Repository/R-Forge/Revision: 106
+Repository/R-Forge/DateTimeStamp: 2019-12-19 10:46:24
+Date/Publication: 2019-12-19 22:40:02 UTC
 NeedsCompilation: yes
-Packaged: 2019-11-12 13:50:27 UTC; rforge
+Packaged: 2019-12-19 11:10:28 UTC; rforge

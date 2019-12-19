@@ -19,20 +19,20 @@ void my_unprotect(int n){ UNPROTECT(n);N_Protected -= n;}
 
 /* Globals :*/ 
 
-SEXP Rst_deriv_func;
-SEXP Rst_jac_func;
-SEXP Rst_envir;
-SEXP st_gparms;
-SEXP st_gforcs;
+// SEXP Rst_deriv_func;
+// SEXP Rst_jac_func;
+// SEXP Rst_envir;
+// SEXP st_gparms;
+//  SEXP st_gforcs;
 
-SEXP stsparse_deriv_func;
-SEXP stsparse_jac_func;
-SEXP stsparse_envir;
+// SEXP stsparse_deriv_func;
+// SEXP stsparse_jac_func;
+// SEXP stsparse_envir;
 
 /* runsteady */
-SEXP lsode_deriv_func;
-SEXP lsode_jac_func;
-SEXP lsode_envir;
+// SEXP lsode_deriv_func;
+// SEXP lsode_jac_func;
+// SEXP lsode_envir;
 
 /*==================================================
 Parameter initialisation functions - 

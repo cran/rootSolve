@@ -6,7 +6,10 @@
 # include <R_ext/Rdynload.h>
 #endif
 
+// define all the globals in this file (only)
+#define extern
 #include "steady.h"
+#undef extern
 
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL

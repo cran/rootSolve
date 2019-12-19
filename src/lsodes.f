@@ -1170,6 +1170,8 @@ C If ISTATE = 1 and TOUT = T, return immediately.
 C-----------------------------------------------------------------------
 C
 C***FIRST EXECUTABLE STATEMENT  DLSODE
+C KARLINE: INITIALISED IHIT TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFEXT
+      IHIT = .TRUE.
       IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
       IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
       IF (ISTATE .EQ. 1) GO TO 10
@@ -2271,6 +2273,9 @@ CKS: added rpar,ipar
      5   MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
 C
 C***FIRST EXECUTABLE STATEMENT  DSTODE
+C KARLINE: INITIALISED IREDO, RH TO AVOID COMPILER WARNING - SHOULD HAVE NO EFFECT
+      IREDO = 0
+      RH = 1.D0
       KFLAG = 0
       TOLD = TN
       NCF = 0
@@ -2993,13 +2998,13 @@ C-----------------------------------------------------------------------
 C
 C  Declare arguments.
 C
-      DOUBLE PRECISION R1, R2, RVEC(2), Dummy
+      DOUBLE PRECISION R1, R2, RVEC(2), Dummy(1)
       INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR, Ivec(2)
       CHARACTER(LEN=80) MSG
 C      INTEGER LUNIT, IXSAV, MESFLG
       
-      dummy = 0.d0
-      call dblepr(MSG, NMES, dummy, 0)
+      dummy(1) = 0.d0
+      call dblepr(MSG, NMES, dummy, 1)
 
 
       IF (NI .EQ. 1) THEN
@@ -4354,6 +4359,8 @@ C If ISTATE .gt. 1 but the flag INIT shows that initialization has
 C not yet been done, an error return occurs.
 C If ISTATE = 1 and TOUT = T, return immediately.
 C-----------------------------------------------------------------------
+C KARLINE: INITIALISED IHIT TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFEXT
+      IHIT = .TRUE.
       IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
       IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
       IF (ISTATE .EQ. 1) GO TO 10

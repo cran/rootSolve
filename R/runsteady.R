@@ -144,7 +144,7 @@ runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
   Forc <- NULL
 
   if ( is.compiled(func)  & ! is.null(initfunc)) {
-    if (class(initfunc) == "CFunc")
+    if (inherits(initfunc, "CFunc"))
         ModelInit <- body(initfunc)[[2]]
     else if (is.loaded(initfunc, PACKAGE = dllname,type = "") ||
         is.loaded(initfunc, PACKAGE = dllname,
@@ -160,7 +160,7 @@ runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
   if (is.compiled(func)) {
     funcname <- func
     ## get the pointer and put it in func
-    if (class(func) == "CFunc")
+    if (inherits(func, "CFunc"))
       Func <- body(func)[[2]]
     
     else if ( is.loaded(funcname, PACKAGE = dllname)) {
@@ -168,7 +168,7 @@ runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
     } else stop(paste("cannot integrate: dyn function not loaded",funcname))
 
      if (! is.null(initforc))  {
-       if (class(initforc) == "CFunc")
+       if (inherits(initforc, "CFunc"))
           ModelForc <- body(initforc)[[2]]
      
        else if (is.loaded(initforc, PACKAGE = dllname,
@@ -187,7 +187,7 @@ runsteady <- function(y, time=c(0,Inf), func, parms, stol=1e-8,
       if (!is.compiled(jacfunc))
         stop("If 'func' is dynloaded, so must 'jacfunc' be")
       jacfuncname <- jacfunc
-      if (class(jacfunc) == "CFunc")
+      if (inherits(jacfunc, "CFunc"))
         JacFunc <- body(jacfunc)[[2]]
       else if ( is.loaded(jacfuncname, PACKAGE = dllname)) {
         JacFunc <- getNativeSymbolInfo(jacfuncname, PACKAGE = dllname)$address

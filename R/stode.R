@@ -126,7 +126,7 @@ stode         <- function(y, time=0, func, parms=NULL,
   Forc <- NULL
   if (is.compiled(func)) {
     if(! is.null(initfunc)) {
-     if (class(initfunc) == "CFunc")
+     if (inherits(initfunc, "CFunc"))
         ModelInit <- body(initfunc)[[2]]
 
      else if (is.loaded(initfunc, PACKAGE = dllname,
@@ -135,7 +135,7 @@ stode         <- function(y, time=0, func, parms=NULL,
          ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
      }
      if (! is.null(initforc))  {
-       if (class(initforc) == "CFunc")
+       if (inherits(initforc, "CFunc"))
           ModelForc <- body(initforc)[[2]]
        else if (is.loaded(initforc, PACKAGE = dllname,
                 type = "") || is.loaded(initforc, PACKAGE = dllname,
@@ -157,7 +157,7 @@ stode         <- function(y, time=0, func, parms=NULL,
   if (is.compiled(func)) {
     funcname <- func
      # get the pointer and put it in func
-    if (class(func) == "CFunc")
+    if (inherits(func, "CFunc"))
       Func <- body(func)[[2]]
     else if(is.loaded(funcname, PACKAGE = dllname)) {
       Func <- getNativeSymbolInfo(funcname, PACKAGE = dllname)$address
@@ -168,7 +168,7 @@ stode         <- function(y, time=0, func, parms=NULL,
       if (!is.compiled(jacfunc))
          stop("If 'func' is dynloaded, so must 'jacfunc' be")
       jacfuncname <- jacfunc
-      if (class(jacfunc) == "CFunc")
+      if (inherits(jacfunc, "CFunc"))
         JacFunc <- body(jacfunc)[[2]]
       else if(is.loaded(jacfuncname, PACKAGE = dllname)) {
         JacFunc <- getNativeSymbolInfo(jacfuncname, PACKAGE = dllname)$address
@@ -284,7 +284,7 @@ stode         <- function(y, time=0, func, parms=NULL,
   attributes(out)<-NULL
   if (Nglobal > 0) {
 
-    if (!is.character(func) & ! class(func) == "CFunc") {         # if a DLL: already done...
+    if (!is.character(func) & ! inherits(func, "CFunc")) {         # if a DLL: already done...
       y <- out                      # state variables of this time step
       if(ynames)  attr(y,"names")  <-  Ynames
       out2 <- Func2(time, y)[-1]

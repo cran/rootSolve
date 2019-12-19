@@ -13,7 +13,7 @@ void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, in
 		     void (*)(int *, double *, double *, int *,
 			      int *, double *, int *, double *, int *),
 		     int *, double *, int *);
-C_deriv_func_type *derivb;
+static C_deriv_func_type *derivb;
 
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
              int *, double *, double *, double *,

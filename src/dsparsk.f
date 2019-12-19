@@ -746,8 +746,9 @@ c  Coded by Y. Saad, Sep. 26 1989                                      c
 c----------------------------------------------------------------------c
       real(kind = 8) t,tnext
       logical values
-c----------------------------------------------------------------------- 
+c---karline: initialised "t" to avoid compiler warnings -should have no effect.
       tnext = 0.d0
+      t = 0.d0
       values = (job .eq. 1) 
 c find pointer array for resulting matrix. 
       do 35 i=1,n+1

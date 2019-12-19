@@ -6,10 +6,10 @@
 ### ============================================================================
 
   is.compiled <- function (FF)
-   (is.character(FF) || class(FF) == "CFunc")
+   (is.character(FF) || inherits(FF, "CFunc"))
 
   CheckFunc <- function (FF)
-   (is.function(FF) || is.character(FF) || class(FF) == "CFunc")
+   (is.function(FF) || is.character(FF) || inherits(FF, "CFunc"))
 
 
 ### ============================================================================
@@ -139,7 +139,7 @@ convert2wide <- function(Data) {
 
 mergeObs <- function(obs, Newobs) {
       
-  if (! class(Newobs) %in% c("data.frame","matrix"))
+  if (! inherits(Newobs, c("data.frame","matrix")))
     stop ("the elements in 'obs' should be either a 'data.frame' or a 'matrix'")
       
   if (is.character(Newobs[,1]) | is.factor(Newobs[,1])) 
@@ -223,7 +223,7 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
        Obs <- obs
        obs <- Obs[[1]]  
        obs.pos <- matrix(nrow = 1, c(1, nrow(obs)))
-       if (! class(obs) %in% c("data.frame", "matrix"))
+       if (! inherits(obs, c("data.frame", "matrix")))
          stop ("'obs' should be either a 'data.frame' or a 'matrix'")
        if (length(Obs) > 1)
          for ( i in 2 : length(Obs)) {
@@ -235,7 +235,7 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
        if (is.character(obs[,1]) | is.factor(obs[,1])) 
           obs <- convert2wide(obs)
        obsname <- colnames(obs) 
-       if (! class(obs) %in% c("data.frame", "matrix"))
+       if (! inherits(obs, c("data.frame", "matrix")))
          stop ("'obs' should be either a 'data.frame' or a 'matrix'")
        obs.pos <- matrix(nrow = 1, c(1, nrow(obs)))
       }                       
@@ -301,11 +301,11 @@ plot.steady1D <- function (x, ..., which = NULL, grid = NULL,
     if (length(ldots) > 0) 
      for ( i in 1:length(ldots))    
       # an element of type steady1D
-      if ("steady1D" %in% class(ldots[[i]]))  {    
+      if (inherits(ldots[[i]],"steady1D"))  {    
         x2[[nother <- nother+1]] <- ldots[[i]]  
         names(x2)[nother] <- ndots[i]       
       # a list of types steady1D
-      } else if (is.list(ldots[[i]]) & "steady1D" %in% class(ldots[[i]][[1]])) {   
+      } else if (is.list(ldots[[i]]) & inherits(ldots[[i]][[1]] ,"steady1D") ) {   
         for (j in 1:length(ldots[[i]])) {
           x2[[nother <- nother+1]] <- ldots[[i]][[j]]  
           names(x2)[nother] <- names(ldots[[i]])[[j]]

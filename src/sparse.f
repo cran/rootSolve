@@ -940,10 +940,10 @@ c***********************************************************************
       integer  ek, tail,  v(*), l(*),  head(*), last(*), next(*),
      *   mark(*),  tag, free, li,vi,lvi,evi, s,ls,es, ilp,ilpmax
           integer i,k
-c
+c NOTE: KARLINE INITIALISED "free" TO AVOID COMPILER WARNING - SHOULD HAVE NO EFFECT
 c----initialize tag
       tag = mark(ek)
-c
+      free = 1
 c----for each vertex vi in ek
       li = ek
       ilpmax = last(ek)
