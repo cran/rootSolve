@@ -73,7 +73,7 @@ steady.1D(y, time = NULL, func, parms = NULL,
     Values larger than 1 will not work with \code{method = "stodes"}.
   }
   \item{... }{additional arguments passed to the solver function as defined
-    by \code{method}.
+    by \code{method}. See example for the use of argument \code{positive} to enforce positive values (pos = TRUE).
   }
 }
 \value{
@@ -147,7 +147,7 @@ BOD_0   <- 1500      # mmol/m3 riverine BOD concentration
 # initial guess:
 state <- c(rep(200, N), rep(200, N))
 
-# running the model
+# solving the model - note: pos=TRUE only allows positive concentrations
 print(system.time(
  out   <- steady.1D (y = state, func = O2BOD, parms = NULL,
                      nspec = 2, pos = TRUE, names = c("BOD", "O2"))))
@@ -171,7 +171,7 @@ plot(out, which = c("O2","BOD","BODrate"),xlab = "Distance from river",
      ylab = c("mmol/m3","mmol/m3","mmol/m3/d"), 
      main = c("Oxygen","BOD","BOD decay rate"), type = "l")
 
-# same, but now running dynamically to steady-state
+# same, but now running dynamically to steady-state - no need to set pos = TRUE
 print(system.time(
 out2 <- steady.1D (y = state, func = O2BOD, parms = NULL, nspec = 2,
                    time = c(0, 1000), method = "runsteady", 

@@ -224,11 +224,12 @@ c**********************************************************************
 
 
       SUBROUTINE warnflagkit(ierr)
-      INTEGER Ierr
+      INTEGER Ierr, idum(1)
 c-------------------------------------------------------------------------------
 
       IF (IERR .GT. 0) THEN 
-        call intpr("zero pivot encountered at step nr ",35, IERR, 1)
+        idum(1) = IERR
+        call intpr("zero pivot encountered at step nr ",35, IDUM, 1)
 C        write(msg,'(A35,I10)')"zero pivot encountered at step nr ",IERR
 C        call rwarn(msg)
       ELSE IF (IERR .EQ. -1) THEN

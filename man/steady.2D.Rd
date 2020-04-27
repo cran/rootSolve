@@ -65,8 +65,9 @@ steady.2D(y, time = 0, func, parms = NULL, nspec = NULL,
   \item{names }{the names of the components; used to label the output, 
     and for plotting.
   }
-  \item{... }{additional arguments passed to function \link{stodes}.
-    See note.
+  \item{... }{additional arguments passed to function \link{stodes}. 
+  See example for the use of argument \code{positive} to enforce positive values (pos = TRUE).
+    See details.
   }
 }
 \value{
@@ -133,6 +134,7 @@ y  <- matrix(nrow = n, ncol = n, 10.)
 
 # stodes is used, so we should specify the size of the work array (lrw)
 # We take a rather large value
+# By specifying pos = TRUE, only positive values are allowed.
 
 system.time(
 ST2 <- steady.2D(y, func = diffusion2D, parms = NULL, pos = TRUE,

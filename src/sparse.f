@@ -205,36 +205,47 @@ c       WRITE ERROR/WARNINGS OF SPARSE SOLVER                         *
 c**********************************************************************
 
       SUBROUTINE warnflag(flag,N)
-      INTEGER flag, iflag,N
+      INTEGER flag, iflag,N,IDUM(1)
      
       iflag = INT(flag/N)
       IF (iflag .EQ. 1) THEN
-         call intpr ("sparse solver: null row in a", -1, 0, 0)
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = 0
+         call intpr ("sparse solver: null row in a", -1, IDUM, 1)
+         IDUM(1) = flag-iflag
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 2) THEN
-         call intpr("sparse solver: duplicate entry in a", -1, 0, 0)
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = 0       
+         call intpr("sparse solver: duplicate entry in a",-1,IDUM,1)
+         IDUM(1) = flag-iflag         
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 3) THEN
-         call intpr ("insufficient storage in nsfc", -1, 0, 0)
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = 0       
+         call intpr ("insufficient storage in nsfc", -1, IDUM, 1)
+         IDUM(1) = flag-iflag         
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 4) THEN
          call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 5) THEN
          call rwarn("sparse solver: null pivot")
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = flag-iflag         
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 6) THEN
-         call intpr ("insufficient storage in nsfc", -1, 0, 0)
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = 0
+         call intpr ("insufficient storage in nsfc", -1, IDUM, 0)
+         IDUM(1) = flag-iflag         
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped - increase argument lrw")
        ELSE if (iflag .EQ. 7) THEN
          call rwarn("insufficient storage in nnfc - increase lrw")
        ELSE if (iflag .EQ. 8) THEN
-         call intpr ("sparse solver: zero pivot", -1, 0, 0)
-         call intpr ("  row nr: ", 10, flag-iflag, 1)
+         IDUM(1) = 0       
+         call intpr ("sparse solver: zero pivot", -1, IDUM, 1)
+         IDUM(1) =  flag-iflag        
+         call intpr ("  row nr: ", 10, IDUM, 1)
          call rexit("stopped")
        ELSE if (iflag .EQ. 9) THEN
          call rexit("insufficient storage in md - increase lrw")
@@ -323,7 +334,7 @@ c-------------------------------------------------------------------*
        DOUBLE PRECISION  DivDelt
        LOGICAL           enough
        INTEGER           igp(*),jgp(N),NGP,incl(N),jdone(N)
-       INTEGER           maxg,ier
+       INTEGER           maxg,ier, IDUM(1)
        DOUBLE PRECISION  perturb
      
 c--------------------------------------------------------------------
@@ -378,7 +389,8 @@ c check memory allocation: enough?
          ENDDO
 
          IF (.not. enough) THEN
-           call intpr("nnz should be at least", -1, ij, 1)
+           IDUM(1) = ij
+           call intpr("nnz should be at least", -1, IDUM, 1)
            call rexit("stopped")
          ENDIF
          nonzero = ij
@@ -520,6 +532,7 @@ c********************************************************************
 
       implicit none
       INTEGER N, IA, JA, MAXG, NGRP, IGP, JGP, INCL, JDONE, IER
+      INTEGER IDUM(1)
       DIMENSION IA(*), JA(*), IGP(*), JGP(*), INCL(*), JDONE(*)
 
 C-----------------------------------------------------------------------
@@ -588,9 +601,12 @@ C Error return if not all columns were chosen (MAXG too small).---------
       NG = MAXG
  70   NGRP = NG - 1
       IF (Toomuch) THEN
-        CALL intpr("error during grouping: NGP too small",-1,0,0)
-        CALL intpr("Should be at least: ",-1, NGRP,1)
-        CALL intpr("while it is ", -1, maxG, 1)
+        idum(1) = 0
+        CALL intpr("error during grouping: NGP too small",-1,IDUM,1)
+        IDUM(1) = NGRP
+        CALL intpr("Should be at least: ",-1, IDUM,1)
+        IDUM(1) = MAXG
+        CALL intpr("while it is ", -1, IDUM, 1)
         CALL rexit("stopped")
       ENDIF
       RETURN

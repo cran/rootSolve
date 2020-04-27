@@ -2999,7 +2999,7 @@ C
 C  Declare arguments.
 C
       DOUBLE PRECISION R1, R2, RVEC(2), Dummy(1)
-      INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR, Ivec(2)
+      INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR, Ivec(2), IDUM(1)
       CHARACTER(LEN=80) MSG
 C      INTEGER LUNIT, IXSAV, MESFLG
       
@@ -3008,7 +3008,8 @@ C      INTEGER LUNIT, IXSAV, MESFLG
 
 
       IF (NI .EQ. 1) THEN
-       call intpr('In above message, I = ', 22, I1, 1)
+       IDUM(1) = I1
+       call intpr('In above message, I = ', 22, IDUM, 1)
       ENDIF
 
       IF (NI .EQ. 2) THEN 
@@ -3018,7 +3019,8 @@ C      INTEGER LUNIT, IXSAV, MESFLG
       ENDIF
 
       IF (NR .EQ. 1) THEN
-       call dblepr('In above message, R = ', 22, R1, 1)
+       DUMMY(1) = R1
+       call dblepr('In above message, R = ', 22, DUMMY, 1)
       ENDIF
 
       IF (NR .EQ. 2) THEN

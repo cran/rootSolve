@@ -58,7 +58,7 @@ c model and jacobian function
        DOUBLE PRECISION time
        
 c 
-       INTEGER          I, K, Info
+       INTEGER          I, K, Info, idum(1)
        INTEGER          xIndx(N)
 
 c Two types of jacobians used in the newton-Raphson method:
@@ -132,7 +132,8 @@ c Invert jacobian
               IF (info .NE. 0) THEN
                call rwarn("error during factorisation of matrix (dgefa);       &
      &         singular matrix")
-                 call intpr("diagonal element is zero ",-1,info,1)
+                 idum(1) = info
+                 call intpr("diagonal element is zero ",-1,idum,1)
                  EXIT
               ENDIF
               CALL DGESL(ALPHA,N,N,xIndx,Beta,info)
@@ -145,7 +146,8 @@ c Invert jacobian
               IF (info .ne. 0) THEN
                call rwarn("error during factorisation of matrix (dgbfa);       &
      &           singular matrix")
-                 call intpr ("diagonal element is zero", -1, info, 1)
+                 idum(1) = info
+                 call intpr ("diagonal element is zero", -1, idum, 1)
                  EXIT
               ENDIF  
               CALL dgbsl(alpha,NumABD,N,BandDown,BandUp,xindx,                 &

@@ -225,4 +225,3 @@ c interactions with other species in the same box
 
 c
       END SUBROUTINE sparse3dmap
-      

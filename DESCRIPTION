@@ -1,5 +1,5 @@
 Package: rootSolve
-Version: 1.8.2
+Version: 1.8.2.1
 Title: Nonlinear Root Finding, Equilibrium and Steady-State Analysis of
         Ordinary Differential Equations
 Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"), 
@@ -32,10 +32,7 @@ Description: Routines to find the root of nonlinear functions, and to perform st
   Includes fortran code.
 License: GPL (>= 2)
 LazyData: yes
-Repository: CRAN
-Repository/R-Forge/Project: rootsolve
-Repository/R-Forge/Revision: 106
-Repository/R-Forge/DateTimeStamp: 2019-12-19 10:46:24
-Date/Publication: 2019-12-19 22:40:02 UTC
 NeedsCompilation: yes
-Packaged: 2019-12-19 11:10:28 UTC; rforge
+Packaged: 2020-04-25 08:14:33 UTC; karlines
+Repository: CRAN
+Date/Publication: 2020-04-27 16:40:02 UTC

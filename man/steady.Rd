@@ -50,7 +50,7 @@ steady(y, time = NULL, func, parms = NULL, method = "stode", times = time, ...)
     or \code{runsteady}.
   }
   \item{... }{additional arguments passed to function \code{stode},
-    \code{stodes} or \code{runsteady}.
+    \code{stodes} or \code{runsteady}. See examples for the use of argument \code{positive} to enforce positive values (positive = TRUE).
   }
 }
 \value{
@@ -81,7 +81,7 @@ model <- function(t, state, pars) {
   
 pars <- list(gmax = 0.5,eff = 0.5,
              ks = 0.5, rB = 0.01, dB = 0.01, input = 0.1)
-  # Newton-Raphson
+# Newton-Raphson. pos = TRUE ensures only positive values are generated.
 steady(y = c(Bact = 0.1, Sub = 0), time = 0,
        func = model, parms = pars, pos = TRUE)  
 
