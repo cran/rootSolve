@@ -1,4 +1,4 @@
-652aa8d5e82a9f950d9cef7e9acf3fc2 *DESCRIPTION
+61274459d50716f17f03b4d81859bbba *DESCRIPTION
 c40f2250129926bb27f72dc95ee6b16e *NAMESPACE
 b02da97381497cbb524f6814ca0fd22e *R/Utilities.R
 abd53a8b204d265a88307f27105223f1 *R/gradient.R
@@ -44,7 +44,7 @@ a1b67593b992e89567c645acea1a6385 *man/steady.Rd
 9a2c8eabcaf33fe5314780c0990bf51b *man/stode.Rd
 51ae74b4c0cfcc8966e71988e76efa41 *man/stodes.Rd
 40315d66398addaadddf8edb4bdbbf6c *man/uniroot.all.Rd
-924f4c222ae14bd94b31207ca13dc3d1 *src/R_init_rootSolve.c
+914480f3b8c0c56f30e0f5fc527aaa36 *src/R_init_rootSolve.c
 5766b73f34418f9ab764fd6348c07f2f *src/call_runsteady.c
 72f1068455d202c90215cf40f5a9f392 *src/call_steady.c
 1645ba13908ea77634065862cfa5d1e2 *src/call_stsparse.c

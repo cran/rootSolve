@@ -2,6 +2,9 @@
 # include <R.h>
 #endif
 
+#include <Rinternals.h>
+#include <stdlib.h> // for NULL
+
 #ifndef R_EXT_DYNLOAD_H_
 # include <R_ext/Rdynload.h>
 #endif
@@ -10,9 +13,6 @@
 #define extern
 #include "steady.h"
 #undef extern
-
-#include <Rinternals.h>
-#include <stdlib.h> // for NULL
 
 /* register native routines ------------------------------------------------ */
 
