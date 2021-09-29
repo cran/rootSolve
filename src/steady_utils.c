@@ -49,8 +49,7 @@ void Initstparms(int *N, double *parms)
     {
       warning("Number of parameters passed to solver, %i; number in DLL, %i\n",
       Nparms, *N);
-      PROBLEM "Confusion over the length of parms"
-      ERROR;
+      Rf_error("Confusion over the length of parms.");
     } 
   else
     {
@@ -69,8 +68,7 @@ void Initstforcs(int *N, double *forcs)
     {
       warning("Number of forcings passed to solver, %i; number in DLL, %i\n",
       Nforcs, *N);
-      PROBLEM "Confusion over the length of forcs"
-      ERROR;
+        Rf_error("Confusion over the length of forcs.");
     } 
   else
     {

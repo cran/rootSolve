@@ -1,4 +1,4 @@
-61274459d50716f17f03b4d81859bbba *DESCRIPTION
+d2c749bef80a439a43bcf9621d888b8b *DESCRIPTION
 c40f2250129926bb27f72dc95ee6b16e *NAMESPACE
 b02da97381497cbb524f6814ca0fd22e *R/Utilities.R
 abd53a8b204d265a88307f27105223f1 *R/gradient.R
@@ -57,7 +57,7 @@ e9d3518ce40fba9c3bda7cd795429141 *src/sparsecoeff.f
 387a38f021f6efb57c2d5e26b05c6eae *src/sparsekit.f
 c14fda2a8d77226577de8c71e132378d *src/steady.f
 cdaca21ffbaa51681ba9526b06e2167d *src/steady.h
-3d56417a5ad8f4050a01969fc0da647c *src/steady_utils.c
+f9e0a402472e5c19a6e2cc1a091d9acf *src/steady_utils.c
 1dab60aba1ae0267628339f83ef92aeb *src/testMap.f
 e536b0d763a0d0514ed3fe2718a0b527 *vignettes/rootSolve.Rnw
 4f608f9d9a952c05ad3bbe1e1573da07 *vignettes/vignettes.bib

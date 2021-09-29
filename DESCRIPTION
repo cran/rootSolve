@@ -1,5 +1,5 @@
 Package: rootSolve
-Version: 1.8.2.2
+Version: 1.8.2.3
 Title: Nonlinear Root Finding, Equilibrium and Steady-State Analysis of
         Ordinary Differential Equations
 Authors@R: c(person("Karline","Soetaert", role = c("aut", "cre"), 
@@ -32,6 +32,6 @@ Description: Routines to find the root of nonlinear functions, and to perform st
   Includes fortran code.
 License: GPL (>= 2)
 NeedsCompilation: yes
-Packaged: 2021-06-30 10:20:20 UTC; karlines
+Packaged: 2021-09-23 05:51:17 UTC; karlines
 Repository: CRAN
-Date/Publication: 2021-07-05 07:10:02 UTC
+Date/Publication: 2021-09-29 12:30:02 UTC
