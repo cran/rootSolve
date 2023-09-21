@@ -23,14 +23,6 @@ Functions that:
 
 }
 \details{
-  \tabular{ll}{
-     Package: \tab rootSolve\cr
-     Type: \tab Package\cr
-     Version: \tab 1.7\cr
-     Date: \tab 2010-10-10\cr
-     License: \tab GNU Public License 2 or above\cr
-  }
-
 rootSolve was created to solve the examples from chapter 7 (stability and
 steady-state) from the book of Soetaert and Herman, 2009.
 
